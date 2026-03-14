@@ -1,7 +1,8 @@
 {
-  "name": "dropout-temp",
+  "name": "dropout",
   "version": "0.1.0",
   "private": true,
+  "description": "DropSpace — The Instagram for product launches",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

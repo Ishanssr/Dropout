@@ -1,5 +1,5 @@
 import "./globals.css";
-import Navbar from "../components/Navbar";
+import Sidebar from "../components/Navbar";
 
 export const metadata = {
   title: "DropSpace — Discover What's Dropping Next",
@@ -15,8 +15,9 @@ export default function RootLayout({ children }) {
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-        <Navbar />
-        <main className="w-full pt-[60px] pb-[60px] min-h-screen">
+        <Sidebar />
+        {/* Main content — offset by sidebar on desktop, full-width on mobile */}
+        <main style={{ minHeight: '100vh', paddingBottom: '60px' }}>
           {children}
         </main>
       </body>

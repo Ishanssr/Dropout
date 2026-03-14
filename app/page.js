@@ -1,12 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DropCard from '../components/DropCard';
-import { drops, categories, getDropsByCategory } from '../lib/drops';
+import { categories } from '../lib/drops';
+import { fetchDrops, transformDrop } from '../lib/api';
 
 export default function Home() {
   const [active, setActive] = useState('all');
-  const filtered = getDropsByCategory(active);
+  const [drops, setDrops] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchDrops(active)
+      .then((data) => {
+        setDrops(data.map(transformDrop));
+        setLoading(false);
+      })
+      .catch(() => {
+        // Fallback to mock data if API is cold-starting
+        import('../lib/drops').then(({ getDropsByCategory }) => {
+          setDrops(getDropsByCategory(active));
+          setLoading(false);
+        });
+      });
+  }, [active]);
 
   return (
     <div>
@@ -63,12 +81,20 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Instagram-style single column feed */}
-      {filtered.map((drop, i) => (
+      {/* Loading state */}
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#525252' }}>
+          <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏳</div>
+          <div style={{ fontSize: '14px' }}>Loading drops...</div>
+        </div>
+      )}
+
+      {/* Feed */}
+      {!loading && drops.map((drop, i) => (
         <DropCard key={drop.id} drop={drop} index={i} />
       ))}
 
-      {filtered.length === 0 && (
+      {!loading && drops.length === 0 && (
         <div style={{ textAlign: 'center', padding: '80px 20px', color: '#737373' }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
           <div style={{ fontWeight: 600, color: '#fff', marginBottom: '4px' }}>No drops found</div>

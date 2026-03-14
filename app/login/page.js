@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+import { login, signup } from '../../lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,22 +20,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const endpoint = tab === 'login' ? '/api/auth/login' : '/api/auth/signup';
-      const body = tab === 'login' ? { email, password } : { email, name, password };
-
-      const res = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Something went wrong');
-        setLoading(false);
-        return;
-      }
+      const data = tab === 'login'
+        ? await login(email, password)
+        : await signup(email, name, password);
 
       // Save token and user
       localStorage.setItem('token', data.token);
@@ -45,7 +31,7 @@ export default function LoginPage() {
       // Redirect to home
       router.push('/');
     } catch (err) {
-      setError('Network error — is the backend running?');
+      setError(err.message || 'Something went wrong');
       setLoading(false);
     }
   };

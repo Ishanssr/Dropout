@@ -37,13 +37,12 @@ export default function DropCard({ drop, index = 0 }) {
   const [visible, setVisible] = useState(false);
   const ref = useRef(null);
 
-  // Intersection observer for scroll-in animation
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.1 }
+      { threshold: 0.05 }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -55,20 +54,24 @@ export default function DropCard({ drop, index = 0 }) {
     if (!liked) { setLikeAnim(true); setTimeout(() => setLikeAnim(false), 500); }
   };
 
-  const FloatingBtn = ({ onClick, children, active, animating }) => (
+  const ActionBtn = ({ onClick, children, active, animating }) => (
     <button
       onClick={onClick}
-      className={`border-none cursor-pointer flex items-center justify-center rounded-full ${active ? 'text-blue-500' : 'text-[#e0e0e0]'}`}
       style={{
-        background: 'rgba(255,255,255,0.04)',
-        width: '42px',
-        height: '42px',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '8px',
+        borderRadius: '50%',
+        color: active ? '#3b82f6' : '#e0e0e0',
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-        transform: animating ? 'scale(1.3)' : 'scale(1)',
-        backdropFilter: 'blur(8px)',
+        transform: animating ? 'scale(1.35)' : 'scale(1)',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.transform = 'scale(1)'; }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'none'; }}
     >
       {children}
     </button>
@@ -82,138 +85,126 @@ export default function DropCard({ drop, index = 0 }) {
         margin: '0 auto',
         width: '100%',
         opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.98)',
-        transition: `opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${index * 0.08}s, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${index * 0.08}s`,
+        transform: visible ? 'translateY(0)' : 'translateY(16px)',
+        transition: `opacity 0.5s ease ${index * 0.06}s, transform 0.5s ease ${index * 0.06}s`,
+        paddingBottom: '20px',
+        marginBottom: '4px',
+        borderBottom: '1px solid #161616',
       }}
-      className="bg-black"
     >
-      {/* ---- HEADER ---- */}
-      <div className="flex items-center px-3 py-2.5 gap-2.5">
-        <div
-          className="w-9 h-9 rounded-full overflow-hidden shrink-0"
-          style={{
-            background: 'linear-gradient(135deg, #3b82f6, #60a5fa)',
-            padding: '2px',
-          }}
-        >
+      {/* ---- HEADER — generous padding ---- */}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', gap: '12px' }}>
+        {/* Avatar with gradient ring */}
+        <div style={{
+          width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+          background: 'linear-gradient(135deg, #3b82f6, #60a5fa)', padding: '2px',
+        }}>
           <img
             src={drop.brand.logo}
             alt={drop.brand.name}
-            className="w-full h-full rounded-full object-cover bg-[#111]"
-            style={{ border: '2px solid #000' }}
+            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', background: '#111', border: '2px solid #000' }}
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = `https://ui-avatars.com/api/?name=${drop.brand.name}&background=111&color=3b82f6&size=36`;
             }}
           />
         </div>
-        <div className="flex-1 min-w-0">
-          <span className="text-[13px] font-semibold text-white">{drop.brand.name}</span>
-          <span className="text-[11px] text-[#525252] ml-1.5">· {drop.category.replace('-', ' ')}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{drop.brand.name}</span>
+          <span style={{ fontSize: '12px', color: '#525252', marginLeft: '8px' }}>· {drop.category.replace('-', ' ')}</span>
         </div>
-        <div
-          className="flex items-center gap-1 text-[11px] font-bold text-blue-400 px-2 py-1 rounded-full"
-          style={{
-            background: 'rgba(59, 130, 246, 0.08)',
-            border: '1px solid rgba(59, 130, 246, 0.15)',
-            animation: 'subtlePulse 3s ease-in-out infinite',
-          }}
-        >
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          fontSize: '12px', fontWeight: 700, color: '#60a5fa',
+          padding: '4px 10px', borderRadius: '20px',
+          background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.12)',
+        }}>
           🔥 {drop.hypeScore}
         </div>
       </div>
 
-      {/* ---- IMAGE ---- */}
-      <Link href={`/drop/${drop.id}`}>
-        <div
-          className="relative w-full aspect-square overflow-hidden cursor-pointer"
-          style={{ background: '#080808', borderRadius: '2px' }}
-        >
+      {/* ---- IMAGE — clean, no border radius ---- */}
+      <Link href={`/drop/${drop.id}`} style={{ display: 'block' }}>
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '1', overflow: 'hidden', background: '#080808', cursor: 'pointer' }}>
           <img
             src={drop.imageUrl}
             alt={drop.title}
-            className="w-full h-full object-cover"
-            style={{ transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)'; }}
+            style={{
+              width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+              transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
           />
-          {/* Price tag */}
-          <div
-            className="absolute bottom-3 right-3 text-[13px] font-bold text-white"
-            style={{
-              background: 'rgba(0,0,0,0.65)',
-              backdropFilter: 'blur(12px)',
-              padding: '5px 12px',
-              borderRadius: '20px',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
-          >
+          <div style={{
+            position: 'absolute', bottom: '14px', right: '14px',
+            fontSize: '13px', fontWeight: 700, color: '#fff',
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)',
+            padding: '6px 14px', borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}>
             {drop.price}
           </div>
-          {/* Featured badge */}
           {drop.featured && (
-            <div
-              className="absolute top-3 left-3 text-[10px] font-bold text-blue-400 uppercase tracking-wider"
-              style={{
-                background: 'rgba(0,0,0,0.65)',
-                backdropFilter: 'blur(12px)',
-                padding: '4px 10px',
-                borderRadius: '20px',
-                border: '1px solid rgba(59, 130, 246, 0.2)',
-                animation: 'glowPulse 3s ease-in-out infinite',
-              }}
-            >
+            <div style={{
+              position: 'absolute', top: '14px', left: '14px',
+              fontSize: '10px', fontWeight: 700, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.5px',
+              background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)',
+              padding: '5px 12px', borderRadius: '24px',
+              border: '1px solid rgba(59,130,246,0.2)',
+            }}>
               ⚡ Featured
             </div>
           )}
         </div>
       </Link>
 
-      {/* ---- FLOATING ACTION BUTTONS ---- */}
-      <div className="flex items-center px-3 py-2 gap-2">
-        <FloatingBtn onClick={handleLike} active={liked} animating={likeAnim}>
+      {/* ---- ACTION BUTTONS — generous spacing ---- */}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', gap: '4px' }}>
+        <ActionBtn onClick={handleLike} active={liked} animating={likeAnim}>
           <HeartIcon filled={liked} />
-        </FloatingBtn>
+        </ActionBtn>
         <Link href={`/drop/${drop.id}`}>
-          <FloatingBtn>
-            <CommentIcon />
-          </FloatingBtn>
+          <ActionBtn><CommentIcon /></ActionBtn>
         </Link>
-        <FloatingBtn onClick={() => setNotified(!notified)} active={notified}>
+        <ActionBtn onClick={() => setNotified(!notified)} active={notified}>
           <BellIcon filled={notified} />
-        </FloatingBtn>
-        <div className="flex-1" />
-        <FloatingBtn onClick={() => setSaved(!saved)} active={saved}>
+        </ActionBtn>
+        <div style={{ flex: 1 }} />
+        <ActionBtn onClick={() => setSaved(!saved)} active={saved}>
           <BookmarkIcon filled={saved} />
-        </FloatingBtn>
+        </ActionBtn>
       </div>
 
-      {/* ---- LIKES ---- */}
-      <div className="px-4 text-[13px] font-semibold text-white">
+      {/* ---- LIKES — breathing room ---- */}
+      <div style={{ padding: '0 16px', fontSize: '14px', fontWeight: 600, color: '#fff' }}>
         {formatNumber(likes)} likes
       </div>
 
       {/* ---- CAPTION ---- */}
-      <div className="px-4 pt-0.5 text-[13px] leading-relaxed">
-        <span className="font-semibold text-white">{drop.brand.name}</span>
-        <span className="text-[#c0c0c0] ml-1.5">{drop.title}</span>
+      <div style={{ padding: '6px 16px 0', fontSize: '14px', lineHeight: 1.5 }}>
+        <span style={{ fontWeight: 600, color: '#fff' }}>{drop.brand.name}</span>
+        <span style={{ color: '#c0c0c0', marginLeft: '6px' }}>{drop.title}</span>
       </div>
 
       {/* ---- COUNTDOWN ---- */}
-      <div className="flex items-center gap-2 px-4 pt-1.5">
-        <span className="text-[11px] text-[#525252]">Drops in</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px 0' }}>
+        <span style={{ fontSize: '12px', color: '#525252' }}>Drops in</span>
         <CountdownTimer dropTime={drop.dropTime} />
       </div>
 
-      {/* ---- VIEW COMMENTS ---- */}
+      {/* ---- COMMENTS LINK ---- */}
       <Link href={`/drop/${drop.id}`}>
-        <div className="px-4 pt-1 pb-4 text-[12px] text-[#525252] cursor-pointer hover:text-[#737373]" style={{ transition: 'color 0.2s ease' }}>
+        <div style={{
+          padding: '6px 16px 0', fontSize: '13px', color: '#525252', cursor: 'pointer',
+          transition: 'color 0.2s ease',
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#737373'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#525252'; }}
+        >
           View all {formatNumber(drop.engagement.comments)} comments
         </div>
       </Link>
-
-      {/* Separator */}
-      <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.1), transparent)' }} />
     </article>
   );
 }

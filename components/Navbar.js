@@ -137,6 +137,32 @@ export default function Sidebar() {
 
         {/* ---- Bottom Items ---- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 12px 24px' }}>
+          <Link
+            href="/profile"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '12px',
+              borderRadius: '12px',
+              color: pathname === '/profile' ? '#fff' : '#a3a3a3',
+              background: pathname === '/profile' ? 'rgba(255,255,255,0.08)' : 'transparent',
+              textDecoration: 'none',
+              fontSize: '15px',
+              fontWeight: pathname === '/profile' ? 700 : 400,
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              minHeight: '48px',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => { if (pathname !== '/profile') { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff'; }}}
+            onMouseLeave={(e) => { if (pathname !== '/profile') { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a3a3a3'; }}}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px', flexShrink: 0 }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            {expanded && <span>Profile</span>}
+          </Link>
           {bottomItems.map((item) => (
             <button
               key={item.label}

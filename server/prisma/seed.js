@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 const now = new Date();
@@ -77,9 +78,10 @@ async function main() {
     });
   }
 
-  // Create a test user
+  // Create a test user (login: demo@dropspace.app / demo123)
+  const hashedPw = await bcrypt.hash('demo123', 10);
   await prisma.user.create({
-    data: { email: 'demo@dropspace.app', name: 'Demo User', avatar: null },
+    data: { email: 'demo@dropspace.app', name: 'Demo User', password: hashedPw, avatar: null },
   });
 
   const dropCount = await prisma.drop.count();

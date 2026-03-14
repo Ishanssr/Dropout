@@ -6,6 +6,7 @@ const dropsRouter = require('./routes/drops');
 const brandsRouter = require('./routes/brands');
 const usersRouter = require('./routes/users');
 const uploadRouter = require('./routes/upload');
+const authRouter = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,6 +27,7 @@ app.use('/api/drops', dropsRouter);
 app.use('/api/brands', brandsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/auth', authRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

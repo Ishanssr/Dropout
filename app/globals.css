@@ -24,6 +24,17 @@ body {
   color: #f5f5f5;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
+  width: 100%;
+  min-width: 100%;
+}
+
+html {
+  width: 100%;
+}
+
+main {
+  width: 100%;
+  display: block;
 }
 
 ::-webkit-scrollbar { width: 0; }

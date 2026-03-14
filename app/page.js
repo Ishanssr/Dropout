@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div>
       {/* Category filter — horizontal scroll */}
-      <div className="flex gap-2 overflow-x-auto px-4 py-3 max-w-[470px] mx-auto" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-2 overflow-x-auto px-4 py-3" style={{ maxWidth: '470px', margin: '0 auto', width: '100%', scrollbarWidth: 'none' }}>
         {categories.map((cat) => (
           <button
             key={cat.id}

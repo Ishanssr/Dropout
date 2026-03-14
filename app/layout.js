@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
       </head>
       <body style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
         <Navbar />
-        <main style={{ paddingTop: '60px', paddingBottom: '60px', minHeight: '100vh' }}>
+        <main className="w-full pt-[60px] pb-[60px] min-h-screen">
           {children}
         </main>
       </body>

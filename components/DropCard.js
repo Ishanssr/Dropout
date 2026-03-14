@@ -12,7 +12,7 @@ export default function DropCard({ drop }) {
   const [liked, setLiked] = useState(false);
 
   return (
-    <article className="bg-black border-b border-[#1a1a1a] max-w-[470px] mx-auto">
+    <article style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="bg-black border-b border-[#1a1a1a]">
       {/* ---- HEADER (like Instagram: avatar, name, badge) ---- */}
       <div className="flex items-center px-4 py-3 gap-3">
         <img

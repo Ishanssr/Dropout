@@ -21,7 +21,7 @@ export default function Navbar() {
     <>
       {/* Top bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-b border-[#1a1a1a] h-[56px]">
-        <div className="max-w-[935px] mx-auto h-full flex items-center justify-between px-4">
+        <div style={{ maxWidth: '935px', margin: '0 auto', width: '100%' }} className="h-full flex items-center justify-between px-4">
           {/* Logo */}
           <Link href="/" className="text-xl font-extrabold tracking-tight no-underline">
             <span className="text-blue-500">Drop</span>

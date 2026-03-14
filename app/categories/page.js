@@ -12,7 +12,7 @@ export default function CategoriesPage() {
     const catDrops = getDropsByCategory(selected);
     return (
       <div>
-        <div className="max-w-[470px] mx-auto px-4 pt-4">
+        <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="px-4 pt-4">
           <button onClick={() => setSelected(null)} className="bg-transparent border-none text-blue-500 cursor-pointer text-[13px] mb-3 p-0">
             ← All Categories
           </button>
@@ -31,7 +31,7 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="max-w-[470px] mx-auto px-4 py-4">
+    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="px-4 py-4">
       <h1 className="text-[22px] font-extrabold mb-1">
         <span className="text-blue-500">Explore</span> Categories
       </h1>

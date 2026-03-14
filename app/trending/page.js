@@ -7,7 +7,7 @@ export default function TrendingPage() {
   const trending = getTrendingDrops();
 
   return (
-    <div className="max-w-[470px] mx-auto px-4 py-4">
+    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="px-4 py-4">
       <h1 className="text-[22px] font-extrabold mb-1">
         <span className="text-blue-500">Trending</span> Drops
       </h1>

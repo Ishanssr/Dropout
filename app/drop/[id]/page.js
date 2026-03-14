@@ -23,7 +23,7 @@ export default function DropDetailPage({ params }) {
 
   if (!drop) {
     return (
-      <div className="text-center py-20 max-w-[470px] mx-auto">
+      <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="text-center py-20">
         <div className="text-4xl mb-3">🔍</div>
         <div className="font-semibold text-white mb-1">Drop not found</div>
         <Link href="/" className="inline-block mt-3 px-5 py-2 rounded-lg bg-blue-500 text-white font-semibold text-sm no-underline">Back to Feed</Link>
@@ -41,7 +41,7 @@ export default function DropDetailPage({ params }) {
   const relatedDrops = drops.filter(d => d.category === drop.category && d.id !== drop.id).slice(0, 3);
 
   return (
-    <div className="max-w-[470px] mx-auto">
+    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }}>
       {/* Back */}
       <div className="px-4 py-3">
         <Link href="/" className="no-underline text-blue-500 text-[13px]">← Feed</Link>

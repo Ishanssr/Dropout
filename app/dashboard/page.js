@@ -21,7 +21,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="max-w-[935px] mx-auto px-4 py-4">
+    <div style={{ maxWidth: '935px', margin: '0 auto', width: '100%' }} className="px-4 py-4">
       <h1 className="text-[22px] font-extrabold mb-1">
         Brand <span className="text-blue-500">Dashboard</span>
       </h1>

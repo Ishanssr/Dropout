@@ -1,11 +1,9 @@
 import "./globals.css";
 import Navbar from "../components/Navbar";
 
-
 export const metadata = {
   title: "DropSpace — Discover What's Dropping Next",
   description: "The Instagram for product launches. Discover upcoming sneaker drops, tech launches, creator merch, and limited edition releases.",
-  keywords: "drops, launches, sneakers, tech, streetwear, gaming, creator merch",
 };
 
 export default function RootLayout({ children }) {
@@ -16,9 +14,9 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
-      <body className={`antialiased`} style={{ fontFamily: "'Inter', sans-serif" }}>
+      <body style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
         <Navbar />
-        <main className="pt-16 pb-20 md:pb-0 min-h-screen">
+        <main style={{ paddingTop: '60px', paddingBottom: '60px', minHeight: '100vh' }}>
           {children}
         </main>
       </body>

@@ -2,7 +2,6 @@
 
 import { getUpcomingDates } from '../../lib/drops';
 import CountdownTimer from '../../components/CountdownTimer';
-import HypeScore from '../../components/HypeScore';
 import Link from 'next/link';
 
 export default function CalendarPage() {
@@ -12,79 +11,57 @@ export default function CalendarPage() {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) return '🔥 Today';
-    if (date.toDateString() === tomorrow.toDateString()) return '📅 Tomorrow';
-
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
   const isToday = (date) => date.toDateString() === new Date().toDateString();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-      {/* Header */}
-      <div className="mb-8 animate-fade-in">
-        <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">
-          <span className="text-[#e8eaed]">Drop</span>
-          <span className="gradient-text"> Calendar</span>
-        </h1>
-        <p className="text-[#6b7280] text-sm">
-          Never miss a launch. See every upcoming drop organized by date.
-        </p>
-      </div>
+    <div className="page-container" style={{ padding: '16px' }}>
+      <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>
+        Drop <span className="text-gradient">Calendar</span>
+      </h1>
+      <p style={{ fontSize: '13px', color: '#737373', marginBottom: '20px' }}>
+        Never miss a launch
+      </p>
 
-      {/* Calendar timeline */}
-      <div className="space-y-6">
-        {upcomingDates.map((dateGroup, groupIndex) => (
-          <div
-            key={dateGroup.date.toISOString()}
-            className="animate-slide-up"
-            style={{ animationDelay: `${groupIndex * 0.1}s`, opacity: 0, animationFillMode: 'forwards' }}
-          >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {upcomingDates.map((dateGroup) => (
+          <div key={dateGroup.date.toISOString()}>
             {/* Date header */}
-            <div className="flex items-center gap-3 mb-3">
-              <div
-                className={`px-4 py-2 rounded-xl text-sm font-bold ${
-                  isToday(dateGroup.date)
-                    ? 'text-[#60a5fa]'
-                    : 'text-[#9ca3af]'
-                }`}
-                style={{
-                  background: isToday(dateGroup.date)
-                    ? 'rgba(59, 130, 246, 0.15)'
-                    : 'rgba(26, 26, 62, 0.5)',
-                  border: isToday(dateGroup.date)
-                    ? '1px solid rgba(59, 130, 246, 0.3)'
-                    : '1px solid rgba(26, 26, 62, 0.8)',
-                }}
-              >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+              <span style={{
+                fontSize: '13px',
+                fontWeight: 700,
+                color: isToday(dateGroup.date) ? '#3b82f6' : '#a3a3a3',
+                padding: '4px 12px',
+                borderRadius: '6px',
+                background: isToday(dateGroup.date) ? 'rgba(59, 130, 246, 0.1)' : '#111',
+                border: `1px solid ${isToday(dateGroup.date) ? 'rgba(59, 130, 246, 0.2)' : '#1a1a1a'}`,
+              }}>
                 {formatDate(dateGroup.date)}
-              </div>
-              <div className="flex-1 h-px bg-[#1a1a3e]" />
-              <span className="text-xs text-[#6b7280]">{dateGroup.drops.length} drop{dateGroup.drops.length > 1 ? 's' : ''}</span>
+              </span>
+              <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
+              <span style={{ fontSize: '12px', color: '#525252' }}>{dateGroup.drops.length}</span>
             </div>
 
-            {/* Drops for this date */}
-            <div className="space-y-2 ml-2 border-l-2 border-[#1a1a3e] pl-4">
+            {/* Drops */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '8px', borderLeft: '2px solid #1a1a1a' }}>
               {dateGroup.drops.map((drop) => (
-                <Link key={drop.id} href={`/drop/${drop.id}`}>
-                  <div className="glass-card p-4 flex items-center gap-4 cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ background: 'rgba(59, 130, 246, 0.1)' }}
-                    >
-                      <span className="text-lg">{drop.brand.logo}</span>
+                <Link key={drop.id} href={`/drop/${drop.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div className="card" style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#111' }}>
+                      <img src={drop.imageUrl} alt={drop.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold text-[#e8eaed] truncate">{drop.title}</h3>
-                      <p className="text-xs text-[#6b7280]">{drop.brand.name} · {drop.price}</p>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {drop.title}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#737373' }}>{drop.brand.name} · {drop.price}</div>
                     </div>
-                    <div className="hidden sm:block shrink-0">
-                      <CountdownTimer dropTime={drop.dropTime} size="small" />
-                    </div>
-                    <div className="shrink-0">
-                      <HypeScore score={drop.hypeScore} />
-                    </div>
+                    <CountdownTimer dropTime={drop.dropTime} />
                   </div>
                 </Link>
               ))}

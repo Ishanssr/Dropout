@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-export default function CountdownTimer({ dropTime, size = 'default' }) {
+export default function CountdownTimer({ dropTime }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: false });
 
   useEffect(() => {
@@ -26,45 +26,34 @@ export default function CountdownTimer({ dropTime, size = 'default' }) {
   }, [dropTime]);
 
   if (timeLeft.expired) {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-lg">🔥</span>
-        <span className="font-bold text-[#10b981] text-sm uppercase tracking-wider">DROPPED!</span>
-      </div>
-    );
+    return <span style={{ color: '#3b82f6', fontWeight: 700, fontSize: '14px' }}>LIVE NOW 🔥</span>;
   }
 
-  const isSmall = size === 'small';
-
-  const TimeBlock = ({ value, label }) => (
-    <div className="flex flex-col items-center">
-      <div
-        className={`
-          ${isSmall ? 'w-10 h-10 text-sm' : 'w-14 h-14 text-lg'}
-          rounded-xl font-bold flex items-center justify-center
-          bg-[#0a0a1a] border border-[#1a1a3e]
-          text-[#60a5fa]
-        `}
-        style={{
-          boxShadow: '0 0 15px rgba(59, 130, 246, 0.1)',
-        }}
-      >
-        {String(value).padStart(2, '0')}
-      </div>
-      <span className={`${isSmall ? 'text-[9px]' : 'text-[10px]'} text-[#6b7280] mt-1 uppercase tracking-wider font-medium`}>
-        {label}
-      </span>
-    </div>
-  );
-
   return (
-    <div className="flex items-center gap-2">
-      {timeLeft.days > 0 && <TimeBlock value={timeLeft.days} label="Days" />}
-      <TimeBlock value={timeLeft.hours} label="Hrs" />
-      <span className={`${isSmall ? 'text-lg' : 'text-xl'} text-[#3b82f6] font-bold self-start mt-2`}>:</span>
-      <TimeBlock value={timeLeft.minutes} label="Min" />
-      <span className={`${isSmall ? 'text-lg' : 'text-xl'} text-[#3b82f6] font-bold self-start mt-2`}>:</span>
-      <TimeBlock value={timeLeft.seconds} label="Sec" />
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      {timeLeft.days > 0 && (
+        <>
+          <div className="countdown-block">
+            <span className="countdown-value">{String(timeLeft.days).padStart(2, '0')}</span>
+            <span className="countdown-label">d</span>
+          </div>
+          <span className="countdown-sep">:</span>
+        </>
+      )}
+      <div className="countdown-block">
+        <span className="countdown-value">{String(timeLeft.hours).padStart(2, '0')}</span>
+        <span className="countdown-label">h</span>
+      </div>
+      <span className="countdown-sep">:</span>
+      <div className="countdown-block">
+        <span className="countdown-value">{String(timeLeft.minutes).padStart(2, '0')}</span>
+        <span className="countdown-label">m</span>
+      </div>
+      <span className="countdown-sep">:</span>
+      <div className="countdown-block">
+        <span className="countdown-value">{String(timeLeft.seconds).padStart(2, '0')}</span>
+        <span className="countdown-label">s</span>
+      </div>
     </div>
   );
 }

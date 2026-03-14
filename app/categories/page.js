@@ -10,23 +10,20 @@ export default function CategoriesPage() {
   if (selected) {
     const cat = categories.find(c => c.id === selected);
     const catDrops = getDropsByCategory(selected);
-
     return (
-      <div className="page-container">
-        <div style={{ padding: '16px' }}>
-          <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '13px', marginBottom: '12px' }}>
+      <div>
+        <div className="max-w-[470px] mx-auto px-4 pt-4">
+          <button onClick={() => setSelected(null)} className="bg-transparent border-none text-blue-500 cursor-pointer text-[13px] mb-3 p-0">
             ← All Categories
           </button>
-          <h1 style={{ fontSize: '22px', fontWeight: 800 }}>{cat.icon} {cat.name}</h1>
-          <p style={{ fontSize: '13px', color: '#737373' }}>{catDrops.length} drops</p>
+          <h1 className="text-[22px] font-extrabold mb-1">{cat.icon} {cat.name}</h1>
+          <p className="text-[13px] text-[#737373] mb-2">{catDrops.length} drops</p>
         </div>
-        {catDrops.map((drop) => (
-          <DropCard key={drop.id} drop={drop} />
-        ))}
+        {catDrops.map((drop) => <DropCard key={drop.id} drop={drop} />)}
         {catDrops.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#737373' }}>
-            <div style={{ fontSize: '40px', marginBottom: '8px' }}>🔍</div>
-            <div>No drops in this category yet</div>
+          <div className="text-center py-16 text-[#737373]">
+            <div className="text-4xl mb-2">🔍</div>
+            <div className="text-sm">No drops in this category yet</div>
           </div>
         )}
       </div>
@@ -34,25 +31,24 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="page-container" style={{ padding: '16px' }}>
-      <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>
-        <span className="text-gradient">Explore</span> Categories
+    <div className="max-w-[470px] mx-auto px-4 py-4">
+      <h1 className="text-[22px] font-extrabold mb-1">
+        <span className="text-blue-500">Explore</span> Categories
       </h1>
-      <p style={{ fontSize: '13px', color: '#737373', marginBottom: '20px' }}>Browse drops by category</p>
+      <p className="text-[13px] text-[#737373] mb-5">Browse drops by category</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+      <div className="grid grid-cols-2 gap-2">
         {categories.filter(c => c.id !== 'all').map((cat) => {
           const count = getDropsByCategory(cat.id).length;
           return (
             <button
               key={cat.id}
               onClick={() => setSelected(cat.id)}
-              className="card"
-              style={{ padding: '20px 16px', textAlign: 'left', cursor: 'pointer', border: '1px solid #1a1a1a', background: '#0a0a0a' }}
+              className="text-left p-5 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] hover:border-blue-500/30 transition-colors cursor-pointer"
             >
-              <div style={{ fontSize: '28px', marginBottom: '8px' }}>{cat.icon}</div>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#f5f5f5' }}>{cat.name}</div>
-              <div style={{ fontSize: '12px', color: '#525252', marginTop: '2px' }}>{count} drops</div>
+              <div className="text-3xl mb-2">{cat.icon}</div>
+              <div className="text-sm font-semibold text-white">{cat.name}</div>
+              <div className="text-xs text-[#525252] mt-0.5">{count} drops</div>
             </button>
           );
         })}

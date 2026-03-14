@@ -1,31 +1,27 @@
 'use client';
 
-import { useState } from 'react';
 import { drops } from '../../lib/drops';
 import DropCard from '../../components/DropCard';
 
 export default function SavedPage() {
-  const [savedIds, setSavedIds] = useState(drops.slice(0, 4).map(d => d.id));
-  const savedItems = drops.filter(d => savedIds.includes(d.id));
+  const savedItems = drops.slice(0, 4);
 
   return (
-    <div className="page-container">
-      <div style={{ padding: '16px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>
-          <span className="text-gradient">Saved</span> Drops
+    <div>
+      <div className="max-w-[470px] mx-auto px-4 pt-4">
+        <h1 className="text-[22px] font-extrabold mb-1">
+          <span className="text-blue-500">Saved</span> Drops
         </h1>
-        <p style={{ fontSize: '13px', color: '#737373' }}>{savedItems.length} saved</p>
+        <p className="text-[13px] text-[#737373] mb-2">{savedItems.length} saved</p>
       </div>
 
-      {savedItems.length > 0 ? (
-        savedItems.map((drop) => (
-          <DropCard key={drop.id} drop={drop} />
-        ))
-      ) : (
-        <div style={{ textAlign: 'center', padding: '80px 20px', color: '#737373' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔖</div>
-          <div style={{ fontWeight: 600, color: '#f5f5f5', marginBottom: '4px' }}>No saved drops</div>
-          <div style={{ fontSize: '14px' }}>Tap the bookmark icon on any drop to save it</div>
+      {savedItems.map((drop) => <DropCard key={drop.id} drop={drop} />)}
+
+      {savedItems.length === 0 && (
+        <div className="text-center py-20 text-[#737373]">
+          <div className="text-4xl mb-3">🔖</div>
+          <div className="font-semibold text-white mb-1">No saved drops</div>
+          <div className="text-sm">Tap the bookmark icon to save drops</div>
         </div>
       )}
     </div>

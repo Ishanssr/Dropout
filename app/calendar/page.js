@@ -19,49 +19,43 @@ export default function CalendarPage() {
   const isToday = (date) => date.toDateString() === new Date().toDateString();
 
   return (
-    <div className="page-container" style={{ padding: '16px' }}>
-      <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>
-        Drop <span className="text-gradient">Calendar</span>
+    <div className="max-w-[470px] mx-auto px-4 py-4">
+      <h1 className="text-[22px] font-extrabold mb-1">
+        Drop <span className="text-blue-500">Calendar</span>
       </h1>
-      <p style={{ fontSize: '13px', color: '#737373', marginBottom: '20px' }}>
-        Never miss a launch
-      </p>
+      <p className="text-[13px] text-[#737373] mb-5">Never miss a launch</p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {upcomingDates.map((dateGroup) => (
-          <div key={dateGroup.date.toISOString()}>
-            {/* Date header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-              <span style={{
-                fontSize: '13px',
-                fontWeight: 700,
-                color: isToday(dateGroup.date) ? '#3b82f6' : '#a3a3a3',
-                padding: '4px 12px',
-                borderRadius: '6px',
-                background: isToday(dateGroup.date) ? 'rgba(59, 130, 246, 0.1)' : '#111',
-                border: `1px solid ${isToday(dateGroup.date) ? 'rgba(59, 130, 246, 0.2)' : '#1a1a1a'}`,
-              }}>
-                {formatDate(dateGroup.date)}
+      <div className="flex flex-col gap-6">
+        {upcomingDates.map((group) => (
+          <div key={group.date.toISOString()}>
+            {/* Date label */}
+            <div className="flex items-center gap-3 mb-2.5">
+              <span className={`text-[13px] font-bold px-3 py-1 rounded-md ${
+                isToday(group.date)
+                  ? 'text-blue-500 bg-blue-500/10 border border-blue-500/20'
+                  : 'text-[#a3a3a3] bg-[#111] border border-[#1a1a1a]'
+              }`}>
+                {formatDate(group.date)}
               </span>
-              <div style={{ flex: 1, height: '1px', background: '#1a1a1a' }} />
-              <span style={{ fontSize: '12px', color: '#525252' }}>{dateGroup.drops.length}</span>
+              <div className="flex-1 h-px bg-[#1a1a1a]" />
+              <span className="text-xs text-[#525252]">{group.drops.length}</span>
             </div>
 
             {/* Drops */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '8px', borderLeft: '2px solid #1a1a1a' }}>
-              {dateGroup.drops.map((drop) => (
-                <Link key={drop.id} href={`/drop/${drop.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <div className="card" style={{ padding: '10px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#111' }}>
-                      <img src={drop.imageUrl} alt={drop.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className="flex flex-col gap-1.5 pl-2 border-l-2 border-[#1a1a1a]">
+              {group.drops.map((drop) => (
+                <Link key={drop.id} href={`/drop/${drop.id}`} className="no-underline text-inherit">
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] hover:border-[#262626] transition-colors cursor-pointer">
+                    <div className="w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-[#111]">
+                      <img src={drop.imageUrl} alt={drop.title} className="w-full h-full object-cover" />
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#f5f5f5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {drop.title}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#737373' }}>{drop.brand.name} · {drop.price}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-semibold text-white truncate">{drop.title}</div>
+                      <div className="text-[11px] text-[#737373]">{drop.brand.name} · {drop.price}</div>
                     </div>
-                    <CountdownTimer dropTime={drop.dropTime} />
+                    <div className="shrink-0 hidden sm:block">
+                      <CountdownTimer dropTime={drop.dropTime} />
+                    </div>
                   </div>
                 </Link>
               ))}

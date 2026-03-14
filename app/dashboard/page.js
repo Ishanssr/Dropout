@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { categories, drops, formatNumber } from '../../lib/drops';
 
 export default function DashboardPage() {
-  const [formData, setFormData] = useState({ brandName: '', productName: '', category: 'sneakers', description: '', price: '', dropDate: '', dropTime: '', website: '' });
+  const [form, setForm] = useState({ brandName: '', productName: '', category: 'sneakers', description: '', price: '', dropDate: '', dropTime: '', website: '' });
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e) => {
@@ -13,122 +13,119 @@ export default function DashboardPage() {
     setTimeout(() => setSubmitted(false), 3000);
   };
 
-  return (
-    <div className="page-wide" style={{ paddingTop: '16px' }}>
-      <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>
-        Brand <span className="text-gradient">Dashboard</span>
-      </h1>
-      <p style={{ fontSize: '13px', color: '#737373', marginBottom: '20px' }}>Create drops and track performance</p>
+  const stats = [
+    { label: 'Views', value: '245K', change: '+12%' },
+    { label: 'Saves', value: '18.4K', change: '+8%' },
+    { label: 'Clicks', value: '8.2K', change: '-3%' },
+    { label: 'Engagement', value: '7.5%', change: '+2%' },
+  ];
 
-      {/* Analytics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '24px' }}>
-        {[
-          { label: 'Views', value: '245K', change: '+12%' },
-          { label: 'Saves', value: '18.4K', change: '+8%' },
-          { label: 'Clicks', value: '8.2K', change: '-3%' },
-          { label: 'Engagement', value: '7.5%', change: '+2%' },
-        ].map((stat) => (
-          <div key={stat.label} className="card" style={{ padding: '14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#737373', marginBottom: '4px' }}>{stat.label}</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: '#3b82f6' }}>{stat.value}</div>
-            <div style={{ fontSize: '11px', color: stat.change.startsWith('+') ? '#3b82f6' : '#525252', marginTop: '2px' }}>{stat.change}</div>
+  return (
+    <div className="max-w-[935px] mx-auto px-4 py-4">
+      <h1 className="text-[22px] font-extrabold mb-1">
+        Brand <span className="text-blue-500">Dashboard</span>
+      </h1>
+      <p className="text-[13px] text-[#737373] mb-5">Create drops and track performance</p>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+        {stats.map((s) => (
+          <div key={s.label} className="p-4 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] text-center">
+            <div className="text-xs text-[#737373] mb-1">{s.label}</div>
+            <div className="text-xl font-bold text-blue-500">{s.value}</div>
+            <div className={`text-[11px] mt-0.5 ${s.change.startsWith('+') ? 'text-blue-400' : 'text-[#525252]'}`}>{s.change}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         {/* Form */}
-        <div className="card" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>🚀 Create New Drop</h2>
+        <div className="p-6 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a]">
+          <h2 className="text-base font-bold mb-4">🚀 Create New Drop</h2>
 
           {submitted && (
-            <div style={{ padding: '10px 14px', borderRadius: '8px', fontSize: '13px', color: '#3b82f6', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', marginBottom: '16px' }}>
+            <div className="p-3 rounded-lg text-[13px] text-blue-500 bg-blue-500/10 border border-blue-500/20 mb-4">
               ✅ Drop created successfully!
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label style={{ fontSize: '12px', color: '#737373', display: 'block', marginBottom: '4px' }}>Brand Name</label>
-                <input className="input" placeholder="e.g. Nike" value={formData.brandName} onChange={(e) => setFormData({...formData, brandName: e.target.value})} />
+                <label className="block text-xs text-[#737373] mb-1">Brand Name</label>
+                <input className="w-full px-3 py-2.5 rounded-lg text-sm bg-black border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors" placeholder="e.g. Nike" value={form.brandName} onChange={(e) => setForm({...form, brandName: e.target.value})} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#737373', display: 'block', marginBottom: '4px' }}>Product Name</label>
-                <input className="input" placeholder="e.g. Air Max 2030" value={formData.productName} onChange={(e) => setFormData({...formData, productName: e.target.value})} />
+                <label className="block text-xs text-[#737373] mb-1">Product Name</label>
+                <input className="w-full px-3 py-2.5 rounded-lg text-sm bg-black border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors" placeholder="e.g. Air Max 2030" value={form.productName} onChange={(e) => setForm({...form, productName: e.target.value})} />
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label style={{ fontSize: '12px', color: '#737373', display: 'block', marginBottom: '4px' }}>Category</label>
-                <select className="input" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
+                <label className="block text-xs text-[#737373] mb-1">Category</label>
+                <select className="w-full px-3 py-2.5 rounded-lg text-sm bg-black border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors" value={form.category} onChange={(e) => setForm({...form, category: e.target.value})}>
                   {categories.filter(c => c.id !== 'all').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#737373', display: 'block', marginBottom: '4px' }}>Price</label>
-                <input className="input" placeholder="$199" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
+                <label className="block text-xs text-[#737373] mb-1">Price</label>
+                <input className="w-full px-3 py-2.5 rounded-lg text-sm bg-black border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors" placeholder="$199" value={form.price} onChange={(e) => setForm({...form, price: e.target.value})} />
               </div>
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: '#737373', display: 'block', marginBottom: '4px' }}>Description</label>
-              <textarea className="input" placeholder="Describe your drop..." rows={3} style={{ resize: 'none' }} value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+              <label className="block text-xs text-[#737373] mb-1">Description</label>
+              <textarea className="w-full px-3 py-2.5 rounded-lg text-sm bg-black border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors resize-none" placeholder="Describe your drop..." rows={3} value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label style={{ fontSize: '12px', color: '#737373', display: 'block', marginBottom: '4px' }}>Drop Date</label>
-                <input className="input" type="date" value={formData.dropDate} onChange={(e) => setFormData({...formData, dropDate: e.target.value})} />
+                <label className="block text-xs text-[#737373] mb-1">Drop Date</label>
+                <input type="date" className="w-full px-3 py-2.5 rounded-lg text-sm bg-black border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors" value={form.dropDate} onChange={(e) => setForm({...form, dropDate: e.target.value})} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#737373', display: 'block', marginBottom: '4px' }}>Drop Time</label>
-                <input className="input" type="time" value={formData.dropTime} onChange={(e) => setFormData({...formData, dropTime: e.target.value})} />
+                <label className="block text-xs text-[#737373] mb-1">Drop Time</label>
+                <input type="time" className="w-full px-3 py-2.5 rounded-lg text-sm bg-black border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors" value={form.dropTime} onChange={(e) => setForm({...form, dropTime: e.target.value})} />
               </div>
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: '#737373', display: 'block', marginBottom: '4px' }}>Website</label>
-              <input className="input" type="url" placeholder="https://yourbrand.com" value={formData.website} onChange={(e) => setFormData({...formData, website: e.target.value})} />
+              <label className="block text-xs text-[#737373] mb-1">Website</label>
+              <input type="url" className="w-full px-3 py-2.5 rounded-lg text-sm bg-black border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors" placeholder="https://yourbrand.com" value={form.website} onChange={(e) => setForm({...form, website: e.target.value})} />
             </div>
-            <div style={{ display: 'flex', gap: '8px', paddingTop: '4px' }}>
-              <button type="submit" className="btn-blue">🚀 Create Drop</button>
-              <button type="button" className="btn-outline">Save Draft</button>
+            <div className="flex gap-2 pt-1">
+              <button type="submit" className="px-5 py-2.5 rounded-lg bg-blue-500 text-white font-semibold text-sm border-none cursor-pointer hover:bg-blue-600 transition-colors">🚀 Create Drop</button>
+              <button type="button" className="px-5 py-2.5 rounded-lg bg-transparent text-white font-medium text-sm border border-[#262626] cursor-pointer hover:border-blue-500 transition-colors">Save Draft</button>
             </div>
           </form>
         </div>
 
         {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div className="card" style={{ padding: '16px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>📋 Recent Drops</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div className="flex flex-col gap-3">
+          <div className="p-4 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a]">
+            <h3 className="text-sm font-bold mb-3">📋 Recent Drops</h3>
+            <div className="flex flex-col gap-1.5">
               {drops.slice(0, 5).map((drop) => (
-                <div key={drop.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px', borderRadius: '8px', cursor: 'pointer' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#111' }}>
-                    <img src={drop.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div key={drop.id} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-[#111] transition-colors cursor-pointer">
+                  <div className="w-9 h-9 rounded-md overflow-hidden shrink-0 bg-[#111]">
+                    <img src={drop.imageUrl} alt="" className="w-full h-full object-cover" />
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#f5f5f5', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{drop.title}</div>
-                    <div style={{ fontSize: '11px', color: '#525252' }}>{formatNumber(drop.engagement.views)} views</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-white truncate">{drop.title}</div>
+                    <div className="text-[11px] text-[#525252]">{formatNumber(drop.engagement.views)} views</div>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#3b82f6' }}>{drop.hypeScore}</span>
+                  <span className="text-xs font-bold text-blue-500">{drop.hypeScore}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="card" style={{ padding: '16px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>💎 Boost Your Drop</h3>
-            {[
-              ['Featured Drop', '$200'],
-              ['Homepage Banner', '$1,000'],
-              ['Push Notification', '$500'],
-              ['Top Trending', '$800'],
-            ].map(([name, price]) => (
-              <div key={name} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #1a1a1a', fontSize: '13px' }}>
-                <span style={{ color: '#a3a3a3' }}>{name}</span>
-                <span style={{ fontWeight: 600, color: '#3b82f6' }}>{price}</span>
+          <div className="p-4 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a]">
+            <h3 className="text-sm font-bold mb-3">💎 Boost Your Drop</h3>
+            {[['Featured Drop', '$200'], ['Homepage Banner', '$1,000'], ['Push Notification', '$500'], ['Top Trending', '$800']].map(([name, price]) => (
+              <div key={name} className="flex justify-between py-2 border-b border-[#1a1a1a] text-[13px]">
+                <span className="text-[#a3a3a3]">{name}</span>
+                <span className="font-semibold text-blue-500">{price}</span>
               </div>
             ))}
-            <button className="btn-blue" style={{ width: '100%', marginTop: '12px', justifyContent: 'center' }}>Contact Sales</button>
+            <button className="w-full mt-3 px-4 py-2.5 rounded-lg bg-blue-500 text-white font-semibold text-sm border-none cursor-pointer hover:bg-blue-600 transition-colors">Contact Sales</button>
           </div>
         </div>
       </div>

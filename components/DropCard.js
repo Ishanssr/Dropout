@@ -12,85 +12,104 @@ export default function DropCard({ drop }) {
   const [liked, setLiked] = useState(false);
 
   return (
-    <div className="post-card">
-      {/* Header — brand avatar + name (like Instagram) */}
-      <div className="post-header">
+    <article className="bg-black border-b border-[#1a1a1a] max-w-[470px] mx-auto">
+      {/* ---- HEADER (like Instagram: avatar, name, badge) ---- */}
+      <div className="flex items-center px-4 py-3 gap-3">
         <img
           src={drop.brand.logo}
           alt={drop.brand.name}
-          className="post-avatar"
-          onError={(e) => { e.target.style.display = 'none'; }}
+          className="w-8 h-8 rounded-full border-2 border-[#262626] object-cover bg-[#111]"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = `https://ui-avatars.com/api/?name=${drop.brand.name}&background=111&color=3b82f6&size=32`;
+          }}
         />
-        <div style={{ flex: 1 }}>
-          <div className="post-brand-name">{drop.brand.name}</div>
-          <div className="post-category">{drop.category.replace('-', ' ')}</div>
+        <div className="flex-1">
+          <div className="text-sm font-semibold text-white">{drop.brand.name}</div>
+          <div className="text-[11px] text-blue-500 font-medium capitalize">{drop.category.replace('-', ' ')}</div>
         </div>
-        <div className="hype-badge">
+        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
           🔥 {drop.hypeScore}
         </div>
       </div>
 
-      {/* Image — full width, square aspect ratio (like Instagram) */}
+      {/* ---- IMAGE (full-width, square, like Instagram) ---- */}
       <Link href={`/drop/${drop.id}`}>
-        <div className="post-image-container">
+        <div className="relative w-full aspect-square overflow-hidden bg-[#0a0a0a] cursor-pointer">
           <img
             src={drop.imageUrl}
             alt={drop.title}
-            className="post-image"
+            className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
           />
-          <div className="price-tag">{drop.price}</div>
-          {drop.featured && <div className="featured-tag">⚡ Featured</div>}
+          {/* Price badge */}
+          <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg text-sm font-bold text-white bg-black/70 backdrop-blur-md border border-blue-500/20">
+            {drop.price}
+          </div>
+          {/* Featured badge */}
+          {drop.featured && (
+            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-semibold text-blue-500 bg-black/70 backdrop-blur-md border border-blue-500/20 uppercase tracking-wide">
+              ⚡ Featured
+            </div>
+          )}
         </div>
       </Link>
 
-      {/* Action buttons row */}
-      <div className="post-actions">
+      {/* ---- ACTION BUTTONS (like Instagram: heart, comment, share, bookmark) ---- */}
+      <div className="flex items-center px-3 py-2 gap-1">
         <button
           onClick={() => { setLiked(!liked); setLikes(liked ? likes - 1 : likes + 1); }}
-          className={`post-action-btn ${liked ? 'active' : ''}`}
+          className="bg-transparent border-none text-white cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl"
         >
-          <span className="icon">{liked ? '❤️' : '🤍'}</span>
+          {liked ? '❤️' : '🤍'}
         </button>
-        <button className="post-action-btn">
-          <Link href={`/drop/${drop.id}`} style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <span className="icon">💬</span>
-          </Link>
-        </button>
+        <Link href={`/drop/${drop.id}`} className="no-underline">
+          <button className="bg-transparent border-none text-white cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl">
+            💬
+          </button>
+        </Link>
         <button
           onClick={() => setNotified(!notified)}
-          className={`post-action-btn ${notified ? 'active' : ''}`}
+          className={`bg-transparent border-none cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl ${notified ? 'text-blue-500' : 'text-white'}`}
         >
-          <span className="icon">{notified ? '🔔' : '🔕'}</span>
+          {notified ? '🔔' : '🔕'}
         </button>
-        <div style={{ flex: 1 }} />
+
+        <div className="flex-1" />
+
         <button
           onClick={() => setSaved(!saved)}
-          className={`post-action-btn ${saved ? 'active' : ''}`}
+          className={`bg-transparent border-none cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl ${saved ? 'text-blue-500' : 'text-white'}`}
         >
-          <span className="icon">{saved ? '🔖' : '📑'}</span>
+          {saved ? '🔖' : '📑'}
         </button>
       </div>
 
-      {/* Likes count */}
-      <div className="post-body">
-        <div className="post-likes">{formatNumber(likes)} likes</div>
-        <div className="post-caption">
-          <strong>{drop.brand.name}</strong> {drop.title} — {drop.description}
-        </div>
+      {/* ---- LIKES ---- */}
+      <div className="px-4 text-sm font-semibold text-white">
+        {formatNumber(likes)} likes
       </div>
 
-      {/* Countdown */}
-      <div className="post-countdown">
-        <span style={{ fontSize: '13px', color: '#737373' }}>Drops in</span>
+      {/* ---- CAPTION (brand name in bold, then title + description) ---- */}
+      <div className="px-4 pt-1 text-sm text-[#a3a3a3] leading-relaxed">
+        <span className="font-semibold text-white mr-1.5">{drop.brand.name}</span>
+        {drop.title} — {drop.description}
+      </div>
+
+      {/* ---- COUNTDOWN ---- */}
+      <div className="flex items-center gap-3 px-4 pt-2">
+        <span className="text-[13px] text-[#525252]">Drops in</span>
         <CountdownTimer dropTime={drop.dropTime} />
       </div>
 
-      {/* Comments link */}
-      <Link href={`/drop/${drop.id}`}>
-        <div className="post-comments-link">
+      {/* ---- VIEW COMMENTS ---- */}
+      <Link href={`/drop/${drop.id}`} className="no-underline">
+        <div className="px-4 pt-1.5 text-[13px] text-[#525252] cursor-pointer hover:text-[#737373] transition-colors">
           View all {formatNumber(drop.engagement.comments)} comments
         </div>
       </Link>
-    </div>
+
+      {/* ---- SPACER ---- */}
+      <div className="h-4" />
+    </article>
   );
 }

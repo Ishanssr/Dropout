@@ -27,39 +27,68 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <>
-      {/* ===== LEFT SIDEBAR (Desktop) ===== */}
+      {/* ===== LEFT SIDEBAR (Desktop) — expands on hover ===== */}
       <aside
-        className="hidden md:flex fixed left-0 top-0 bottom-0 z-50 flex-col border-r border-[#1a1a1a] bg-black"
-        style={{ width: '72px' }}
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+        style={{
+          width: expanded ? '220px' : '72px',
+          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        className="hidden md:flex fixed left-0 top-0 bottom-0 z-50 flex-col border-r border-[#1a1a1a] bg-black/95 backdrop-blur-xl"
       >
-        {/* Logo */}
-        <Link href="/" className="no-underline flex items-center justify-center py-6">
-          <span className="text-blue-500 text-2xl font-extrabold">D</span>
+        {/* Logo — click goes to homepage */}
+        <Link href="/" className="no-underline flex items-center gap-3 px-5 py-6 overflow-hidden">
+          <span className="text-blue-500 text-2xl font-extrabold shrink-0" style={{ minWidth: '24px' }}>D</span>
+          <span
+            className="text-white font-extrabold text-lg whitespace-nowrap"
+            style={{
+              opacity: expanded ? 1 : 0,
+              transform: expanded ? 'translateX(0)' : 'translateX(-8px)',
+              transition: 'opacity 0.25s ease, transform 0.25s ease',
+            }}
+          >
+            ropSpace
+          </span>
         </Link>
 
-        {/* Nav icons */}
-        <nav className="flex-1 flex flex-col items-center gap-1 px-2 pt-2">
+        {/* Nav items */}
+        <nav className="flex-1 flex flex-col gap-0.5 px-3 pt-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                title={item.label}
-                className={`no-underline w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-150 group relative ${
-                  isActive
-                    ? 'text-white bg-[#111]'
-                    : 'text-[#737373] hover:text-white hover:bg-[#111]'
-                }`}
+                className={`no-underline flex items-center gap-4 px-3 py-3 rounded-xl overflow-hidden group
+                  ${isActive
+                    ? 'text-white bg-white/10'
+                    : 'text-[#a3a3a3] hover:text-white hover:bg-white/5'
+                  }`}
+                style={{ transition: 'all 0.2s ease' }}
               >
-                <span className={isActive ? 'scale-110' : 'group-hover:scale-110'} style={{ transition: 'transform 0.15s ease', display: 'flex' }}>
+                <span
+                  className="shrink-0 flex items-center justify-center"
+                  style={{
+                    minWidth: '24px',
+                    transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                    transition: 'transform 0.2s ease',
+                  }}
+                >
                   {item.icon}
                 </span>
-                {/* Tooltip */}
-                <span className="absolute left-[60px] bg-[#1a1a1a] text-white text-xs font-medium px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 border border-[#262626]">
+                <span
+                  className={`text-sm whitespace-nowrap ${isActive ? 'font-bold' : 'font-medium'}`}
+                  style={{
+                    opacity: expanded ? 1 : 0,
+                    transform: expanded ? 'translateX(0)' : 'translateX(-12px)',
+                    transition: 'opacity 0.2s ease 0.05s, transform 0.2s ease 0.05s',
+                  }}
+                >
                   {item.label}
                 </span>
               </Link>
@@ -67,34 +96,54 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Bottom icons */}
-        <div className="flex flex-col items-center gap-1 px-2 pb-4">
-          <button
-            title="Create Drop"
-            className="w-12 h-12 flex items-center justify-center rounded-xl text-[#737373] hover:text-white hover:bg-[#111] transition-colors bg-transparent border-none cursor-pointer"
+        {/* Bottom actions */}
+        <div className="flex flex-col gap-0.5 px-3 pb-5">
+          <Link
+            href="/dashboard"
+            className="no-underline flex items-center gap-4 px-3 py-3 rounded-xl text-[#a3a3a3] hover:text-white hover:bg-white/5 overflow-hidden"
+            style={{ transition: 'all 0.2s ease' }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
+            <span className="shrink-0 flex items-center justify-center" style={{ minWidth: '24px' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+            <span className="text-sm font-medium whitespace-nowrap" style={{
+              opacity: expanded ? 1 : 0,
+              transform: expanded ? 'translateX(0)' : 'translateX(-12px)',
+              transition: 'opacity 0.2s ease 0.05s, transform 0.2s ease 0.05s',
+            }}>
+              Create
+            </span>
+          </Link>
           <button
-            title="More"
-            className="w-12 h-12 flex items-center justify-center rounded-xl text-[#737373] hover:text-white hover:bg-[#111] transition-colors bg-transparent border-none cursor-pointer"
+            className="flex items-center gap-4 px-3 py-3 rounded-xl text-[#a3a3a3] hover:text-white hover:bg-white/5 bg-transparent border-none cursor-pointer overflow-hidden"
+            style={{ transition: 'all 0.2s ease' }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <span className="shrink-0 flex items-center justify-center" style={{ minWidth: '24px' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </span>
+            <span className="text-sm font-medium whitespace-nowrap" style={{
+              opacity: expanded ? 1 : 0,
+              transform: expanded ? 'translateX(0)' : 'translateX(-12px)',
+              transition: 'opacity 0.2s ease 0.05s, transform 0.2s ease 0.05s',
+            }}>
+              More
+            </span>
           </button>
         </div>
       </aside>
 
       {/* ===== BOTTOM NAV (Mobile) ===== */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-[#1a1a1a] flex justify-around py-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-t border-[#1a1a1a] flex justify-around py-1.5">
         {navItems.slice(0, 5).map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className={`no-underline flex flex-col items-center gap-0.5 p-1.5 ${
-              pathname === item.href ? 'text-white' : 'text-[#737373]'
+            className={`no-underline flex flex-col items-center p-2 rounded-xl ${
+              pathname === item.href ? 'text-white' : 'text-[#525252]'
             }`}
+            style={{ transition: 'color 0.2s ease' }}
           >
-            <span style={{ transform: 'scale(0.85)', display: 'flex' }}>{item.icon}</span>
+            <span style={{ transform: 'scale(0.9)', display: 'flex' }}>{item.icon}</span>
           </Link>
         ))}
       </div>

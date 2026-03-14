@@ -28,8 +28,8 @@ export default function Home() {
       </div>
 
       {/* Instagram-style single column feed */}
-      {filtered.map((drop) => (
-        <DropCard key={drop.id} drop={drop} />
+      {filtered.map((drop, i) => (
+        <DropCard key={drop.id} drop={drop} index={i} />
       ))}
 
       {filtered.length === 0 && (

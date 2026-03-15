@@ -31,9 +31,16 @@ a { color: inherit; text-decoration: none; }
   color: #fff;
 }
 
-/* Sidebar layout offset for desktop */
+/* Desktop: show sidebar, hide bottom nav */
 @media (min-width: 768px) {
   main { margin-left: 72px !important; }
+  .mobile-bottom-nav { display: none !important; }
+}
+
+/* Mobile: hide sidebar, show bottom nav, add bottom padding */
+@media (max-width: 767px) {
+  aside { display: none !important; }
+  main { margin-left: 0 !important; padding-bottom: 70px !important; }
 }
 
 /* ===== ANIMATIONS ===== */

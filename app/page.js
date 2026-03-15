@@ -73,8 +73,8 @@ export default function Home() {
       {/* ---- Category pills ---- */}
       <div style={{
         display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none',
-        padding: '4px 16px 16px', maxWidth: '560px', margin: '0 auto', width: '100%',
-        flexWrap: 'wrap',
+        padding: '4px 16px 16px', maxWidth: '470px', margin: '0 auto', width: '100%',
+        flexWrap: 'wrap', justifyContent: 'center',
       }}>
         {categories.map((cat) => (
           <button

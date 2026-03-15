@@ -23,7 +23,6 @@ export default function DashboardPage() {
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem('user') || 'null');
     if (!u) { router.push('/login'); return; }
-    if (u.role !== 'brand') { router.push('/'); return; }
     setUser(u);
     setForm(f => ({ ...f, brandName: u.name }));
   }, [router]);

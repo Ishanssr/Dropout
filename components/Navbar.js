@@ -37,16 +37,17 @@ const bottomItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
+  // Re-read user on every navigation (covers login/logout)
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user) setUserRole(user.role || 'user');
-  }, []);
+    setLoggedIn(!!user);
+  }, [pathname]);
 
-  // Filter nav items based on role — Dashboard only for brands
+  // Show Dashboard for logged-in users
   const visibleNavItems = navItems.filter(item => {
-    if (item.href === '/dashboard') return userRole === 'brand';
+    if (item.href === '/dashboard') return loggedIn;
     return true;
   });
 
@@ -149,8 +150,8 @@ export default function Sidebar() {
 
         {/* ---- Bottom Items ---- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 12px 24px' }}>
-          {/* Dashboard — brand users only */}
-          {userRole === 'brand' && (
+          {/* Dashboard — logged-in users */}
+          {loggedIn && (
             <Link
               href="/dashboard"
               style={{

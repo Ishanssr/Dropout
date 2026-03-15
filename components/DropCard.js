@@ -26,10 +26,11 @@ export default function DropCard({ drop, index = 0 }) {
   const saves = drop.engagement?.saves || drop._count?.saves || 0;
   const comments = drop.engagement?.comments || drop._count?.comments || 0;
 
-  // Auth check helper
+  // Auth check helper — validates user exists in DB
   const requireLogin = () => {
     const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
-    if (!user) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!user || !token) {
       alert('Log in to interact');
       router.push('/login');
       return false;
@@ -69,6 +70,13 @@ export default function DropCard({ drop, index = 0 }) {
       await toggleSave(user.id, drop.id);
     } catch (err) {
       setSaved(!newSaved);
+      if (err.message?.includes('User not found') || err.message?.includes('500') || err.message?.includes('API error')) {
+        // User doesn't exist in DB — force re-login
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        alert('Session expired. Please log in again.');
+        router.push('/login');
+      }
     }
   };
 

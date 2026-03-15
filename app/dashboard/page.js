@@ -71,11 +71,18 @@ export default function DashboardPage() {
           website: form.website || '',
         }),
       });
+
+      if (!brandRes.ok) {
+        const err = await brandRes.json();
+        throw new Error(err.error || 'Failed to create brand');
+      }
+
       const brand = await brandRes.json();
-      const brandId = brand.id;
+
+      // Parse date + time correctly
+      const dropTime = new Date(`${form.dropDate}T${form.dropTime}:00`).toISOString();
 
       // Create the drop
-      const dropTime = new Date(`${form.dropDate}T${form.dropTime}`).toISOString();
       const dropRes = await fetch(`${API_URL}/api/drops`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,22 +90,25 @@ export default function DashboardPage() {
           title: form.title,
           description: form.description,
           imageUrl: form.imageUrl,
-          price: form.price || 'TBA',
+          price: form.price ? `$${form.price.replace('$', '')}` : 'TBA',
           category: form.category,
           dropTime,
           website: form.website,
-          brandId,
+          brandId: brand.id,
         }),
       });
 
-      if (!dropRes.ok) throw new Error('Failed to create drop');
+      if (!dropRes.ok) {
+        const err = await dropRes.json();
+        throw new Error(err.error || 'Failed to create drop');
+      }
 
-      setSuccess('Drop created! It will appear in the feed.');
+      setSuccess('🎉 Drop created! Redirecting to feed...');
       setForm({ title: '', description: '', category: 'sneakers', price: '', dropDate: '', dropTime: '', website: '', imageUrl: '', brandName: form.brandName });
       setImagePreview(null);
       setSubmitting(false);
 
-      setTimeout(() => { setSuccess(''); router.push('/'); }, 2000);
+      setTimeout(() => { setSuccess(''); router.push('/'); }, 1500);
     } catch (err) {
       setError(err.message || 'Failed to create drop');
       setSubmitting(false);

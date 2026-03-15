@@ -9,8 +9,9 @@ router.get('/:id', async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.params.id },
-      include: {
-        savedDrops: { include: { drop: { include: { brand: true } } } },
+      select: {
+        id: true, email: true, name: true, role: true, avatar: true, bio: true,
+        createdAt: true,
         _count: { select: { comments: true, savedDrops: true } },
       },
     });
@@ -22,18 +23,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/users — create user (signup placeholder)
-router.post('/', async (req, res) => {
+// PUT /api/users/:id — update user profile (name, bio, avatar)
+router.put('/:id', async (req, res) => {
   try {
-    const { email, name, avatar } = req.body;
-    const user = await prisma.user.create({ data: { email, name, avatar } });
-    res.status(201).json(user);
+    const { name, bio, avatar } = req.body;
+    const data = {};
+    if (name !== undefined) data.name = name;
+    if (bio !== undefined) data.bio = bio;
+    if (avatar !== undefined) data.avatar = avatar;
+
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data,
+      select: {
+        id: true, email: true, name: true, role: true, avatar: true, bio: true,
+        createdAt: true,
+        _count: { select: { comments: true, savedDrops: true } },
+      },
+    });
+    res.json(user);
   } catch (err) {
-    if (err.code === 'P2002') {
-      return res.status(409).json({ error: 'Email already exists' });
-    }
-    console.error('POST /api/users error:', err);
-    res.status(500).json({ error: 'Failed to create user' });
+    console.error('PUT /api/users/:id error:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 

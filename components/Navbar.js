@@ -40,12 +40,14 @@ export default function Sidebar() {
   const [expanded, setExpanded] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [userAvatar, setUserAvatar] = useState('');
 
   // Re-read user on every navigation (covers login/logout)
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     setLoggedIn(!!user);
     setUserName(user?.name || '');
+    setUserAvatar(user?.avatar || '');
   }, [pathname]);
 
   // Show Dashboard for logged-in users
@@ -227,12 +229,13 @@ export default function Sidebar() {
           <Link href={loggedIn ? '/profile' : '/login'} style={{ display: 'flex' }}>
             <div style={{
               width: '28px', height: '28px', borderRadius: '50%',
-              background: loggedIn ? '#3b82f6' : '#262626',
+              background: userAvatar ? `url(${userAvatar}) center/cover` : (loggedIn ? '#3b82f6' : '#262626'),
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '13px', fontWeight: 700, color: '#fff',
+              fontSize: userAvatar ? '0' : '13px', fontWeight: 700, color: '#fff',
               border: pathname === '/profile' ? '2px solid #60a5fa' : '2px solid transparent',
+              overflow: 'hidden',
             }}>
-              {userName ? userName.charAt(0).toUpperCase() : '?'}
+              {!userAvatar && (userName ? userName.charAt(0).toUpperCase() : '?')}
             </div>
           </Link>
         </div>

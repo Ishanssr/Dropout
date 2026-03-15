@@ -44,9 +44,9 @@ export default function DashboardPage() {
       setForm(f => ({ ...f, imageUrl: result.url }));
       setUploading(false);
     } catch (err) {
-      setError('Image upload failed. Check Cloudinary config.');
+      // Upload failed — show error but keep preview, let user paste URL instead
+      setError('Image upload to cloud failed. You can paste an image URL below instead.');
       setUploading(false);
-      setImagePreview(null);
     }
   };
 
@@ -177,6 +177,19 @@ export default function DashboardPage() {
                 <div style={{ fontSize: '12px', marginTop: '4px' }}>JPG, PNG, WebP · Max 10MB</div>
               </div>
             )}
+          </div>
+          {/* Image URL paste fallback */}
+          <div style={{ marginTop: '8px' }}>
+            <input style={{ ...inputStyle, fontSize: '12px' }}
+              placeholder="Or paste image URL here (https://...)"
+              value={form.imageUrl}
+              onChange={(e) => {
+                setForm({ ...form, imageUrl: e.target.value });
+                if (e.target.value) setImagePreview(e.target.value);
+              }}
+              onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
+              onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }}
+            />
           </div>
         </div>
 

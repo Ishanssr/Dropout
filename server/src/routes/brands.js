@@ -35,11 +35,15 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/brands — create brand
+// POST /api/brands — find or create brand
 router.post('/', async (req, res) => {
   try {
     const { name, logo, website } = req.body;
-    const brand = await prisma.brand.create({ data: { name, logo, website } });
+    // Try to find existing brand first
+    let brand = await prisma.brand.findUnique({ where: { name } });
+    if (!brand) {
+      brand = await prisma.brand.create({ data: { name, logo, website } });
+    }
     res.status(201).json(brand);
   } catch (err) {
     console.error('POST /api/brands error:', err);

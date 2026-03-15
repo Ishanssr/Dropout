@@ -60,7 +60,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     });
   } catch (err) {
     console.error('Upload error:', err);
-    res.status(500).json({ error: 'Failed to upload image' });
+    res.status(500).json({ error: err.message || 'Failed to upload image' });
   }
 });
 

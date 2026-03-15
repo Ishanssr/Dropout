@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, use } from 'react';
-import { getDropById, drops, formatNumber } from '../../../lib/drops';
+import { useState, useEffect, use } from 'react';
+import { fetchDrop, transformDrop, formatNumber } from '../../../lib/api';
 import CountdownTimer from '../../../components/CountdownTimer';
 import Link from 'next/link';
 
@@ -15,18 +15,45 @@ const sampleComments = [
 
 export default function DropDetailPage({ params }) {
   const resolvedParams = use(params);
-  const drop = getDropById(resolvedParams.id);
+  const [drop, setDrop] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
   const [notified, setNotified] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState(sampleComments);
 
+  useEffect(() => {
+    fetchDrop(resolvedParams.id)
+      .then((data) => { setDrop(transformDrop(data)); setLoading(false); })
+      .catch(() => {
+        // Fallback to mock data
+        import('../../../lib/drops').then(({ getDropById }) => {
+          setDrop(getDropById(resolvedParams.id));
+          setLoading(false);
+        });
+      });
+  }, [resolvedParams.id]);
+
+  if (loading) {
+    return (
+      <div style={{ maxWidth: '470px', margin: '0 auto', textAlign: 'center', padding: '80px 20px', color: '#525252' }}>
+        <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏳</div>
+        <div style={{ fontSize: '14px' }}>Loading drop...</div>
+      </div>
+    );
+  }
+
   if (!drop) {
     return (
-      <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="text-center py-20">
-        <div className="text-4xl mb-3">🔍</div>
-        <div className="font-semibold text-white mb-1">Drop not found</div>
-        <Link href="/" className="inline-block mt-3 px-5 py-2 rounded-lg bg-blue-500 text-white font-semibold text-sm no-underline">Back to Feed</Link>
+      <div style={{ maxWidth: '470px', margin: '0 auto', textAlign: 'center', padding: '80px 20px' }}>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
+        <div style={{ fontWeight: 600, color: '#fff', marginBottom: '8px' }}>Drop not found</div>
+        <Link href="/" style={{
+          display: 'inline-block', marginTop: '12px', padding: '10px 24px',
+          borderRadius: '50px', background: '#3b82f6', color: '#fff',
+          fontWeight: 600, fontSize: '14px', textDecoration: 'none',
+          transition: 'all 0.2s ease',
+        }}>Back to Feed</Link>
       </div>
     );
   }
@@ -38,145 +65,166 @@ export default function DropDetailPage({ params }) {
     setNewComment('');
   };
 
-  const relatedDrops = drops.filter(d => d.category === drop.category && d.id !== drop.id).slice(0, 3);
+  const ActionBtn = ({ onClick, children, active }) => (
+    <button
+      onClick={onClick}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '8px', borderRadius: '50%',
+        color: active ? '#3b82f6' : '#e0e0e0',
+        transition: 'all 0.2s ease',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
+    >
+      {children}
+    </button>
+  );
 
   return (
     <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }}>
       {/* Back */}
-      <div className="px-4 py-3">
-        <Link href="/" className="no-underline text-blue-500 text-[13px]">← Feed</Link>
+      <div style={{ padding: '12px 16px' }}>
+        <Link href="/" style={{ color: '#3b82f6', fontSize: '13px', textDecoration: 'none' }}>← Feed</Link>
       </div>
 
       {/* Header */}
-      <div className="flex items-center px-4 py-3 gap-3">
-        <img
-          src={drop.brand.logo}
-          alt={drop.brand.name}
-          className="w-8 h-8 rounded-full border-2 border-[#262626] object-cover bg-[#111]"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = `https://ui-avatars.com/api/?name=${drop.brand.name}&background=111&color=3b82f6&size=32`;
-          }}
-        />
-        <div className="flex-1">
-          <div className="text-sm font-semibold text-white">{drop.brand.name}</div>
-          <div className="text-[11px] text-blue-500 font-medium capitalize">{drop.category.replace('-', ' ')}</div>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 16px 14px', gap: '12px' }}>
+        <div style={{
+          width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
+          background: 'linear-gradient(135deg, #3b82f6, #60a5fa)', padding: '2px',
+        }}>
+          <img
+            src={drop.brand.logo}
+            alt={drop.brand.name}
+            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', background: '#111', border: '2px solid #000' }}
+            onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${drop.brand.name}&background=111&color=3b82f6&size=36`; }}
+          />
         </div>
-        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{drop.brand.name}</div>
+          <div style={{ fontSize: '11px', color: '#3b82f6', fontWeight: 500, textTransform: 'capitalize' }}>{drop.category.replace('-', ' ')}</div>
+        </div>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 700,
+          background: 'rgba(59,130,246,0.08)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.12)',
+        }}>
           🔥 {drop.hypeScore}
         </div>
       </div>
 
       {/* Image */}
-      <div className="relative w-full aspect-square overflow-hidden bg-[#0a0a0a]">
-        <img src={drop.imageUrl} alt={drop.title} className="w-full h-full object-cover" />
-        <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg text-sm font-bold text-white bg-black/70 backdrop-blur-md border border-blue-500/20">
-          {drop.price}
-        </div>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '1', overflow: 'hidden', background: '#080808' }}>
+        <img src={drop.imageUrl} alt={drop.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{
+          position: 'absolute', bottom: '14px', right: '14px', fontSize: '13px', fontWeight: 700, color: '#fff',
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)', padding: '6px 14px', borderRadius: '24px',
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}>{drop.price}</div>
         {drop.featured && (
-          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-semibold text-blue-500 bg-black/70 backdrop-blur-md border border-blue-500/20 uppercase tracking-wide">
-            ⚡ Featured
-          </div>
+          <div style={{
+            position: 'absolute', top: '14px', left: '14px', fontSize: '10px', fontWeight: 700, color: '#60a5fa',
+            textTransform: 'uppercase', letterSpacing: '0.5px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)',
+            padding: '5px 12px', borderRadius: '24px', border: '1px solid rgba(59,130,246,0.2)',
+          }}>⚡ Featured</div>
         )}
       </div>
 
       {/* Actions */}
-      <div className="flex items-center px-3 py-2 gap-1">
-        <button className="bg-transparent border-none text-white cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl">❤️</button>
-        <button className="bg-transparent border-none text-white cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl">💬</button>
-        <button onClick={() => setNotified(!notified)} className={`bg-transparent border-none cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl ${notified ? 'text-blue-500' : 'text-white'}`}>
-          {notified ? '🔔' : '🔕'}
-        </button>
-        <a href={drop.website} target="_blank" rel="noopener noreferrer" className="bg-transparent border-none text-white cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl no-underline">🔗</a>
-        <div className="flex-1" />
-        <button onClick={() => setSaved(!saved)} className={`bg-transparent border-none cursor-pointer p-2 rounded-lg hover:bg-[#111] transition-colors text-xl ${saved ? 'text-blue-500' : 'text-white'}`}>
-          {saved ? '🔖' : '📑'}
-        </button>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', gap: '4px' }}>
+        <ActionBtn><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></ActionBtn>
+        <ActionBtn><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></ActionBtn>
+        <ActionBtn onClick={() => setNotified(!notified)} active={notified}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill={notified ? '#3b82f6' : 'none'} stroke={notified ? '#3b82f6' : 'currentColor'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </ActionBtn>
+        {drop.website && (
+          <a href={drop.website} target="_blank" rel="noopener noreferrer" style={{ color: '#e0e0e0', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        )}
+        <div style={{ flex: 1 }} />
+        <ActionBtn onClick={() => setSaved(!saved)} active={saved}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill={saved ? '#3b82f6' : 'none'} stroke={saved ? '#3b82f6' : 'currentColor'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </ActionBtn>
       </div>
 
       {/* Likes */}
-      <div className="px-4 text-sm font-semibold text-white">{formatNumber(drop.engagement.likes)} likes</div>
+      <div style={{ padding: '0 16px', fontSize: '14px', fontWeight: 600, color: '#fff' }}>
+        {formatNumber(drop.engagement.likes)} likes
+      </div>
 
       {/* Title + description */}
-      <div className="px-4 pt-2">
-        <h1 className="text-lg font-bold text-white mb-1.5">{drop.title}</h1>
-        <p className="text-sm text-[#a3a3a3] leading-relaxed">{drop.description}</p>
+      <div style={{ padding: '8px 16px 0' }}>
+        <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>{drop.title}</h1>
+        <p style={{ fontSize: '14px', color: '#a3a3a3', lineHeight: 1.6 }}>{drop.description}</p>
       </div>
 
       {/* Countdown */}
-      <div className="flex items-center gap-3 px-4 py-3 mt-2 border-y border-[#1a1a1a]">
-        <span className="text-[13px] text-[#525252]">Drops in</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', margin: '8px 0', borderTop: '1px solid #161616', borderBottom: '1px solid #161616' }}>
+        <span style={{ fontSize: '13px', color: '#525252' }}>Drops in</span>
         <CountdownTimer dropTime={drop.dropTime} />
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 py-3 px-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '12px 16px' }}>
         {[
           { label: 'Views', value: formatNumber(drop.engagement.views) },
           { label: 'Likes', value: formatNumber(drop.engagement.likes) },
           { label: 'Comments', value: formatNumber(drop.engagement.comments) },
           { label: 'Saves', value: formatNumber(drop.engagement.saves) },
         ].map((s) => (
-          <div key={s.label} className="text-center">
-            <div className="text-base font-bold text-blue-500">{s.value}</div>
-            <div className="text-[10px] text-[#525252] uppercase tracking-wide">{s.label}</div>
+          <div key={s.label} style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: '#3b82f6' }}>{s.value}</div>
+            <div style={{ fontSize: '10px', color: '#525252', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '2px' }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Comments */}
-      <div className="border-t border-[#1a1a1a] px-4 py-4">
-        <div className="text-sm font-bold mb-3">Comments</div>
-
-        <form onSubmit={handleAddComment} className="flex gap-2 mb-4">
-          <input className="flex-1 px-3 py-2.5 rounded-lg text-sm bg-[#0a0a0a] border border-[#262626] text-white outline-none focus:border-blue-500 transition-colors placeholder-[#525252]" placeholder="Add a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} />
-          <button type="submit" className="px-4 py-2.5 rounded-lg bg-blue-500 text-white font-semibold text-sm border-none cursor-pointer hover:bg-blue-600 transition-colors">Post</button>
+      <div style={{ borderTop: '1px solid #161616', padding: '16px' }}>
+        <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '14px', color: '#fff' }}>Comments</div>
+        <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <input
+            placeholder="Add a comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            style={{
+              flex: 1, padding: '10px 14px', borderRadius: '50px', fontSize: '13px',
+              background: '#0a0a0a', border: '1px solid #1a1a1a', color: '#fff', outline: 'none',
+              transition: 'border-color 0.2s ease',
+            }}
+            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }}
+          />
+          <button type="submit" style={{
+            padding: '10px 20px', borderRadius: '50px', background: '#3b82f6', color: '#fff',
+            fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer',
+            transition: 'all 0.2s', flexShrink: 0,
+          }}>Post</button>
         </form>
-
-        <div className="flex flex-col gap-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {comments.map((c) => (
-            <div key={c.id} className="flex gap-2.5 text-sm">
-              <div className="w-7 h-7 rounded-full bg-[#111] shrink-0 flex items-center justify-center text-xs text-[#525252] font-bold">
-                {c.user[0].toUpperCase()}
-              </div>
-              <div className="flex-1">
-                <span className="font-semibold text-white mr-1.5">{c.user}</span>
-                <span className="text-[#a3a3a3]">{c.text}</span>
-                <div className="mt-1 text-xs text-[#525252] flex gap-3">
+            <div key={c.id} style={{ display: 'flex', gap: '10px', fontSize: '13px' }}>
+              <div style={{
+                width: '28px', height: '28px', borderRadius: '50%', background: '#111', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '11px', color: '#525252', fontWeight: 700,
+              }}>{c.user[0].toUpperCase()}</div>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontWeight: 600, color: '#fff', marginRight: '6px' }}>{c.user}</span>
+                <span style={{ color: '#a3a3a3' }}>{c.text}</span>
+                <div style={{ marginTop: '4px', fontSize: '11px', color: '#525252', display: 'flex', gap: '12px' }}>
                   <span>{c.time}</span>
                   <span>❤️ {c.likes}</span>
-                  <span className="cursor-pointer">Reply</span>
+                  <span style={{ cursor: 'pointer' }}>Reply</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Related */}
-      {relatedDrops.length > 0 && (
-        <div className="border-t border-[#1a1a1a] px-4 py-4">
-          <div className="text-sm font-bold mb-3">More like this</div>
-          <div className="flex flex-col gap-1.5">
-            {relatedDrops.map((r) => (
-              <Link key={r.id} href={`/drop/${r.id}`} className="no-underline text-inherit">
-                <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] hover:border-[#262626] transition-colors cursor-pointer">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-[#111]">
-                    <img src={r.imageUrl} alt={r.title} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-white truncate">{r.title}</div>
-                    <div className="text-[11px] text-[#737373]">{r.brand.name} · {r.price}</div>
-                  </div>
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
-                    🔥 {r.hypeScore}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

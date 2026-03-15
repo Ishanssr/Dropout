@@ -36,7 +36,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
-          folder: 'dropspace',
+          folder: 'dropout',
           resource_type: 'image',
           transformation: [
             { width: 1080, height: 1080, crop: 'limit', quality: 'auto', format: 'webp' },

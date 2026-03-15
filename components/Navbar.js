@@ -80,7 +80,7 @@ export default function Sidebar() {
               color: '#fff',
               whiteSpace: 'nowrap',
             }}>
-              <span style={{ color: '#3b82f6' }}>Drop</span>Space
+              <span style={{ color: '#3b82f6' }}>Drop</span>out
             </span>
           ) : (
             <span style={{ fontSize: '26px', fontWeight: 800, color: '#3b82f6' }}>D</span>

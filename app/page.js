@@ -7,6 +7,7 @@ import { fetchDrops, transformDrop } from '../lib/api';
 
 export default function Home() {
   const [active, setActive] = useState('all');
+  const [tab, setTab] = useState('upcoming');
   const [drops, setDrops] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,31 +15,65 @@ export default function Home() {
     setLoading(true);
     fetchDrops(active)
       .then((data) => {
-        setDrops(data.map(transformDrop));
+        let transformed = data.map(transformDrop);
+        // Filter by tab
+        const now = new Date();
+        if (tab === 'upcoming') {
+          transformed = transformed.filter(d => new Date(d.dropTime) > now);
+        } else if (tab === 'live') {
+          transformed = transformed.filter(d => {
+            const dt = new Date(d.dropTime);
+            return dt <= now && dt > new Date(now - 24 * 60 * 60 * 1000);
+          });
+        }
+        setDrops(transformed);
         setLoading(false);
       })
       .catch(() => {
-        // Fallback to mock data if API is cold-starting
         import('../lib/drops').then(({ getDropsByCategory }) => {
           setDrops(getDropsByCategory(active));
           setLoading(false);
         });
       });
-  }, [active]);
+  }, [active, tab]);
+
+  const tabs = [
+    { id: 'upcoming', label: 'Upcoming' },
+    { id: 'live', label: 'Live' },
+    { id: 'all', label: 'All' },
+  ];
 
   return (
     <div>
-      {/* Category filter — extended width, floating pills */}
+      {/* ---- Segmented Control: Upcoming / Live / All ---- */}
+      <div style={{ padding: '20px 16px 12px', maxWidth: '470px', margin: '0 auto', width: '100%' }}>
+        <div style={{
+          display: 'flex', borderRadius: '50px',
+          border: '1px solid #262626', overflow: 'hidden',
+          background: '#0a0a0a',
+        }}>
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                flex: 1, padding: '11px 0', border: 'none', cursor: 'pointer',
+                fontSize: '14px', fontWeight: tab === t.id ? 600 : 400,
+                background: tab === t.id ? '#1a1a1a' : 'transparent',
+                color: tab === t.id ? '#fff' : '#737373',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ---- Category pills ---- */}
       <div style={{
-        display: 'flex',
-        gap: '10px',
-        overflowX: 'auto',
-        padding: '24px 24px 20px',
-        maxWidth: '680px',
-        margin: '0 auto',
-        width: '100%',
-        scrollbarWidth: 'none',
-        justifyContent: 'center',
+        display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none',
+        padding: '4px 16px 16px', maxWidth: '560px', margin: '0 auto', width: '100%',
         flexWrap: 'wrap',
       }}>
         {categories.map((cat) => (
@@ -46,37 +81,17 @@ export default function Home() {
             key={cat.id}
             onClick={() => setActive(cat.id)}
             style={{
-              flexShrink: 0,
-              padding: '10px 20px',
-              borderRadius: '50px',
-              fontSize: '13px',
-              fontWeight: active === cat.id ? 600 : 500,
-              cursor: 'pointer',
-              border: active === cat.id ? '1px solid rgba(59,130,246,0.4)' : '1px solid #1a1a1a',
-              background: active === cat.id ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.03)',
-              color: active === cat.id ? '#60a5fa' : '#a3a3a3',
-              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              backdropFilter: 'blur(8px)',
-              letterSpacing: '0.2px',
+              flexShrink: 0, padding: '7px 16px', borderRadius: '50px',
+              fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+              border: 'none',
+              background: active === cat.id ? '#3b82f6' : '#1a1a1a',
+              color: active === cat.id ? '#fff' : '#a3a3a3',
+              transition: 'all 0.2s ease',
             }}
-            onMouseEnter={(e) => {
-              if (active !== cat.id) {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
-                e.currentTarget.style.color = '#fff';
-                e.currentTarget.style.borderColor = 'rgba(59,130,246,0.25)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (active !== cat.id) {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                e.currentTarget.style.color = '#a3a3a3';
-                e.currentTarget.style.borderColor = '#1a1a1a';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }
-            }}
+            onMouseEnter={(e) => { if (active !== cat.id) { e.currentTarget.style.background = '#262626'; e.currentTarget.style.color = '#fff'; }}}
+            onMouseLeave={(e) => { if (active !== cat.id) { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.color = '#a3a3a3'; }}}
           >
-            {cat.icon}  {cat.name}
+            {cat.name}
           </button>
         ))}
       </div>
@@ -98,7 +113,7 @@ export default function Home() {
         <div style={{ textAlign: 'center', padding: '80px 20px', color: '#737373' }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
           <div style={{ fontWeight: 600, color: '#fff', marginBottom: '4px' }}>No drops found</div>
-          <div style={{ fontSize: '14px' }}>Check back later</div>
+          <div style={{ fontSize: '14px' }}>Try a different filter</div>
         </div>
       )}
     </div>

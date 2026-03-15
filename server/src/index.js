@@ -36,9 +36,9 @@ app.get('/api/health', (req, res) => {
 
 // Root
 app.get('/', (req, res) => {
-  res.json({ name: 'DropSpace API', version: '1.0.0', docs: '/api/health' });
+  res.json({ name: 'Dropout API', version: '1.0.0', docs: '/api/health' });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 DropSpace API running on port ${PORT}`);
+  console.log(`🚀 Dropout API running on port ${PORT}`);
 });

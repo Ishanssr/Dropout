@@ -56,7 +56,7 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <Link href="/" style={{ textDecoration: 'none' }}>
             <span style={{ fontSize: '28px', fontWeight: 800, color: '#3b82f6' }}>Drop</span>
-            <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>Space</span>
+            <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>out</span>
           </Link>
           <p style={{ color: '#525252', fontSize: '14px', marginTop: '8px' }}>
             Discover what&apos;s dropping next

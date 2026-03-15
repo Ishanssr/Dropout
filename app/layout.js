@@ -2,7 +2,7 @@ import "./globals.css";
 import Sidebar from "../components/Navbar";
 
 export const metadata = {
-  title: "DropSpace — Discover What's Dropping Next",
+  title: "Dropout — Discover What's Dropping Next",
   description: "The Instagram for product launches. Discover upcoming sneaker drops, tech launches, creator merch, and limited edition releases.",
 };
 

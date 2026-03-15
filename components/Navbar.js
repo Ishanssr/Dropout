@@ -38,11 +38,13 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
 
   // Re-read user on every navigation (covers login/logout)
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     setLoggedIn(!!user);
+    setUserName(user?.name || '');
   }, [pathname]);
 
   // Show Dashboard for logged-in users
@@ -198,7 +200,47 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* ===== BOTTOM NAV (Mobile only — hidden on desktop via CSS) ===== */}
+      {/* ===== MOBILE TOP HEADER (hidden on desktop) ===== */}
+      <div
+        className="mobile-top-header"
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid #1a1a1a',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 16px', height: '52px',
+        }}
+      >
+        {/* Logo */}
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ color: '#3b82f6', fontSize: '20px' }}>⚡</span>
+          <span style={{ fontSize: '18px', fontWeight: 800 }}>
+            <span style={{ color: '#3b82f6' }}>Drop</span><span style={{ color: '#fff' }}>out</span>
+          </span>
+        </Link>
+        {/* Right icons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <Link href="/saved" style={{ color: pathname === '/saved' ? '#fff' : '#737373', display: 'flex' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </Link>
+          <Link href="/calendar" style={{ color: pathname === '/calendar' ? '#fff' : '#737373', display: 'flex' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </Link>
+          <Link href={loggedIn ? '/profile' : '/login'} style={{ display: 'flex' }}>
+            <div style={{
+              width: '28px', height: '28px', borderRadius: '50%',
+              background: loggedIn ? '#3b82f6' : '#262626',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '13px', fontWeight: 700, color: '#fff',
+              border: pathname === '/profile' ? '2px solid #60a5fa' : '2px solid transparent',
+            }}>
+              {userName ? userName.charAt(0).toUpperCase() : '?'}
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* ===== BOTTOM NAV (Mobile only) ===== */}
       <div
         className="mobile-bottom-nav"
         style={{
@@ -214,7 +256,6 @@ export default function Sidebar() {
           { href: '/trending', icon: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>) },
           { href: '/categories', icon: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>) },
           { href: '/saved', icon: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>) },
-          { href: '/profile', icon: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>) },
         ].map((item) => (
           <Link
             key={item.href}

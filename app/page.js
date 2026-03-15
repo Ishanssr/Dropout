@@ -70,11 +70,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ---- Category pills ---- */}
+      {/* ---- Category pills (horizontal scroll) ---- */}
       <div style={{
         display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none',
-        padding: '4px 16px 16px', maxWidth: '470px', margin: '0 auto', width: '100%',
-        flexWrap: 'wrap', justifyContent: 'center',
+        padding: '4px 16px 16px', maxWidth: '600px', margin: '0 auto', width: '100%',
+        WebkitOverflowScrolling: 'touch',
       }}>
         {categories.map((cat) => (
           <button

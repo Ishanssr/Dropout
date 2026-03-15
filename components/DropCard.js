@@ -26,8 +26,20 @@ export default function DropCard({ drop, index = 0 }) {
   const saves = drop.engagement?.saves || drop._count?.saves || 0;
   const comments = drop.engagement?.comments || drop._count?.comments || 0;
 
-  // Like handler — calls API
+  // Auth check helper
+  const requireLogin = () => {
+    const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
+    if (!user) {
+      alert('Log in to interact');
+      router.push('/login');
+      return false;
+    }
+    return true;
+  };
+
+  // Like handler — calls API (requires login)
   const handleLike = async () => {
+    if (!requireLogin()) return;
     const newLiked = !liked;
     setLiked(newLiked);
     setLikeCount(prev => newLiked ? prev + 1 : prev - 1);
@@ -38,16 +50,16 @@ export default function DropCard({ drop, index = 0 }) {
         await unlikeDrop(drop.id);
       }
     } catch (err) {
-      // Revert on error
       setLiked(!newLiked);
       setLikeCount(prev => newLiked ? prev - 1 : prev + 1);
     }
   };
 
-  // Save handler — calls API
+  // Save handler — calls API (requires login)
   const handleSave = async () => {
     const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
     if (!user) {
+      alert('Log in to interact');
       router.push('/login');
       return;
     }
@@ -73,8 +85,9 @@ export default function DropCard({ drop, index = 0 }) {
     }
   };
 
-  // Comment handler — navigate to drop detail
+  // Comment handler — navigate to drop detail (requires login)
   const handleComment = () => {
+    if (!requireLogin()) return;
     router.push(`/drop/${drop.id}`);
   };
 
@@ -131,7 +144,7 @@ export default function DropCard({ drop, index = 0 }) {
           }}>
             <CountdownTimer dropTime={drop.dropTime} />
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNotified(!notified); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!requireLogin()) return; setNotified(!notified); }}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer',

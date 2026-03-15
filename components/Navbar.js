@@ -149,22 +149,41 @@ export default function Sidebar() {
 
         {/* ---- Bottom Items ---- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 12px 24px' }}>
+          {/* Dashboard — brand users only */}
+          {userRole === 'brand' && (
+            <Link
+              href="/dashboard"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '16px',
+                padding: '12px', borderRadius: '12px',
+                color: pathname === '/dashboard' ? '#fff' : '#a3a3a3',
+                background: pathname === '/dashboard' ? 'rgba(59,130,246,0.12)' : 'transparent',
+                textDecoration: 'none', fontSize: '15px',
+                fontWeight: pathname === '/dashboard' ? 700 : 400,
+                overflow: 'hidden', whiteSpace: 'nowrap', minHeight: '48px',
+                transition: 'all 0.2s ease',
+                border: pathname === '/dashboard' ? '1px solid rgba(59,130,246,0.2)' : '1px solid transparent',
+              }}
+              onMouseEnter={(e) => { if (pathname !== '/dashboard') { e.currentTarget.style.background = 'rgba(59,130,246,0.06)'; e.currentTarget.style.color = '#60a5fa'; }}}
+              onMouseLeave={(e) => { if (pathname !== '/dashboard') { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a3a3a3'; }}}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px', flexShrink: 0 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </span>
+              {expanded && <span>Dashboard</span>}
+            </Link>
+          )}
+          {/* Profile */}
           <Link
             href="/profile"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-              padding: '12px',
-              borderRadius: '12px',
+              display: 'flex', alignItems: 'center', gap: '16px',
+              padding: '12px', borderRadius: '12px',
               color: pathname === '/profile' ? '#fff' : '#a3a3a3',
               background: pathname === '/profile' ? 'rgba(255,255,255,0.08)' : 'transparent',
-              textDecoration: 'none',
-              fontSize: '15px',
+              textDecoration: 'none', fontSize: '15px',
               fontWeight: pathname === '/profile' ? 700 : 400,
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              minHeight: '48px',
+              overflow: 'hidden', whiteSpace: 'nowrap', minHeight: '48px',
               transition: 'all 0.2s ease',
             }}
             onMouseEnter={(e) => { if (pathname !== '/profile') { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff'; }}}
@@ -175,34 +194,6 @@ export default function Sidebar() {
             </span>
             {expanded && <span>Profile</span>}
           </Link>
-          {bottomItems.map((item) => (
-            <button
-              key={item.label}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                padding: '12px',
-                borderRadius: '12px',
-                color: '#a3a3a3',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '15px',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                minHeight: '48px',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a3a3a3'; }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px', flexShrink: 0 }}>
-                {item.icon}
-              </span>
-              {expanded && <span>{item.label}</span>}
-            </button>
-          ))}
         </div>
       </aside>
 

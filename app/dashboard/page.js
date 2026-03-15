@@ -1,24 +1,110 @@
 'use client';
 
-import { useState } from 'react';
-import { categories } from '../../lib/drops';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { uploadImage } from '../../lib/api';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dropout-htf0.onrender.com';
 
 export default function DashboardPage() {
-  const [form, setForm] = useState({ brandName: '', productName: '', category: 'sneakers', description: '', price: '', dropDate: '', dropTime: '', website: '' });
-  const [submitted, setSubmitted] = useState(false);
+  const router = useRouter();
+  const fileRef = useRef(null);
+  const [user, setUser] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
+  const [form, setForm] = useState({
+    title: '', description: '', category: 'sneakers', price: '',
+    dropDate: '', dropTime: '', website: '', imageUrl: '', brandName: '',
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+  useEffect(() => {
+    const u = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!u) { router.push('/login'); return; }
+    if (u.role !== 'brand') { router.push('/'); return; }
+    setUser(u);
+    setForm(f => ({ ...f, brandName: u.name }));
+  }, [router]);
+
+  // Handle image file selection → upload to Cloudinary
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+
+    setUploading(true);
+    setError('');
+    try {
+      const result = await uploadImage(file);
+      setForm(f => ({ ...f, imageUrl: result.url }));
+      setUploading(false);
+    } catch (err) {
+      setError('Image upload failed. Check Cloudinary config.');
+      setUploading(false);
+      setImagePreview(null);
+    }
   };
 
-  const stats = [
-    { label: 'Views', value: '245K', change: '+12%' },
-    { label: 'Saves', value: '18.4K', change: '+8%' },
-    { label: 'Clicks', value: '8.2K', change: '-3%' },
-    { label: 'Engagement', value: '7.5%', change: '+2%' },
-  ];
+  // Submit drop to backend
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!form.imageUrl) { setError('Please upload a product image'); return; }
+    if (!form.title) { setError('Please enter a product title'); return; }
+    if (!form.dropDate || !form.dropTime) { setError('Please set the drop date and time'); return; }
+
+    setSubmitting(true);
+    try {
+      // First, find or create brand
+      const brandRes = await fetch(`${API_URL}/api/brands`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.brandName || user.name,
+          logo: `https://ui-avatars.com/api/?name=${encodeURIComponent(form.brandName || user.name)}&background=111&color=3b82f6&size=64`,
+          website: form.website || '',
+        }),
+      });
+      const brand = await brandRes.json();
+      const brandId = brand.id;
+
+      // Create the drop
+      const dropTime = new Date(`${form.dropDate}T${form.dropTime}`).toISOString();
+      const dropRes = await fetch(`${API_URL}/api/drops`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title,
+          description: form.description,
+          imageUrl: form.imageUrl,
+          price: form.price || 'TBA',
+          category: form.category,
+          dropTime,
+          website: form.website,
+          brandId,
+        }),
+      });
+
+      if (!dropRes.ok) throw new Error('Failed to create drop');
+
+      setSuccess('Drop created! It will appear in the feed.');
+      setForm({ title: '', description: '', category: 'sneakers', price: '', dropDate: '', dropTime: '', website: '', imageUrl: '', brandName: form.brandName });
+      setImagePreview(null);
+      setSubmitting(false);
+
+      setTimeout(() => { setSuccess(''); router.push('/'); }, 2000);
+    } catch (err) {
+      setError(err.message || 'Failed to create drop');
+      setSubmitting(false);
+    }
+  };
 
   const inputStyle = {
     width: '100%', padding: '12px 16px', borderRadius: '12px', fontSize: '14px',
@@ -26,108 +112,194 @@ export default function DashboardPage() {
     transition: 'border-color 0.2s ease', boxSizing: 'border-box',
   };
 
-  return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', padding: '20px 16px' }}>
-      <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>
-        Brand <span style={{ color: '#3b82f6' }}>Dashboard</span>
-      </h1>
-      <p style={{ fontSize: '13px', color: '#737373', marginBottom: '24px' }}>Create drops and track performance</p>
+  if (!user) return null;
 
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '28px' }}>
-        {stats.map((s) => (
-          <div key={s.label} style={{
-            padding: '18px 16px', borderRadius: '16px',
-            background: 'rgba(255,255,255,0.02)', border: '1px solid #1a1a1a',
-            textAlign: 'center', transition: 'all 0.25s ease',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.2)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            <div style={{ fontSize: '11px', color: '#737373', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</div>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: '#3b82f6' }}>{s.value}</div>
-            <div style={{ fontSize: '11px', marginTop: '2px', color: s.change.startsWith('+') ? '#60a5fa' : '#525252' }}>{s.change}</div>
-          </div>
-        ))}
+  return (
+    <div style={{ maxWidth: '600px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '28px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '4px' }}>
+          🚀 <span style={{ color: '#3b82f6' }}>Create</span> Drop
+        </h1>
+        <p style={{ fontSize: '13px', color: '#737373' }}>
+          Launch a new product drop — it will appear in the feed for everyone
+        </p>
       </div>
 
-      {/* Form */}
-      <div style={{ padding: '28px 24px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid #1a1a1a' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', color: '#fff' }}>🚀 Create New Drop</h2>
+      {/* Form card */}
+      <form onSubmit={handleSubmit} style={{
+        padding: '28px 24px', borderRadius: '16px',
+        background: 'rgba(255,255,255,0.02)', border: '1px solid #1a1a1a',
+        display: 'flex', flexDirection: 'column', gap: '20px',
+      }}>
 
-        {submitted && (
+        {/* Image Upload */}
+        <div>
+          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '8px', fontWeight: 600 }}>
+            📷 Product Image *
+          </label>
+          <input type="file" ref={fileRef} accept="image/*" onChange={handleImageSelect} style={{ display: 'none' }} />
+          <div
+            onClick={() => fileRef.current?.click()}
+            style={{
+              width: '100%', aspectRatio: '1', borderRadius: '16px',
+              border: imagePreview ? 'none' : '2px dashed #262626',
+              background: imagePreview ? 'transparent' : '#0a0a0a',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', overflow: 'hidden', position: 'relative',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => { if (!imagePreview) e.currentTarget.style.borderColor = '#3b82f6'; }}
+            onMouseLeave={(e) => { if (!imagePreview) e.currentTarget.style.borderColor = '#262626'; }}
+          >
+            {imagePreview ? (
+              <>
+                <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {uploading && (
+                  <div style={{
+                    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#60a5fa', fontSize: '14px', fontWeight: 600,
+                  }}>Uploading...</div>
+                )}
+                {!uploading && form.imageUrl && (
+                  <div style={{
+                    position: 'absolute', bottom: '12px', right: '12px',
+                    background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+                    padding: '6px 12px', borderRadius: '20px', fontSize: '11px',
+                    color: '#34d399', fontWeight: 600,
+                  }}>✓ Uploaded</div>
+                )}
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', color: '#525252' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
+                <div style={{ fontSize: '14px', fontWeight: 500 }}>Click to upload image</div>
+                <div style={{ fontSize: '12px', marginTop: '4px' }}>JPG, PNG, WebP · Max 10MB</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Brand Name */}
+        <div>
+          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>🏢 Brand Name</label>
+          <input style={inputStyle} placeholder="Your brand name" value={form.brandName}
+            onChange={(e) => setForm({ ...form, brandName: e.target.value })}
+            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+        </div>
+
+        {/* Product Title */}
+        <div>
+          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>✨ Product Title *</label>
+          <input style={inputStyle} placeholder="e.g. Air Max 2030 Limited Edition" value={form.title} required
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+        </div>
+
+        {/* Description / Caption */}
+        <div>
+          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>📝 Caption / Description</label>
+          <textarea style={{ ...inputStyle, resize: 'none', minHeight: '100px' }}
+            placeholder="Describe your drop... This appears below the title in the feed."
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+        </div>
+
+        {/* Category + Price */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>📦 Category</label>
+            <select style={{ ...inputStyle, appearance: 'none' }} value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}>
+              <option value="sneakers">Sneakers</option>
+              <option value="tech">Tech</option>
+              <option value="streetwear">Streetwear</option>
+              <option value="gaming">Gaming</option>
+              <option value="ai-tools">AI Tools</option>
+              <option value="creator-merch">Creator Merch</option>
+              <option value="limited-edition">Limited Edition</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>💰 Price</label>
+            <input style={inputStyle} placeholder="$199.99" value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
+              onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+          </div>
+        </div>
+
+        {/* Drop Date + Time */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>📅 Drop Date *</label>
+            <input type="date" style={inputStyle} value={form.dropDate} required
+              onChange={(e) => setForm({ ...form, dropDate: e.target.value })} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>⏰ Drop Time *</label>
+            <input type="time" style={inputStyle} value={form.dropTime} required
+              onChange={(e) => setForm({ ...form, dropTime: e.target.value })} />
+          </div>
+        </div>
+
+        {/* The countdown timer will tick down to this date+time */}
+        {form.dropDate && form.dropTime && (
           <div style={{
-            padding: '12px 16px', borderRadius: '12px', fontSize: '13px', color: '#60a5fa',
-            background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.12)', marginBottom: '16px',
-          }}>✅ Drop created successfully!</div>
+            padding: '12px 16px', borderRadius: '12px',
+            background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.12)',
+            fontSize: '12px', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px',
+          }}>
+            🔔 The countdown timer on your post will tick down to <strong>{form.dropDate} at {form.dropTime}</strong>
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#737373', marginBottom: '6px' }}>Brand Name</label>
-              <input style={inputStyle} placeholder="e.g. Nike" value={form.brandName} onChange={(e) => setForm({...form, brandName: e.target.value})}
-                onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }} onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#737373', marginBottom: '6px' }}>Product Name</label>
-              <input style={inputStyle} placeholder="e.g. Air Max 2030" value={form.productName} onChange={(e) => setForm({...form, productName: e.target.value})}
-                onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }} onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
-            </div>
+        {/* Website / Purchase Link */}
+        <div>
+          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>🔗 Official Link (Shop Now)</label>
+          <input type="url" style={inputStyle} placeholder="https://yourbrand.com/product"
+            value={form.website}
+            onChange={(e) => setForm({ ...form, website: e.target.value })}
+            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+          <div style={{ fontSize: '11px', color: '#525252', marginTop: '4px' }}>
+            This link will appear as the "Shop Now" button on your drop
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#737373', marginBottom: '6px' }}>Category</label>
-              <select style={{ ...inputStyle, appearance: 'none' }} value={form.category} onChange={(e) => setForm({...form, category: e.target.value})}>
-                {categories.filter(c => c.id !== 'all').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#737373', marginBottom: '6px' }}>Price</label>
-              <input style={inputStyle} placeholder="$199" value={form.price} onChange={(e) => setForm({...form, price: e.target.value})}
-                onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }} onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
-            </div>
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', color: '#737373', marginBottom: '6px' }}>Description</label>
-            <textarea style={{ ...inputStyle, resize: 'none', minHeight: '80px' }} placeholder="Describe your drop..." value={form.description} onChange={(e) => setForm({...form, description: e.target.value})}
-              onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }} onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#737373', marginBottom: '6px' }}>Drop Date</label>
-              <input type="date" style={inputStyle} value={form.dropDate} onChange={(e) => setForm({...form, dropDate: e.target.value})} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#737373', marginBottom: '6px' }}>Drop Time</label>
-              <input type="time" style={inputStyle} value={form.dropTime} onChange={(e) => setForm({...form, dropTime: e.target.value})} />
-            </div>
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', color: '#737373', marginBottom: '6px' }}>Website</label>
-            <input type="url" style={inputStyle} placeholder="https://yourbrand.com" value={form.website} onChange={(e) => setForm({...form, website: e.target.value})}
-              onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }} onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
-          </div>
-          <div style={{ display: 'flex', gap: '10px', paddingTop: '8px' }}>
-            <button type="submit" style={{
-              padding: '12px 28px', borderRadius: '50px', background: '#3b82f6', color: '#fff',
-              fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-              onMouseEnter={(e) => { e.target.style.background = '#2563eb'; e.target.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={(e) => { e.target.style.background = '#3b82f6'; e.target.style.transform = 'translateY(0)'; }}
-            >🚀 Create Drop</button>
-            <button type="button" style={{
-              padding: '12px 28px', borderRadius: '50px', background: 'transparent', color: '#a3a3a3',
-              fontWeight: 600, fontSize: '14px', border: '1px solid #1a1a1a', cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-              onMouseEnter={(e) => { e.target.style.borderColor = 'rgba(59,130,246,0.3)'; e.target.style.color = '#fff'; }}
-              onMouseLeave={(e) => { e.target.style.borderColor = '#1a1a1a'; e.target.style.color = '#a3a3a3'; }}
-            >Save Draft</button>
-          </div>
-        </form>
-      </div>
+        </div>
+
+        {/* Messages */}
+        {error && (
+          <div style={{
+            padding: '12px 16px', borderRadius: '12px', fontSize: '13px',
+            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#ef4444',
+          }}>{error}</div>
+        )}
+        {success && (
+          <div style={{
+            padding: '12px 16px', borderRadius: '12px', fontSize: '13px',
+            background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.15)', color: '#34d399',
+          }}>✅ {success}</div>
+        )}
+
+        {/* Submit */}
+        <button type="submit" disabled={submitting || uploading} style={{
+          padding: '14px 28px', borderRadius: '50px', border: 'none',
+          background: (submitting || uploading) ? '#1a1a1a' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+          color: '#fff', fontSize: '15px', fontWeight: 700,
+          cursor: (submitting || uploading) ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s ease', width: '100%',
+        }}
+          onMouseEnter={(e) => { if (!submitting && !uploading) e.target.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; }}
+        >
+          {submitting ? '🚀 Creating Drop...' : uploading ? '📤 Uploading Image...' : '🚀 Launch Drop'}
+        </button>
+      </form>
     </div>
   );
 }

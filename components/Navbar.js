@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const navItems = [
   { href: '/', label: 'Home', icon: (
@@ -37,6 +37,18 @@ const bottomItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (user) setUserRole(user.role || 'user');
+  }, []);
+
+  // Filter nav items based on role — Dashboard only for brands
+  const visibleNavItems = navItems.filter(item => {
+    if (item.href === '/dashboard') return userRole === 'brand';
+    return true;
+  });
 
   const sidebarWidth = expanded ? 244 : 72;
 
@@ -89,7 +101,7 @@ export default function Sidebar() {
 
         {/* ---- Nav Items ---- */}
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 12px' }}>
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link

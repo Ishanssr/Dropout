@@ -11,7 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dropspace-secret-key-change-in-pro
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {
   try {
-    const { email, name, password } = req.body;
+    const { email, name, password, role } = req.body;
 
     if (!email || !name || !password) {
       return res.status(400).json({ error: 'Email, name, and password are required' });
@@ -31,8 +31,9 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
+    const userRole = role === 'brand' ? 'brand' : 'user';
     const user = await prisma.user.create({
-      data: { email, name, password: hashedPassword },
+      data: { email, name, password: hashedPassword, role: userRole },
     });
 
     // Generate token
@@ -40,7 +41,7 @@ router.post('/signup', async (req, res) => {
 
     res.status(201).json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar },
     });
   } catch (err) {
     console.error('Signup error:', err);
@@ -74,7 +75,7 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatar: user.avatar },
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -95,7 +96,7 @@ router.get('/me', async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, name: true, avatar: true, createdAt: true },
+      select: { id: true, email: true, name: true, role: true, avatar: true, createdAt: true },
     });
 
     if (!user) return res.status(404).json({ error: 'User not found' });

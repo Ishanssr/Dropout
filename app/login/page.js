@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +23,7 @@ export default function LoginPage() {
     try {
       const data = tab === 'login'
         ? await login(email, password)
-        : await signup(email, name, password);
+        : await signup(email, name, password, role);
 
       // Save token and user
       localStorage.setItem('token', data.token);
@@ -36,21 +37,22 @@ export default function LoginPage() {
     }
   };
 
+  const inputStyle = {
+    padding: '14px 16px', borderRadius: '12px',
+    border: '1px solid #262626', background: '#111',
+    color: '#fff', fontSize: '14px', outline: 'none',
+    transition: 'border-color 0.2s ease', width: '100%', boxSizing: 'border-box',
+  };
+
   return (
     <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
+      minHeight: '100vh', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', padding: '20px',
     }}>
       <div style={{
-        width: '100%',
-        maxWidth: '380px',
-        background: '#0a0a0a',
-        border: '1px solid #1a1a1a',
-        borderRadius: '16px',
-        padding: '40px 32px',
+        width: '100%', maxWidth: '400px',
+        background: '#0a0a0a', border: '1px solid #1a1a1a',
+        borderRadius: '16px', padding: '40px 32px',
       }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -65,25 +67,17 @@ export default function LoginPage() {
 
         {/* Tab switch */}
         <div style={{
-          display: 'flex',
-          gap: '4px',
-          background: '#111',
-          borderRadius: '12px',
-          padding: '4px',
-          marginBottom: '28px',
+          display: 'flex', gap: '4px',
+          background: '#111', borderRadius: '12px',
+          padding: '4px', marginBottom: '28px',
         }}>
           {['login', 'signup'].map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); setError(''); }}
               style={{
-                flex: 1,
-                padding: '10px',
-                borderRadius: '10px',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 600,
+                flex: 1, padding: '10px', borderRadius: '10px',
+                border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
                 background: tab === t ? '#1a1a1a' : 'transparent',
                 color: tab === t ? '#fff' : '#525252',
                 transition: 'all 0.2s ease',
@@ -94,111 +88,89 @@ export default function LoginPage() {
           ))}
         </div>
 
+        {/* Role selector — signup only */}
+        {tab === 'signup' && (
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ fontSize: '12px', color: '#737373', marginBottom: '10px', textAlign: 'center' }}>I am a...</div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {[
+                { id: 'user', label: '👤 User', desc: 'Browse, like, save drops' },
+                { id: 'brand', label: '🏢 Brand', desc: 'Create & manage drops' },
+              ].map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setRole(r.id)}
+                  style={{
+                    flex: 1, padding: '14px 12px', borderRadius: '12px',
+                    border: role === r.id ? '1px solid #3b82f6' : '1px solid #262626',
+                    background: role === r.id ? 'rgba(59,130,246,0.08)' : '#111',
+                    cursor: 'pointer', transition: 'all 0.2s ease', textAlign: 'center',
+                  }}
+                >
+                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>{r.label.split(' ')[0]}</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: role === r.id ? '#60a5fa' : '#fff', marginBottom: '2px' }}>
+                    {r.label.split(' ')[1]}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#737373' }}>{r.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {tab === 'signup' && (
             <input
-              type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              style={{
-                padding: '14px 16px',
-                borderRadius: '12px',
-                border: '1px solid #262626',
-                background: '#111',
-                color: '#fff',
-                fontSize: '14px',
-                outline: 'none',
-                transition: 'border-color 0.2s ease',
-              }}
+              type="text" placeholder="Full Name" value={name}
+              onChange={(e) => setName(e.target.value)} required
+              style={inputStyle}
               onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
               onBlur={(e) => { e.target.style.borderColor = '#262626'; }}
             />
           )}
           <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{
-              padding: '14px 16px',
-              borderRadius: '12px',
-              border: '1px solid #262626',
-              background: '#111',
-              color: '#fff',
-              fontSize: '14px',
-              outline: 'none',
-              transition: 'border-color 0.2s ease',
-            }}
+            type="email" placeholder="Email" value={email}
+            onChange={(e) => setEmail(e.target.value)} required
+            style={inputStyle}
             onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
             onBlur={(e) => { e.target.style.borderColor = '#262626'; }}
           />
           <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            style={{
-              padding: '14px 16px',
-              borderRadius: '12px',
-              border: '1px solid #262626',
-              background: '#111',
-              color: '#fff',
-              fontSize: '14px',
-              outline: 'none',
-              transition: 'border-color 0.2s ease',
-            }}
+            type="password" placeholder="Password" value={password}
+            onChange={(e) => setPassword(e.target.value)} required minLength={6}
+            style={inputStyle}
             onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
             onBlur={(e) => { e.target.style.borderColor = '#262626'; }}
           />
 
           {error && (
             <div style={{
-              padding: '10px 14px',
-              borderRadius: '10px',
-              background: 'rgba(239,68,68,0.1)',
-              border: '1px solid rgba(239,68,68,0.2)',
-              color: '#ef4444',
-              fontSize: '13px',
-            }}>
-              {error}
-            </div>
+              padding: '10px 14px', borderRadius: '10px',
+              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+              color: '#ef4444', fontSize: '13px',
+            }}>{error}</div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '14px',
-              borderRadius: '12px',
-              border: 'none',
-              background: loading ? '#1a1a1a' : '#3b82f6',
-              color: '#fff',
-              fontSize: '15px',
-              fontWeight: 700,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              marginTop: '4px',
-            }}
+          <button type="submit" disabled={loading} style={{
+            padding: '14px', borderRadius: '12px', border: 'none',
+            background: loading ? '#1a1a1a' : '#3b82f6', color: '#fff',
+            fontSize: '15px', fontWeight: 700,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s ease', marginTop: '4px',
+          }}
             onMouseEnter={(e) => { if (!loading) e.target.style.background = '#2563eb'; }}
             onMouseLeave={(e) => { if (!loading) e.target.style.background = '#3b82f6'; }}
           >
-            {loading ? 'Loading...' : tab === 'login' ? 'Log In' : 'Create Account'}
+            {loading ? 'Loading...' : tab === 'login' ? 'Log In' : `Create ${role === 'brand' ? 'Brand' : ''} Account`}
           </button>
         </form>
 
         {/* Demo credentials */}
         <div style={{
-          marginTop: '24px',
-          padding: '12px 16px',
-          borderRadius: '10px',
-          background: 'rgba(59,130,246,0.06)',
-          border: '1px solid rgba(59,130,246,0.1)',
+          marginTop: '24px', padding: '12px 16px', borderRadius: '10px',
+          background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.1)',
           textAlign: 'center',
         }}>
           <div style={{ fontSize: '12px', color: '#525252', marginBottom: '4px' }}>Demo Account</div>

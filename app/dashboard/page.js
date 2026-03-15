@@ -27,7 +27,7 @@ export default function DashboardPage() {
     setForm(f => ({ ...f, brandName: u.name }));
   }, [router]);
 
-  // Handle image file selection → upload to Cloudinary
+  // Handle image file selection → upload DIRECTLY to Cloudinary (bypass server)
   const handleImageSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -40,12 +40,31 @@ export default function DashboardPage() {
     setUploading(true);
     setError('');
     try {
-      const result = await uploadImage(file);
-      setForm(f => ({ ...f, imageUrl: result.url }));
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      if (!cloudName) throw new Error('Cloudinary not configured');
+
+      // Direct upload to Cloudinary (unsigned)
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'dropout_unsigned');
+      formData.append('folder', 'dropout');
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || 'Upload failed');
+      }
+
+      const data = await res.json();
+      setForm(f => ({ ...f, imageUrl: data.secure_url }));
       setUploading(false);
     } catch (err) {
-      // Upload failed — show error but keep preview, let user paste URL instead
-      setError('Image upload to cloud failed. You can paste an image URL below instead.');
+      console.error('Upload error:', err);
+      setError(`Upload failed: ${err.message}. Paste an image URL below instead.`);
       setUploading(false);
     }
   };

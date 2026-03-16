@@ -7,6 +7,7 @@ import CountdownTimer from './CountdownTimer';
 import { formatNumber, likeDrop, unlikeDrop, toggleSave } from '../lib/api';
 import { getNotificationForDrop, requestNotificationPermission, toggleDropReminder } from '../lib/notifications';
 import { getDropStatus } from '../lib/dropStatus';
+import { notifyUserChanged } from '../lib/userStorage';
 
 export default function DropCard({ drop, index = 0 }) {
   const router = useRouter();
@@ -88,6 +89,7 @@ export default function DropCard({ drop, index = 0 }) {
         // User doesn't exist in DB — force re-login
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        notifyUserChanged();
         alert('Session expired. Please log in again.');
         router.push('/login');
       }

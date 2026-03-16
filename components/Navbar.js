@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import {
   getNotifications,
   getUnreadNotificationsCount,
@@ -42,21 +42,41 @@ const bottomItems = [
   )},
 ];
 
+function subscribeToUser(callback) {
+  if (typeof window === 'undefined') return () => {};
+
+  const handler = () => callback();
+  window.addEventListener('storage', handler);
+  window.addEventListener('dropout-user-changed', handler);
+
+  return () => {
+    window.removeEventListener('storage', handler);
+    window.removeEventListener('dropout-user-changed', handler);
+  };
+}
+
+function getUserSnapshot() {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
+    return null;
+  }
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState(() => (
-    typeof window !== 'undefined' ? getNotifications() : []
+    []
   ));
   const [unreadCount, setUnreadCount] = useState(() => (
-    typeof window !== 'undefined' ? getUnreadNotificationsCount() : 0
+    0
   ));
-
-  const storedUser = typeof window !== 'undefined'
-    ? JSON.parse(localStorage.getItem('user') || 'null')
-    : null;
+  const storedUser = useSyncExternalStore(subscribeToUser, getUserSnapshot, () => null);
   const loggedIn = !!storedUser;
   const userName = storedUser?.name || '';
   const userAvatar = storedUser?.avatar || '';

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { login, signup } from '../../lib/api';
+import { notifyUserChanged } from '../../lib/userStorage';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function LoginPage() {
       // Save token and user
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      notifyUserChanged();
 
       // Redirect to home
       router.push('/');

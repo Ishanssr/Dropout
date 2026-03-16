@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchUserProfile, updateProfile, uploadImage } from '../../lib/api';
+import { notifyUserChanged } from '../../lib/userStorage';
 
 function createEditForm(profile = {}) {
   return {
@@ -16,23 +17,40 @@ function createEditForm(profile = {}) {
   };
 }
 
+function subscribeToUser(callback) {
+  if (typeof window === 'undefined') return () => {};
+
+  const handler = () => callback();
+  window.addEventListener('storage', handler);
+  window.addEventListener('dropout-user-changed', handler);
+
+  return () => {
+    window.removeEventListener('storage', handler);
+    window.removeEventListener('dropout-user-changed', handler);
+  };
+}
+
+function getUserSnapshot() {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
+    return null;
+  }
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const fileRef = useRef(null);
-  const [user] = useState(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      return JSON.parse(localStorage.getItem('user') || 'null');
-    } catch {
-      return null;
-    }
-  });
+  const user = useSyncExternalStore(subscribeToUser, getUserSnapshot, () => null);
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editForm, setEditForm] = useState(createEditForm());
   const [msg, setMsg] = useState('');
+  const [previewAvatar, setPreviewAvatar] = useState('');
 
   useEffect(() => {
     if (!user) { router.push('/login'); return; }
@@ -51,6 +69,7 @@ export default function ProfilePage() {
           website: user.website || '',
           instagramHandle: user.instagramHandle || '',
           location: user.location || '',
+          createdAt: user.createdAt || new Date().toISOString(),
           _count: { savedDrops: 0, comments: 0 },
         };
         setProfile(fallbackProfile);
@@ -61,6 +80,7 @@ export default function ProfilePage() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    notifyUserChanged();
     router.push('/login');
   };
 
@@ -75,7 +95,7 @@ export default function ProfilePage() {
     // Show preview immediately
     const reader = new FileReader();
     reader.onload = (ev) => {
-      setProfile(p => ({ ...p, avatar: ev.target.result }));
+      setPreviewAvatar(ev.target.result);
     };
     reader.readAsDataURL(file);
 
@@ -97,12 +117,15 @@ export default function ProfilePage() {
         location: updated.location,
       });
       localStorage.setItem('user', JSON.stringify(localUser));
+      notifyUserChanged();
+      setPreviewAvatar('');
       setMsg('Profile picture updated!');
       setTimeout(() => setMsg(''), 2000);
     } catch (err) {
       console.error('Avatar upload error:', err);
+      setPreviewAvatar('');
       setProfile((current) => ({ ...current, avatar: previousAvatar }));
-      setMsg('Upload failed: ' + (err.message || 'Try a smaller image'));
+      setMsg(`Upload failed: ${err.message || 'Try a smaller image'}`);
       setTimeout(() => setMsg(''), 4000);
     }
     setUploading(false);
@@ -137,10 +160,11 @@ export default function ProfilePage() {
         location: updated.location,
       });
       localStorage.setItem('user', JSON.stringify(localUser));
+      notifyUserChanged();
       setMsg('Profile updated!');
       setTimeout(() => setMsg(''), 2000);
     } catch (err) {
-      setMsg('Failed to save. Try again.');
+      setMsg(`Failed to save: ${err.message || 'Try again.'}`);
       setTimeout(() => setMsg(''), 3000);
     }
     setSaving(false);
@@ -154,12 +178,16 @@ export default function ProfilePage() {
   );
 
   const initial = (profile.name || '?').charAt(0).toUpperCase();
-  const joinDate = new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const joinDateValue = profile.createdAt ? new Date(profile.createdAt) : null;
+  const joinDate = joinDateValue && !Number.isNaN(joinDateValue.getTime())
+    ? joinDateValue.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : 'Recently';
   const websiteHref = profile.website
     ? (profile.website.startsWith('http://') || profile.website.startsWith('https://')
       ? profile.website
       : `https://${profile.website}`)
     : '';
+  const avatarSrc = previewAvatar || profile.avatar || '';
 
   const inputStyle = {
     width: '100%', padding: '10px 14px', borderRadius: '10px', fontSize: '14px',
@@ -184,16 +212,20 @@ export default function ProfilePage() {
             onClick={() => fileRef.current?.click()}
             style={{
               width: '86px', height: '86px', borderRadius: '50%', cursor: 'pointer',
-              background: profile.avatar
-                ? `url(${profile.avatar}) center/cover`
-                : 'linear-gradient(135deg, #3b82f6, #60a5fa)',
+              background: avatarSrc ? '#111' : 'linear-gradient(135deg, #3b82f6, #60a5fa)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: profile.avatar ? '0' : '34px', fontWeight: 800, color: '#fff',
+              fontSize: avatarSrc ? '0' : '34px', fontWeight: 800, color: '#fff',
               border: '3px solid #1a1a1a', transition: 'all 0.3s ease',
               position: 'relative', overflow: 'hidden',
             }}
           >
-            {!profile.avatar && initial}
+            {avatarSrc ? (
+              <img
+                src={avatarSrc}
+                alt={`${profile.name || 'User'} avatar`}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : initial}
             {/* Hover overlay */}
             <div style={{
               position: 'absolute', inset: 0, borderRadius: '50%',

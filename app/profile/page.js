@@ -4,7 +4,13 @@ import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchUserProfile, updateProfile, uploadImage } from '../../lib/api';
-import { notifyUserChanged } from '../../lib/userStorage';
+import {
+  clearStoredUser,
+  getStoredUserSnapshot,
+  notifyUserChanged,
+  parseStoredUser,
+  subscribeToStoredUser,
+} from '../../lib/userStorage';
 
 function createEditForm(profile = {}) {
   return {
@@ -17,33 +23,11 @@ function createEditForm(profile = {}) {
   };
 }
 
-function subscribeToUser(callback) {
-  if (typeof window === 'undefined') return () => {};
-
-  const handler = () => callback();
-  window.addEventListener('storage', handler);
-  window.addEventListener('dropout-user-changed', handler);
-
-  return () => {
-    window.removeEventListener('storage', handler);
-    window.removeEventListener('dropout-user-changed', handler);
-  };
-}
-
-function getUserSnapshot() {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    return JSON.parse(localStorage.getItem('user') || 'null');
-  } catch {
-    return null;
-  }
-}
-
 export default function ProfilePage() {
   const router = useRouter();
   const fileRef = useRef(null);
-  const user = useSyncExternalStore(subscribeToUser, getUserSnapshot, () => null);
+  const rawStoredUser = useSyncExternalStore(subscribeToStoredUser, getStoredUserSnapshot, () => null);
+  const user = parseStoredUser(rawStoredUser);
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -60,7 +44,15 @@ export default function ProfilePage() {
         setProfile(p);
         setEditForm(createEditForm(p));
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err.message?.includes('User not found')) {
+          clearStoredUser();
+          setProfile(null);
+          setMsg('Your session is out of sync. Please log in again.');
+          router.push('/login');
+          return;
+        }
+
         // Fallback to localStorage data
         const fallbackProfile = {
           ...user,
@@ -78,9 +70,7 @@ export default function ProfilePage() {
   }, [router, user]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    notifyUserChanged();
+    clearStoredUser();
     router.push('/login');
   };
 

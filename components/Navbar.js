@@ -11,6 +11,11 @@ import {
   processDueNotifications,
   requestNotificationPermission,
 } from '../lib/notifications';
+import {
+  getStoredUserSnapshot,
+  parseStoredUser,
+  subscribeToStoredUser,
+} from '../lib/userStorage';
 
 const navItems = [
   { href: '/', label: 'Home', icon: (
@@ -42,29 +47,6 @@ const bottomItems = [
   )},
 ];
 
-function subscribeToUser(callback) {
-  if (typeof window === 'undefined') return () => {};
-
-  const handler = () => callback();
-  window.addEventListener('storage', handler);
-  window.addEventListener('dropout-user-changed', handler);
-
-  return () => {
-    window.removeEventListener('storage', handler);
-    window.removeEventListener('dropout-user-changed', handler);
-  };
-}
-
-function getUserSnapshot() {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    return JSON.parse(localStorage.getItem('user') || 'null');
-  } catch {
-    return null;
-  }
-}
-
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -76,7 +58,8 @@ export default function Sidebar() {
   const [unreadCount, setUnreadCount] = useState(() => (
     0
   ));
-  const storedUser = useSyncExternalStore(subscribeToUser, getUserSnapshot, () => null);
+  const rawStoredUser = useSyncExternalStore(subscribeToStoredUser, getStoredUserSnapshot, () => null);
+  const storedUser = parseStoredUser(rawStoredUser);
   const loggedIn = !!storedUser;
   const userName = storedUser?.name || '';
   const userAvatar = storedUser?.avatar || '';

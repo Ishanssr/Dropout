@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'reac
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchUserProfile, updateProfile, uploadImage } from '../../lib/api';
+import ClientShell from '../../components/ClientShell';
 import {
   clearStoredUser,
   getStoredUserSnapshot,
@@ -207,6 +208,14 @@ export default function ProfilePage() {
   };
 
   return (
+    <ClientShell
+      fallback={
+        <div style={{ textAlign: 'center', padding: '80px 20px', color: '#525252' }}>
+          <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏳</div>
+          <div style={{ fontSize: '14px' }}>Loading profile...</div>
+        </div>
+      }
+    >
     <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', padding: '20px 16px' }}>
       {/* ---- Header Section ---- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
@@ -538,5 +547,6 @@ export default function ProfilePage() {
         </button>
       </div>
     </div>
+    </ClientShell>
   );
 }

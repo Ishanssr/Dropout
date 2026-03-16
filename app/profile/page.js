@@ -47,19 +47,48 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     setUploading(true);
+    setMsg('');
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setProfile(p => ({ ...p, avatar: ev.target.result }));
+    };
+    reader.readAsDataURL(file);
+
     try {
-      const result = await uploadImage(file);
-      const updated = await updateProfile(user.id, { avatar: result.url });
+      // Try server upload first
+      let imageUrl;
+      try {
+        const result = await uploadImage(file);
+        imageUrl = result.url;
+      } catch {
+        // Server failed — try direct Cloudinary upload
+        const cloudName = 'dbzvfnaa0'; // from working uploads
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'dropout_unsigned');
+        formData.append('folder', 'dropout_avatars');
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST', body: formData,
+        });
+        if (!res.ok) throw new Error('Direct upload failed');
+        const data = await res.json();
+        imageUrl = data.secure_url;
+      }
+
+      // Save to profile
+      const updated = await updateProfile(user.id, { avatar: imageUrl });
       setProfile(updated);
-      // Update localStorage so Navbar avatar updates
       const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-      localUser.avatar = result.url;
+      localUser.avatar = imageUrl;
       localStorage.setItem('user', JSON.stringify(localUser));
       setMsg('Profile picture updated!');
       setTimeout(() => setMsg(''), 2000);
     } catch (err) {
-      setMsg('Upload failed. Try again.');
-      setTimeout(() => setMsg(''), 3000);
+      console.error('Avatar upload error:', err);
+      setMsg('Upload failed: ' + (err.message || 'Try a smaller image'));
+      setTimeout(() => setMsg(''), 4000);
     }
     setUploading(false);
   };

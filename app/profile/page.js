@@ -7,8 +7,10 @@ import { fetchUserProfile, updateProfile, uploadImage } from '../../lib/api';
 import {
   clearStoredUser,
   getStoredUserSnapshot,
+  getStoredToken,
   notifyUserChanged,
   parseStoredUser,
+  restoreStoredUserSession,
   subscribeToStoredUser,
 } from '../../lib/userStorage';
 
@@ -28,6 +30,7 @@ export default function ProfilePage() {
   const fileRef = useRef(null);
   const rawStoredUser = useSyncExternalStore(subscribeToStoredUser, getStoredUserSnapshot, () => null);
   const user = useMemo(() => parseStoredUser(rawStoredUser), [rawStoredUser]);
+  const hasStoredToken = !!getStoredToken();
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,7 +40,23 @@ export default function ProfilePage() {
   const [previewAvatar, setPreviewAvatar] = useState('');
 
   useEffect(() => {
-    if (!user) { router.push('/login'); return; }
+    if (!user) {
+      if (!hasStoredToken) {
+        router.push('/login');
+        return;
+      }
+
+      let cancelled = false;
+      restoreStoredUserSession().then((restoredUser) => {
+        if (cancelled) return;
+        if (!restoredUser) router.push('/login');
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
     // Fetch full profile from API
     fetchUserProfile(user.id)
       .then((p) => {
@@ -67,7 +86,7 @@ export default function ProfilePage() {
         setProfile(fallbackProfile);
         setEditForm(createEditForm(fallbackProfile));
       });
-  }, [router, user]);
+  }, [hasStoredToken, router, user]);
 
   const handleLogout = () => {
     clearStoredUser();
@@ -160,10 +179,12 @@ export default function ProfilePage() {
     setSaving(false);
   };
 
-  if (!user || !profile) return (
+  const restoringSession = !user && hasStoredToken;
+
+  if (restoringSession || !user || !profile) return (
     <div style={{ textAlign: 'center', padding: '80px 20px', color: '#525252' }}>
       <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏳</div>
-      <div style={{ fontSize: '14px' }}>Loading profile...</div>
+      <div style={{ fontSize: '14px' }}>{restoringSession ? 'Restoring session...' : 'Loading profile...'}</div>
     </div>
   );
 

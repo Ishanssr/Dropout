@@ -13,7 +13,9 @@ import {
 } from '../lib/notifications';
 import {
   getStoredUserSnapshot,
+  getStoredToken,
   parseStoredUser,
+  restoreStoredUserSession,
   subscribeToStoredUser,
 } from '../lib/userStorage';
 
@@ -68,6 +70,10 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
+    if (!storedUser && getStoredToken()) {
+      restoreStoredUserSession();
+    }
+
     const handleNotificationsChanged = () => syncNotifications();
     const intervalId = window.setInterval(() => {
       processDueNotifications();
@@ -80,7 +86,7 @@ export default function Sidebar() {
       window.clearInterval(intervalId);
       window.removeEventListener('dropout-notifications-changed', handleNotificationsChanged);
     };
-  }, [pathname]);
+  }, [pathname, storedUser]);
 
   const visibleNavItems = navItems;
 

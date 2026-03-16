@@ -3,13 +3,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadImage } from '../../lib/api';
-import { clearStoredUser } from '../../lib/userStorage';
+import { getStoredToken, restoreStoredUserSession } from '../../lib/userStorage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dropout-htf0.onrender.com';
 
 export default function DashboardPage() {
   const router = useRouter();
   const fileRef = useRef(null);
+  const hasStoredToken = !!getStoredToken();
   const [user, setUser] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -22,12 +23,34 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    const u = JSON.parse(localStorage.getItem('user') || 'null');
-    if (!u) { router.push('/login'); return; }
-    if (u.role !== 'brand') { router.push('/'); return; }
-    setUser(u);
-    setForm(f => ({ ...f, brandName: u.name }));
-  }, [router]);
+    const localUser = JSON.parse(localStorage.getItem('user') || 'null');
+
+    if (!localUser && hasStoredToken) {
+      let cancelled = false;
+      restoreStoredUserSession().then((restoredUser) => {
+        if (cancelled) return;
+        if (!restoredUser) {
+          router.push('/login');
+          return;
+        }
+        if (restoredUser.role !== 'brand') {
+          router.push('/');
+          return;
+        }
+        setUser(restoredUser);
+        setForm((f) => ({ ...f, brandName: restoredUser.name }));
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (!localUser) { router.push('/login'); return; }
+    if (localUser.role !== 'brand') { router.push('/'); return; }
+    setUser(localUser);
+    setForm(f => ({ ...f, brandName: localUser.name }));
+  }, [hasStoredToken, router]);
 
   // Handle image file selection → upload via backend to Cloudinary
   const handleImageSelect = async (e) => {
@@ -123,7 +146,7 @@ export default function DashboardPage() {
     transition: 'border-color 0.2s ease', boxSizing: 'border-box',
   };
 
-  if (!user) return null;
+  if ((!user && hasStoredToken) || !user) return null;
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>

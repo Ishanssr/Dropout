@@ -32,11 +32,15 @@ router.post('/', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No image file provided' });
     }
 
+    const folder = typeof req.body?.folder === 'string' && req.body.folder.trim()
+      ? req.body.folder.trim()
+      : 'dropout';
+
     // Upload buffer to Cloudinary
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
-          folder: 'dropout',
+          folder,
           resource_type: 'image',
           transformation: [
             { width: 1080, height: 1080, crop: 'limit', quality: 'auto', format: 'webp' },

@@ -5,36 +5,58 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchUserProfile, updateProfile, uploadImage } from '../../lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dropout-htf0.onrender.com';
+function createEditForm(profile = {}) {
+  return {
+    name: profile.name || '',
+    username: profile.username || '',
+    bio: profile.bio || '',
+    website: profile.website || '',
+    instagramHandle: profile.instagramHandle || '',
+    location: profile.location || '',
+  };
+}
 
 export default function ProfilePage() {
   const router = useRouter();
   const fileRef = useRef(null);
-  const [user, setUser] = useState(null);
+  const [user] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null');
+    } catch {
+      return null;
+    }
+  });
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [editForm, setEditForm] = useState({ name: '', bio: '' });
+  const [editForm, setEditForm] = useState(createEditForm());
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (!stored) { router.push('/login'); return; }
-    const u = JSON.parse(stored);
-    setUser(u);
+    if (!user) { router.push('/login'); return; }
     // Fetch full profile from API
-    fetchUserProfile(u.id)
+    fetchUserProfile(user.id)
       .then((p) => {
         setProfile(p);
-        setEditForm({ name: p.name || '', bio: p.bio || '' });
+        setEditForm(createEditForm(p));
       })
       .catch(() => {
         // Fallback to localStorage data
-        setProfile({ ...u, bio: '', _count: { savedDrops: 0, comments: 0 } });
-        setEditForm({ name: u.name || '', bio: '' });
+        const fallbackProfile = {
+          ...user,
+          bio: user.bio || '',
+          username: user.username || '',
+          website: user.website || '',
+          instagramHandle: user.instagramHandle || '',
+          location: user.location || '',
+          _count: { savedDrops: 0, comments: 0 },
+        };
+        setProfile(fallbackProfile);
+        setEditForm(createEditForm(fallbackProfile));
       });
-  }, [router]);
+  }, [router, user]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -45,9 +67,10 @@ export default function ProfilePage() {
   // Upload profile picture
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user || uploading) return;
     setUploading(true);
     setMsg('');
+    const previousAvatar = profile?.avatar || '';
 
     // Show preview immediately
     const reader = new FileReader();
@@ -57,40 +80,33 @@ export default function ProfilePage() {
     reader.readAsDataURL(file);
 
     try {
-      // Try server upload first
-      let imageUrl;
-      try {
-        const result = await uploadImage(file);
-        imageUrl = result.url;
-      } catch {
-        // Server failed — try direct Cloudinary upload
-        const cloudName = 'dbzvfnaa0'; // from working uploads
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'dropout_unsigned');
-        formData.append('folder', 'dropout_avatars');
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-          method: 'POST', body: formData,
-        });
-        if (!res.ok) throw new Error('Direct upload failed');
-        const data = await res.json();
-        imageUrl = data.secure_url;
-      }
+      const result = await uploadImage(file, { folder: 'dropout_avatars' });
+      const imageUrl = result.url;
 
       // Save to profile
       const updated = await updateProfile(user.id, { avatar: imageUrl });
       setProfile(updated);
       const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-      localUser.avatar = imageUrl;
+      Object.assign(localUser, {
+        avatar: imageUrl,
+        name: updated.name,
+        username: updated.username,
+        bio: updated.bio,
+        website: updated.website,
+        instagramHandle: updated.instagramHandle,
+        location: updated.location,
+      });
       localStorage.setItem('user', JSON.stringify(localUser));
       setMsg('Profile picture updated!');
       setTimeout(() => setMsg(''), 2000);
     } catch (err) {
       console.error('Avatar upload error:', err);
+      setProfile((current) => ({ ...current, avatar: previousAvatar }));
       setMsg('Upload failed: ' + (err.message || 'Try a smaller image'));
       setTimeout(() => setMsg(''), 4000);
     }
     setUploading(false);
+    e.target.value = '';
   };
 
   // Save profile edits
@@ -100,13 +116,26 @@ export default function ProfilePage() {
     try {
       const updated = await updateProfile(user.id, {
         name: editForm.name.trim(),
+        username: editForm.username.trim().replace(/^@+/, ''),
         bio: editForm.bio.trim(),
+        website: editForm.website.trim(),
+        instagramHandle: editForm.instagramHandle.trim().replace(/^@+/, ''),
+        location: editForm.location.trim(),
       });
       setProfile(updated);
+      setEditForm(createEditForm(updated));
       setEditing(false);
       // Update localStorage
       const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-      localUser.name = updated.name;
+      Object.assign(localUser, {
+        name: updated.name,
+        username: updated.username,
+        avatar: updated.avatar,
+        bio: updated.bio,
+        website: updated.website,
+        instagramHandle: updated.instagramHandle,
+        location: updated.location,
+      });
       localStorage.setItem('user', JSON.stringify(localUser));
       setMsg('Profile updated!');
       setTimeout(() => setMsg(''), 2000);
@@ -126,6 +155,11 @@ export default function ProfilePage() {
 
   const initial = (profile.name || '?').charAt(0).toUpperCase();
   const joinDate = new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const websiteHref = profile.website
+    ? (profile.website.startsWith('http://') || profile.website.startsWith('https://')
+      ? profile.website
+      : `https://${profile.website}`)
+    : '';
 
   const inputStyle = {
     width: '100%', padding: '10px 14px', borderRadius: '10px', fontSize: '14px',
@@ -200,6 +234,9 @@ export default function ProfilePage() {
         {/* Name & Role */}
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '2px' }}>{profile.name}</h1>
+          {profile.username && (
+            <div style={{ fontSize: '13px', color: '#a3a3a3', marginBottom: '4px' }}>@{profile.username}</div>
+          )}
           <div style={{ fontSize: '13px', color: '#3b82f6', fontWeight: 500, marginBottom: '4px', textTransform: 'capitalize' }}>
             {profile.role === 'brand' ? '🏢 Brand Account' : '👤 User'}
           </div>
@@ -223,6 +260,17 @@ export default function ProfilePage() {
               />
             </div>
             <div>
+              <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Username</label>
+              <input
+                style={inputStyle}
+                value={editForm.username}
+                onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
+                placeholder="yourhandle"
+              />
+            </div>
+            <div>
               <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Bio</label>
               <textarea
                 style={{ ...inputStyle, minHeight: '80px', resize: 'vertical', fontFamily: 'inherit' }}
@@ -237,6 +285,41 @@ export default function ProfilePage() {
                 {editForm.bio.length}/150
               </div>
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Website</label>
+                <input
+                  style={inputStyle}
+                  value={editForm.website}
+                  onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
+                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
+                  placeholder="yourbrand.com"
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Instagram</label>
+                <input
+                  style={inputStyle}
+                  value={editForm.instagramHandle}
+                  onChange={(e) => setEditForm({ ...editForm, instagramHandle: e.target.value })}
+                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
+                  placeholder="@yourhandle"
+                />
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Location</label>
+              <input
+                style={inputStyle}
+                value={editForm.location}
+                onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
+                placeholder="City, Country"
+              />
+            </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={handleSave}
@@ -248,7 +331,7 @@ export default function ProfilePage() {
                 }}
               >{saving ? 'Saving...' : 'Save'}</button>
               <button
-                onClick={() => { setEditing(false); setEditForm({ name: profile.name || '', bio: profile.bio || '' }); }}
+                onClick={() => { setEditing(false); setEditForm(createEditForm(profile)); }}
                 style={{
                   flex: 1, padding: '10px', borderRadius: '10px',
                   background: '#111', border: '1px solid #1a1a1a', color: '#a3a3a3',
@@ -264,6 +347,50 @@ export default function ProfilePage() {
             ) : (
               <p style={{ fontSize: '14px', color: '#525252', fontStyle: 'italic', marginBottom: '8px' }}>No bio yet. Tap Edit to add one.</p>
             )}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+              {profile.website && (
+                <a
+                  href={websiteHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: '999px',
+                    border: '1px solid #1a1a1a',
+                    background: '#0f0f0f',
+                    color: '#fff',
+                    fontSize: '12px',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {profile.website.replace(/^https?:\/\//, '')}
+                </a>
+              )}
+              {profile.instagramHandle && (
+                <span style={{
+                  padding: '6px 10px',
+                  borderRadius: '999px',
+                  border: '1px solid #1a1a1a',
+                  background: '#0f0f0f',
+                  color: '#fff',
+                  fontSize: '12px',
+                }}>
+                  @{profile.instagramHandle}
+                </span>
+              )}
+              {profile.location && (
+                <span style={{
+                  padding: '6px 10px',
+                  borderRadius: '999px',
+                  border: '1px solid #1a1a1a',
+                  background: '#0f0f0f',
+                  color: '#fff',
+                  fontSize: '12px',
+                }}>
+                  {profile.location}
+                </span>
+              )}
+            </div>
             <button
               onClick={() => setEditing(true)}
               style={{

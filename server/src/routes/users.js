@@ -11,6 +11,7 @@ router.get('/:id', async (req, res) => {
       where: { id: req.params.id },
       select: {
         id: true, email: true, name: true, role: true, avatar: true, bio: true,
+        username: true, website: true, instagramHandle: true, location: true,
         createdAt: true,
         _count: { select: { comments: true, savedDrops: true } },
       },
@@ -26,17 +27,22 @@ router.get('/:id', async (req, res) => {
 // PUT /api/users/:id — update user profile (name, bio, avatar)
 router.put('/:id', async (req, res) => {
   try {
-    const { name, bio, avatar } = req.body;
+    const { name, bio, avatar, username, website, instagramHandle, location } = req.body;
     const data = {};
     if (name !== undefined) data.name = name;
     if (bio !== undefined) data.bio = bio;
     if (avatar !== undefined) data.avatar = avatar;
+    if (username !== undefined) data.username = username;
+    if (website !== undefined) data.website = website;
+    if (instagramHandle !== undefined) data.instagramHandle = instagramHandle;
+    if (location !== undefined) data.location = location;
 
     const user = await prisma.user.update({
       where: { id: req.params.id },
       data,
       select: {
         id: true, email: true, name: true, role: true, avatar: true, bio: true,
+        username: true, website: true, instagramHandle: true, location: true,
         createdAt: true,
         _count: { select: { comments: true, savedDrops: true } },
       },

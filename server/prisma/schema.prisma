@@ -8,17 +8,21 @@ datasource db {
 }
 
 model User {
-  id         String      @id @default(cuid())
-  email      String      @unique
-  name       String
-  password   String
-  role       String      @default("user")
-  avatar     String?
-  bio        String?
-  savedDrops SavedDrop[]
-  comments   Comment[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id              String      @id @default(cuid())
+  email           String      @unique
+  name            String
+  password        String
+  role            String      @default("user")
+  avatar          String?
+  bio             String?
+  username        String?
+  website         String?
+  instagramHandle String?
+  location        String?
+  savedDrops      SavedDrop[]
+  comments        Comment[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model Brand {

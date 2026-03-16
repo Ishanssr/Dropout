@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import DropCard from '../components/DropCard';
 import { categories } from '../lib/drops';
 import { fetchDrops, transformDrop } from '../lib/api';
+import { filterDropsByTab } from '../lib/dropStatus';
 
 export default function Home() {
   const [active, setActive] = useState('all');
@@ -15,23 +16,13 @@ export default function Home() {
     setLoading(true);
     fetchDrops(active)
       .then((data) => {
-        let transformed = data.map(transformDrop);
-        // Filter by tab
-        const now = new Date();
-        if (tab === 'upcoming') {
-          transformed = transformed.filter(d => new Date(d.dropTime) > now);
-        } else if (tab === 'live') {
-          transformed = transformed.filter(d => {
-            const dt = new Date(d.dropTime);
-            return dt <= now && dt > new Date(now - 24 * 60 * 60 * 1000);
-          });
-        }
-        setDrops(transformed);
+        const transformed = data.map(transformDrop);
+        setDrops(filterDropsByTab(transformed, tab));
         setLoading(false);
       })
       .catch(() => {
         import('../lib/drops').then(({ getDropsByCategory }) => {
-          setDrops(getDropsByCategory(active));
+          setDrops(filterDropsByTab(getDropsByCategory(active), tab));
           setLoading(false);
         });
       });

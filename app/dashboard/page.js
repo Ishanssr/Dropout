@@ -290,7 +290,7 @@ export default function DashboardPage() {
             onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
             onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
           <div style={{ fontSize: '11px', color: '#525252', marginTop: '4px' }}>
-            This link will appear as the "Shop Now" button on your drop
+            This link will appear as the &quot;Shop Now&quot; button on your drop
           </div>
         </div>
 

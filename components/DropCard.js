@@ -5,13 +5,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CountdownTimer from './CountdownTimer';
 import { formatNumber, likeDrop, unlikeDrop, toggleSave } from '../lib/api';
+import { getNotificationForDrop, requestNotificationPermission, toggleDropReminder } from '../lib/notifications';
+import { getDropStatus } from '../lib/dropStatus';
 
 export default function DropCard({ drop, index = 0 }) {
   const router = useRouter();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(drop.engagement?.likes || drop.likes || 0);
   const [saved, setSaved] = useState(false);
-  const [notified, setNotified] = useState(false);
+  const [notified, setNotified] = useState(() => (
+    typeof window !== 'undefined' ? !!getNotificationForDrop(drop.id) : false
+  ));
   const [visible, setVisible] = useState(false);
   const ref = useRef(null);
 
@@ -23,8 +27,18 @@ export default function DropCard({ drop, index = 0 }) {
     return () => obs.disconnect();
   }, []);
 
+  useEffect(() => {
+    const syncReminderState = () => {
+      setNotified(!!getNotificationForDrop(drop.id));
+    };
+
+    window.addEventListener('dropout-notifications-changed', syncReminderState);
+    return () => window.removeEventListener('dropout-notifications-changed', syncReminderState);
+  }, [drop.id]);
+
   const saves = drop.engagement?.saves || drop._count?.saves || 0;
   const comments = drop.engagement?.comments || drop._count?.comments || 0;
+  const dropStatus = getDropStatus(drop);
 
   // Auth check helper — validates user exists in DB
   const requireLogin = () => {
@@ -99,6 +113,26 @@ export default function DropCard({ drop, index = 0 }) {
     router.push(`/drop/${drop.id}`);
   };
 
+  const handleNotify = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!requireLogin()) return;
+    if (dropStatus === 'ended') {
+      alert('This drop has already ended.');
+      return;
+    }
+
+    const permission = await requestNotificationPermission();
+    if (permission === 'denied') {
+      alert('Browser notifications are blocked. Enable them in your browser settings to receive alerts.');
+    }
+
+    const result = toggleDropReminder(drop);
+    setNotified(result.active);
+    alert(result.active ? 'Reminder saved. We will alert you when this drop goes live.' : 'Reminder removed.');
+  };
+
   return (
     <div
       ref={ref}
@@ -152,16 +186,18 @@ export default function DropCard({ drop, index = 0 }) {
           }}>
             <CountdownTimer dropTime={drop.dropTime} />
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (!requireLogin()) return; setNotified(!notified); }}
+              onClick={handleNotify}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer',
                 background: notified ? '#1e40af' : '#3b82f6', color: '#fff',
                 fontSize: '13px', fontWeight: 600, transition: 'all 0.2s ease',
+                opacity: dropStatus === 'ended' ? 0.55 : 1,
               }}
+              disabled={dropStatus === 'ended'}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill={notified ? '#fff' : 'none'} stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              {notified ? '🔔 On' : 'Notify Me'}
+              {notified ? 'Reminder On' : 'Notify Me'}
             </button>
           </div>
           {drop.featured && (

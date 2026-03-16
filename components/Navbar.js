@@ -3,6 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import {
+  getNotifications,
+  getUnreadNotificationsCount,
+  markAllNotificationsRead,
+  markNotificationRead,
+  processDueNotifications,
+  requestNotificationPermission,
+} from '../lib/notifications';
 
 const navItems = [
   { href: '/', label: 'Home', icon: (
@@ -38,16 +46,39 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [userAvatar, setUserAvatar] = useState('');
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState(() => (
+    typeof window !== 'undefined' ? getNotifications() : []
+  ));
+  const [unreadCount, setUnreadCount] = useState(() => (
+    typeof window !== 'undefined' ? getUnreadNotificationsCount() : 0
+  ));
 
-  // Re-read user on every navigation (covers login/logout)
+  const storedUser = typeof window !== 'undefined'
+    ? JSON.parse(localStorage.getItem('user') || 'null')
+    : null;
+  const loggedIn = !!storedUser;
+  const userName = storedUser?.name || '';
+  const userAvatar = storedUser?.avatar || '';
+
+  const syncNotifications = () => {
+    setNotifications(getNotifications());
+    setUnreadCount(getUnreadNotificationsCount());
+  };
+
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    setLoggedIn(!!user);
-    setUserName(user?.name || '');
-    setUserAvatar(user?.avatar || '');
+    const handleNotificationsChanged = () => syncNotifications();
+    const intervalId = window.setInterval(() => {
+      processDueNotifications();
+      syncNotifications();
+    }, 30000);
+
+    window.addEventListener('dropout-notifications-changed', handleNotificationsChanged);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('dropout-notifications-changed', handleNotificationsChanged);
+    };
   }, [pathname]);
 
   // Show Dashboard for logged-in users
@@ -57,6 +88,27 @@ export default function Sidebar() {
   });
 
   const sidebarWidth = expanded ? 244 : 72;
+
+  const openNotifications = async () => {
+    setNotificationOpen((current) => !current);
+    processDueNotifications();
+    syncNotifications();
+    await requestNotificationPermission();
+  };
+
+  const handleNotificationClick = (notification) => {
+    markNotificationRead(notification.id);
+    setNotificationOpen(false);
+    router.push(`/drop/${notification.dropId}`);
+  };
+
+  const formatNotificationTime = (notification) => {
+    const date = new Date(notification.dropTime);
+    if (Number.isNaN(date.getTime())) return 'Drop scheduled';
+
+    if (notification.notifiedAt) return 'Live now';
+    return `Drops ${date.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
+  };
 
   return (
     <>
@@ -223,9 +275,96 @@ export default function Sidebar() {
         </Link>
         {/* Right icons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button onClick={() => { if (loggedIn) alert('Notifications coming soon!'); else router.push('/login'); }} style={{ color: '#737373', display: 'flex', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </button>
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => { if (loggedIn) openNotifications(); else router.push('/login'); }}
+              style={{ color: notificationOpen ? '#fff' : '#737373', display: 'flex', background: 'none', border: 'none', cursor: 'pointer', padding: 0, position: 'relative' }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-6px',
+                  minWidth: '16px',
+                  height: '16px',
+                  borderRadius: '999px',
+                  background: '#ef4444',
+                  color: '#fff',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 4px',
+                }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            {notificationOpen && loggedIn && (
+              <div style={{
+                position: 'absolute',
+                top: '34px',
+                right: '-8px',
+                width: '290px',
+                maxHeight: '360px',
+                overflowY: 'auto',
+                borderRadius: '16px',
+                background: 'rgba(8,8,8,0.98)',
+                border: '1px solid #1f1f1f',
+                boxShadow: '0 22px 40px rgba(0,0,0,0.4)',
+                padding: '12px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>Notifications</div>
+                  <button
+                    onClick={() => { markAllNotificationsRead(); syncNotifications(); }}
+                    style={{ background: 'none', border: 'none', color: '#60a5fa', fontSize: '12px', cursor: 'pointer', padding: 0 }}
+                  >
+                    Mark all read
+                  </button>
+                </div>
+                {notifications.length === 0 ? (
+                  <div style={{ fontSize: '12px', color: '#737373', lineHeight: 1.5, padding: '10px 4px' }}>
+                    Save a drop with Notify Me and we&apos;ll alert you here when it goes live.
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      onClick={() => handleNotificationClick(notification)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        border: 'none',
+                        cursor: 'pointer',
+                        background: notification.readAt ? 'transparent' : 'rgba(59,130,246,0.08)',
+                        borderRadius: '12px',
+                        padding: '10px',
+                        color: '#fff',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 700 }}>{notification.title}</span>
+                        {!notification.readAt && (
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#60a5fa', flexShrink: 0 }} />
+                        )}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#a3a3a3' }}>{notification.brandName}</div>
+                      <div style={{ fontSize: '11px', color: notification.notifiedAt ? '#34d399' : '#737373' }}>
+                        {formatNotificationTime(notification)}
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
           <Link href={loggedIn ? '/profile' : '/login'} style={{ display: 'flex' }}>
             <div style={{
               width: '28px', height: '28px', borderRadius: '50%',

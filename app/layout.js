@@ -1,5 +1,7 @@
 import "./globals.css";
-import Sidebar from "../components/Navbar";
+import dynamic from "next/dynamic";
+
+const Sidebar = dynamic(() => import("../components/Navbar"), { ssr: false });
 
 export const metadata = {
   title: "Dropout — Discover What's Dropping Next",

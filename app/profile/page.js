@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
+import { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchUserProfile, updateProfile, uploadImage } from '../../lib/api';
@@ -27,7 +27,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const fileRef = useRef(null);
   const rawStoredUser = useSyncExternalStore(subscribeToStoredUser, getStoredUserSnapshot, () => null);
-  const user = parseStoredUser(rawStoredUser);
+  const user = useMemo(() => parseStoredUser(rawStoredUser), [rawStoredUser]);
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
   getNotifications,
   getUnreadNotificationsCount,
@@ -56,7 +56,7 @@ export default function Sidebar() {
     0
   ));
   const rawStoredUser = useSyncExternalStore(subscribeToStoredUser, getStoredUserSnapshot, () => null);
-  const storedUser = parseStoredUser(rawStoredUser);
+  const storedUser = useMemo(() => parseStoredUser(rawStoredUser), [rawStoredUser]);
   const loggedIn = !!storedUser;
   const isBrand = storedUser?.role === 'brand';
   const userName = storedUser?.name || '';

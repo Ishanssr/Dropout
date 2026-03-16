@@ -33,9 +33,6 @@ const navItems = [
   { href: '/saved', label: 'Saved', icon: (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
   )},
-  { href: '/dashboard', label: 'Dashboard', icon: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-  )},
 ];
 
 const bottomItems = [
@@ -61,6 +58,7 @@ export default function Sidebar() {
   const rawStoredUser = useSyncExternalStore(subscribeToStoredUser, getStoredUserSnapshot, () => null);
   const storedUser = parseStoredUser(rawStoredUser);
   const loggedIn = !!storedUser;
+  const isBrand = storedUser?.role === 'brand';
   const userName = storedUser?.name || '';
   const userAvatar = storedUser?.avatar || '';
 
@@ -84,11 +82,7 @@ export default function Sidebar() {
     };
   }, [pathname]);
 
-  // Show Dashboard for logged-in users
-  const visibleNavItems = navItems.filter(item => {
-    if (item.href === '/dashboard') return loggedIn;
-    return true;
-  });
+  const visibleNavItems = navItems;
 
   const sidebarWidth = expanded ? 244 : 72;
 
@@ -210,8 +204,8 @@ export default function Sidebar() {
 
         {/* ---- Bottom Items ---- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 12px 24px' }}>
-          {/* Dashboard — logged-in users */}
-          {loggedIn && (
+          {/* Dashboard — brand users only */}
+          {loggedIn && isBrand && (
             <Link
               href="/dashboard"
               style={{
@@ -399,6 +393,10 @@ export default function Sidebar() {
           { href: '/trending', icon: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>) },
           { href: '/categories', icon: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>) },
           { href: '/saved', icon: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>) },
+          ...(loggedIn && isBrand ? [{
+            href: '/dashboard',
+            icon: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>),
+          }] : []),
         ].map((item) => (
           <Link
             key={item.href}

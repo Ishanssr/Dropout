@@ -9,31 +9,24 @@ const days = (d) => new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Clear existing data
-  await prisma.savedDrop.deleteMany();
-  await prisma.comment.deleteMany();
-  await prisma.drop.deleteMany();
-  await prisma.brand.deleteMany();
-  await prisma.user.deleteMany();
-
   // Create brands
   const brands = await Promise.all([
-    prisma.brand.create({ data: { name: 'Nike', logo: 'https://www.google.com/s2/favicons?domain=nike.com&sz=128', website: 'https://nike.com' } }),
-    prisma.brand.create({ data: { name: 'Apple', logo: 'https://www.google.com/s2/favicons?domain=apple.com&sz=128', website: 'https://apple.com' } }),
-    prisma.brand.create({ data: { name: 'MrBeast', logo: 'https://www.google.com/s2/favicons?domain=shopmrbeast.com&sz=128', website: 'https://shopmrbeast.com' } }),
-    prisma.brand.create({ data: { name: 'Sony', logo: 'https://www.google.com/s2/favicons?domain=sony.com&sz=128', website: 'https://sony.com' } }),
-    prisma.brand.create({ data: { name: 'Jordan', logo: 'https://www.google.com/s2/favicons?domain=nike.com&sz=128', website: 'https://nike.com/jordan' } }),
-    prisma.brand.create({ data: { name: 'Supreme', logo: 'https://www.google.com/s2/favicons?domain=supremenewyork.com&sz=128', website: 'https://supremenewyork.com' } }),
-    prisma.brand.create({ data: { name: 'NVIDIA', logo: 'https://www.google.com/s2/favicons?domain=nvidia.com&sz=128', website: 'https://nvidia.com' } }),
-    prisma.brand.create({ data: { name: 'Epic Games', logo: 'https://www.google.com/s2/favicons?domain=epicgames.com&sz=128', website: 'https://epicgames.com' } }),
-    prisma.brand.create({ data: { name: 'OpenAI', logo: 'https://www.google.com/s2/favicons?domain=openai.com&sz=128', website: 'https://openai.com' } }),
-    prisma.brand.create({ data: { name: 'Tesla', logo: 'https://www.google.com/s2/favicons?domain=tesla.com&sz=128', website: 'https://tesla.com' } }),
-    prisma.brand.create({ data: { name: 'Yeezy', logo: 'https://www.google.com/s2/favicons?domain=adidas.com&sz=128', website: 'https://adidas.com/yeezy' } }),
-    prisma.brand.create({ data: { name: 'Figma', logo: 'https://www.google.com/s2/favicons?domain=figma.com&sz=128', website: 'https://figma.com' } }),
-    prisma.brand.create({ data: { name: 'Xbox', logo: 'https://www.google.com/s2/favicons?domain=xbox.com&sz=128', website: 'https://xbox.com' } }),
-    prisma.brand.create({ data: { name: 'Palace', logo: 'https://www.google.com/s2/favicons?domain=palaceskateboards.com&sz=128', website: 'https://palaceskateboards.com' } }),
-    prisma.brand.create({ data: { name: 'Google', logo: 'https://www.google.com/s2/favicons?domain=google.com&sz=128', website: 'https://store.google.com' } }),
-    prisma.brand.create({ data: { name: 'PRIME', logo: 'https://www.google.com/s2/favicons?domain=drinkprime.com&sz=128', website: 'https://drinkprime.com' } }),
+    prisma.brand.upsert({ where: { name: 'Nike' }, update: { logo: 'https://www.google.com/s2/favicons?domain=nike.com&sz=128', website: 'https://nike.com' }, create: { name: 'Nike', logo: 'https://www.google.com/s2/favicons?domain=nike.com&sz=128', website: 'https://nike.com' } }),
+    prisma.brand.upsert({ where: { name: 'Apple' }, update: { logo: 'https://www.google.com/s2/favicons?domain=apple.com&sz=128', website: 'https://apple.com' }, create: { name: 'Apple', logo: 'https://www.google.com/s2/favicons?domain=apple.com&sz=128', website: 'https://apple.com' } }),
+    prisma.brand.upsert({ where: { name: 'MrBeast' }, update: { logo: 'https://www.google.com/s2/favicons?domain=shopmrbeast.com&sz=128', website: 'https://shopmrbeast.com' }, create: { name: 'MrBeast', logo: 'https://www.google.com/s2/favicons?domain=shopmrbeast.com&sz=128', website: 'https://shopmrbeast.com' } }),
+    prisma.brand.upsert({ where: { name: 'Sony' }, update: { logo: 'https://www.google.com/s2/favicons?domain=sony.com&sz=128', website: 'https://sony.com' }, create: { name: 'Sony', logo: 'https://www.google.com/s2/favicons?domain=sony.com&sz=128', website: 'https://sony.com' } }),
+    prisma.brand.upsert({ where: { name: 'Jordan' }, update: { logo: 'https://www.google.com/s2/favicons?domain=nike.com&sz=128', website: 'https://nike.com/jordan' }, create: { name: 'Jordan', logo: 'https://www.google.com/s2/favicons?domain=nike.com&sz=128', website: 'https://nike.com/jordan' } }),
+    prisma.brand.upsert({ where: { name: 'Supreme' }, update: { logo: 'https://www.google.com/s2/favicons?domain=supremenewyork.com&sz=128', website: 'https://supremenewyork.com' }, create: { name: 'Supreme', logo: 'https://www.google.com/s2/favicons?domain=supremenewyork.com&sz=128', website: 'https://supremenewyork.com' } }),
+    prisma.brand.upsert({ where: { name: 'NVIDIA' }, update: { logo: 'https://www.google.com/s2/favicons?domain=nvidia.com&sz=128', website: 'https://nvidia.com' }, create: { name: 'NVIDIA', logo: 'https://www.google.com/s2/favicons?domain=nvidia.com&sz=128', website: 'https://nvidia.com' } }),
+    prisma.brand.upsert({ where: { name: 'Epic Games' }, update: { logo: 'https://www.google.com/s2/favicons?domain=epicgames.com&sz=128', website: 'https://epicgames.com' }, create: { name: 'Epic Games', logo: 'https://www.google.com/s2/favicons?domain=epicgames.com&sz=128', website: 'https://epicgames.com' } }),
+    prisma.brand.upsert({ where: { name: 'OpenAI' }, update: { logo: 'https://www.google.com/s2/favicons?domain=openai.com&sz=128', website: 'https://openai.com' }, create: { name: 'OpenAI', logo: 'https://www.google.com/s2/favicons?domain=openai.com&sz=128', website: 'https://openai.com' } }),
+    prisma.brand.upsert({ where: { name: 'Tesla' }, update: { logo: 'https://www.google.com/s2/favicons?domain=tesla.com&sz=128', website: 'https://tesla.com' }, create: { name: 'Tesla', logo: 'https://www.google.com/s2/favicons?domain=tesla.com&sz=128', website: 'https://tesla.com' } }),
+    prisma.brand.upsert({ where: { name: 'Yeezy' }, update: { logo: 'https://www.google.com/s2/favicons?domain=adidas.com&sz=128', website: 'https://adidas.com/yeezy' }, create: { name: 'Yeezy', logo: 'https://www.google.com/s2/favicons?domain=adidas.com&sz=128', website: 'https://adidas.com/yeezy' } }),
+    prisma.brand.upsert({ where: { name: 'Figma' }, update: { logo: 'https://www.google.com/s2/favicons?domain=figma.com&sz=128', website: 'https://figma.com' }, create: { name: 'Figma', logo: 'https://www.google.com/s2/favicons?domain=figma.com&sz=128', website: 'https://figma.com' } }),
+    prisma.brand.upsert({ where: { name: 'Xbox' }, update: { logo: 'https://www.google.com/s2/favicons?domain=xbox.com&sz=128', website: 'https://xbox.com' }, create: { name: 'Xbox', logo: 'https://www.google.com/s2/favicons?domain=xbox.com&sz=128', website: 'https://xbox.com' } }),
+    prisma.brand.upsert({ where: { name: 'Palace' }, update: { logo: 'https://www.google.com/s2/favicons?domain=palaceskateboards.com&sz=128', website: 'https://palaceskateboards.com' }, create: { name: 'Palace', logo: 'https://www.google.com/s2/favicons?domain=palaceskateboards.com&sz=128', website: 'https://palaceskateboards.com' } }),
+    prisma.brand.upsert({ where: { name: 'Google' }, update: { logo: 'https://www.google.com/s2/favicons?domain=google.com&sz=128', website: 'https://store.google.com' }, create: { name: 'Google', logo: 'https://www.google.com/s2/favicons?domain=google.com&sz=128', website: 'https://store.google.com' } }),
+    prisma.brand.upsert({ where: { name: 'PRIME' }, update: { logo: 'https://www.google.com/s2/favicons?domain=drinkprime.com&sz=128', website: 'https://drinkprime.com' }, create: { name: 'PRIME', logo: 'https://www.google.com/s2/favicons?domain=drinkprime.com&sz=128', website: 'https://drinkprime.com' } }),
   ]);
 
   const brandMap = {};
@@ -59,7 +52,13 @@ async function main() {
     { title: 'KSI x Prime Energy', brand: 'PRIME', category: 'creator-merch', description: 'Limited edition KSI flavor with golden can. Meet-and-greet ticket chances.', imageUrl: 'https://images.unsplash.com/photo-1622543925917-763c34d1a86e?w=800&q=80', dropTime: hours(36), price: '$29.99', hypeScore: 77, likes: 4800, views: 58000, featured: false, website: 'https://drinkprime.com' },
   ];
 
+  const existingSeedTitles = new Set(
+    (await prisma.drop.findMany({ select: { title: true } })).map((drop) => drop.title)
+  );
+
   for (const d of dropsData) {
+    if (existingSeedTitles.has(d.title)) continue;
+
     await prisma.drop.create({
       data: {
         title: d.title,
@@ -80,8 +79,10 @@ async function main() {
 
   // Create a test user (login: demo@dropspace.app / demo123)
   const hashedPw = await bcrypt.hash('demo123', 10);
-  await prisma.user.create({
-    data: { email: 'demo@dropspace.app', name: 'Demo User', password: hashedPw, avatar: null },
+  await prisma.user.upsert({
+    where: { email: 'demo@dropspace.app' },
+    update: { name: 'Demo User', password: hashedPw, avatar: null },
+    create: { email: 'demo@dropspace.app', name: 'Demo User', password: hashedPw, avatar: null },
   });
 
   const dropCount = await prisma.drop.count();

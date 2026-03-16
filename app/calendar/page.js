@@ -1,11 +1,17 @@
 'use client';
 
-import { getUpcomingDates } from '../../lib/drops';
+import { useEffect, useState } from 'react';
 import CountdownTimer from '../../components/CountdownTimer';
 import Link from 'next/link';
 
 export default function CalendarPage() {
-  const upcomingDates = getUpcomingDates();
+  const [upcomingDates, setUpcomingDates] = useState([]);
+
+  useEffect(() => {
+    import('../../lib/drops').then(({ getUpcomingDates }) => {
+      setUpcomingDates(getUpcomingDates());
+    });
+  }, []);
 
   const formatDate = (date) => {
     const today = new Date();
@@ -24,6 +30,10 @@ export default function CalendarPage() {
         Drop <span className="text-blue-500">Calendar</span>
       </h1>
       <p className="text-[13px] text-[#737373] mb-5">Never miss a launch</p>
+
+      {upcomingDates.length === 0 && (
+        <div className="text-center py-14 text-[#525252] text-sm">Loading calendar...</div>
+      )}
 
       <div className="flex flex-col gap-6">
         {upcomingDates.map((group) => (

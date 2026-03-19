@@ -52,12 +52,10 @@ export default function DashboardPage() {
     setForm(f => ({ ...f, brandName: localUser.name }));
   }, [hasStoredToken, router]);
 
-  // Handle image file selection → upload via backend to Cloudinary
   const handleImageSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Show preview immediately
     const reader = new FileReader();
     reader.onload = (ev) => setImagePreview(ev.target.result);
     reader.readAsDataURL(file);
@@ -75,7 +73,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Submit drop to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -86,13 +83,12 @@ export default function DashboardPage() {
 
     setSubmitting(true);
     try {
-      // First, find or create brand
       const brandRes = await fetch(`${API_URL}/api/brands`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: form.brandName || user.name,
-          logo: `https://ui-avatars.com/api/?name=${encodeURIComponent(form.brandName || user.name)}&background=111&color=3b82f6&size=64`,
+          logo: `https://ui-avatars.com/api/?name=${encodeURIComponent(form.brandName || user.name)}&background=0a0a0f&color=3b82f6&size=64`,
           website: form.website || '',
         }),
       });
@@ -104,10 +100,8 @@ export default function DashboardPage() {
 
       const brand = await brandRes.json();
 
-      // Parse date + time correctly
       const dropTime = new Date(`${form.dropDate}T${form.dropTime}:00`).toISOString();
 
-      // Create the drop
       const dropRes = await fetch(`${API_URL}/api/drops`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -142,8 +136,8 @@ export default function DashboardPage() {
 
   const inputStyle = {
     width: '100%', padding: '12px 16px', borderRadius: '12px', fontSize: '14px',
-    background: '#0a0a0a', border: '1px solid #1a1a1a', color: '#fff', outline: 'none',
-    transition: 'border-color 0.2s ease', boxSizing: 'border-box',
+    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: '#fff', outline: 'none',
+    transition: 'all 0.25s ease', boxSizing: 'border-box', letterSpacing: '-0.01em',
   };
 
   if ((!user && hasStoredToken) || !user) return null;
@@ -152,39 +146,40 @@ export default function DashboardPage() {
     <div style={{ maxWidth: '600px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '4px' }}>
-          🚀 <span style={{ color: '#3b82f6' }}>Create</span> Drop
+        <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '6px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em' }}>
+          <span style={{ color: '#3b82f6' }}>Create</span> <span style={{ color: '#fff' }}>Drop</span>
         </h1>
-        <p style={{ fontSize: '13px', color: '#737373' }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', letterSpacing: '-0.01em' }}>
           Launch a new product drop — it will appear in the feed for everyone
         </p>
       </div>
 
       {/* Form card */}
       <form onSubmit={handleSubmit} style={{
-        padding: '28px 24px', borderRadius: '16px',
-        background: 'rgba(255,255,255,0.02)', border: '1px solid #1a1a1a',
+        padding: '28px 24px', borderRadius: 'var(--radius-lg)',
+        background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
         display: 'flex', flexDirection: 'column', gap: '20px',
+        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
       }}>
 
         {/* Image Upload */}
         <div>
-          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '8px', fontWeight: 600 }}>
-            📷 Product Image *
+          <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Product Image *
           </label>
           <input type="file" ref={fileRef} accept="image/*" onChange={handleImageSelect} style={{ display: 'none' }} />
           <div
             onClick={() => fileRef.current?.click()}
             style={{
-              width: '100%', aspectRatio: '1', borderRadius: '16px',
-              border: imagePreview ? 'none' : '2px dashed #262626',
-              background: imagePreview ? 'transparent' : '#0a0a0a',
+              width: '100%', aspectRatio: '1', borderRadius: 'var(--radius-lg)',
+              border: imagePreview ? 'none' : '2px dashed rgba(255,255,255,0.08)',
+              background: imagePreview ? 'transparent' : 'rgba(255,255,255,0.02)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', overflow: 'hidden', position: 'relative',
-              transition: 'all 0.2s ease',
+              transition: 'all 0.25s ease',
             }}
-            onMouseEnter={(e) => { if (!imagePreview) e.currentTarget.style.borderColor = '#3b82f6'; }}
-            onMouseLeave={(e) => { if (!imagePreview) e.currentTarget.style.borderColor = '#262626'; }}
+            onMouseEnter={(e) => { if (!imagePreview) e.currentTarget.style.borderColor = 'rgba(59,130,246,0.3)'; }}
+            onMouseLeave={(e) => { if (!imagePreview) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
           >
             {imagePreview ? (
               <>
@@ -199,21 +194,20 @@ export default function DashboardPage() {
                 {!uploading && form.imageUrl && (
                   <div style={{
                     position: 'absolute', bottom: '12px', right: '12px',
-                    background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
-                    padding: '6px 12px', borderRadius: '20px', fontSize: '11px',
+                    background: 'rgba(5,5,8,0.75)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+                    padding: '6px 12px', borderRadius: 'var(--radius-full)', fontSize: '11px',
                     color: '#34d399', fontWeight: 600,
                   }}>✓ Uploaded</div>
                 )}
               </>
             ) : (
-              <div style={{ textAlign: 'center', color: '#525252' }}>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📸</div>
-                <div style={{ fontSize: '14px', fontWeight: 500 }}>Click to upload image</div>
-                <div style={{ fontSize: '12px', marginTop: '4px' }}>JPG, PNG, WebP · Max 10MB</div>
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '28px', marginBottom: '10px', opacity: 0.5 }}>◇</div>
+                <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Click to upload image</div>
+                <div style={{ fontSize: '11px', marginTop: '4px' }}>JPG, PNG, WebP · Max 10MB</div>
               </div>
             )}
           </div>
-          {/* Image URL paste fallback */}
           <div style={{ marginTop: '8px' }}>
             <input style={{ ...inputStyle, fontSize: '12px' }}
               placeholder="Or paste image URL here (https://...)"
@@ -222,45 +216,37 @@ export default function DashboardPage() {
                 setForm({ ...form, imageUrl: e.target.value });
                 if (e.target.value) setImagePreview(e.target.value);
               }}
-              onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
-              onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }}
             />
           </div>
         </div>
 
         {/* Brand Name */}
         <div>
-          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>🏢 Brand Name</label>
+          <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Brand Name</label>
           <input style={inputStyle} placeholder="Your brand name" value={form.brandName}
-            onChange={(e) => setForm({ ...form, brandName: e.target.value })}
-            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
-            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+            onChange={(e) => setForm({ ...form, brandName: e.target.value })} />
         </div>
 
         {/* Product Title */}
         <div>
-          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>✨ Product Title *</label>
+          <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Product Title *</label>
           <input style={inputStyle} placeholder="e.g. Air Max 2030 Limited Edition" value={form.title} required
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
-            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+            onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </div>
 
-        {/* Description / Caption */}
+        {/* Description */}
         <div>
-          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>📝 Caption / Description</label>
+          <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Caption / Description</label>
           <textarea style={{ ...inputStyle, resize: 'none', minHeight: '100px' }}
-            placeholder="Describe your drop... This appears below the title in the feed."
+            placeholder="Describe your drop..."
             value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
-            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+            onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>
 
         {/* Category + Price */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>📦 Category</label>
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Category</label>
             <select style={{ ...inputStyle, appearance: 'none' }} value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}>
               <option value="sneakers">Sneakers</option>
@@ -273,48 +259,43 @@ export default function DashboardPage() {
             </select>
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>💰 Price</label>
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Price</label>
             <input style={inputStyle} placeholder="$199.99" value={form.price}
-              onChange={(e) => setForm({ ...form, price: e.target.value })}
-              onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
-              onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
+              onChange={(e) => setForm({ ...form, price: e.target.value })} />
           </div>
         </div>
 
         {/* Drop Date + Time */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>📅 Drop Date *</label>
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Drop Date *</label>
             <input type="date" style={inputStyle} value={form.dropDate} required
               onChange={(e) => setForm({ ...form, dropDate: e.target.value })} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>⏰ Drop Time *</label>
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Drop Time *</label>
             <input type="time" style={inputStyle} value={form.dropTime} required
               onChange={(e) => setForm({ ...form, dropTime: e.target.value })} />
           </div>
         </div>
 
-        {/* The countdown timer will tick down to this date+time */}
         {form.dropDate && form.dropTime && (
           <div style={{
             padding: '12px 16px', borderRadius: '12px',
-            background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.12)',
+            background: 'rgba(59,130,246,0.04)', border: '1px solid rgba(59,130,246,0.08)',
             fontSize: '12px', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            🔔 The countdown timer on your post will tick down to <strong>{form.dropDate} at {form.dropTime}</strong>
+            🔔 Countdown will tick down to <strong>{form.dropDate} at {form.dropTime}</strong>
           </div>
         )}
 
-        {/* Website / Purchase Link */}
+        {/* Website */}
         <div>
-          <label style={{ display: 'block', fontSize: '13px', color: '#a3a3a3', marginBottom: '6px', fontWeight: 600 }}>🔗 Official Link (Shop Now)</label>
+          <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Official Link (Shop Now)</label>
           <input type="url" style={inputStyle} placeholder="https://yourbrand.com/product"
             value={form.website}
-            onChange={(e) => setForm({ ...form, website: e.target.value })}
-            onFocus={(e) => { e.target.style.borderColor = '#3b82f6'; }}
-            onBlur={(e) => { e.target.style.borderColor = '#1a1a1a'; }} />
-          <div style={{ fontSize: '11px', color: '#525252', marginTop: '4px' }}>
+            onChange={(e) => setForm({ ...form, website: e.target.value })} />
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
             This link will appear as the &quot;Shop Now&quot; button on your drop
           </div>
         </div>
@@ -323,28 +304,29 @@ export default function DashboardPage() {
         {error && (
           <div style={{
             padding: '12px 16px', borderRadius: '12px', fontSize: '13px',
-            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#ef4444',
+            background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.1)', color: '#ef4444',
           }}>{error}</div>
         )}
         {success && (
           <div style={{
             padding: '12px 16px', borderRadius: '12px', fontSize: '13px',
-            background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.15)', color: '#34d399',
+            background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.1)', color: '#34d399',
           }}>✅ {success}</div>
         )}
 
         {/* Submit */}
         <button type="submit" disabled={submitting || uploading} style={{
-          padding: '14px 28px', borderRadius: '50px', border: 'none',
-          background: (submitting || uploading) ? '#1a1a1a' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
-          color: '#fff', fontSize: '15px', fontWeight: 700,
+          padding: '14px 28px', borderRadius: 'var(--radius-full)', border: 'none',
+          background: (submitting || uploading) ? 'rgba(255,255,255,0.04)' : '#3b82f6',
+          color: '#fff', fontSize: '14px', fontWeight: 600,
           cursor: (submitting || uploading) ? 'not-allowed' : 'pointer',
-          transition: 'all 0.2s ease', width: '100%',
+          transition: 'all 0.25s ease', width: '100%',
+          fontFamily: "'Sora', sans-serif", letterSpacing: '-0.01em',
         }}
-          onMouseEnter={(e) => { if (!submitting && !uploading) e.target.style.transform = 'translateY(-1px)'; }}
-          onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; }}
+          onMouseEnter={(e) => { if (!submitting && !uploading) e.target.style.background = '#2563eb'; }}
+          onMouseLeave={(e) => { if (!submitting && !uploading) e.target.style.background = '#3b82f6'; }}
         >
-          {submitting ? '🚀 Creating Drop...' : uploading ? '📤 Uploading Image...' : '🚀 Launch Drop'}
+          {submitting ? 'Creating Drop...' : uploading ? 'Uploading Image...' : 'Launch Drop'}
         </button>
       </form>
     </div>

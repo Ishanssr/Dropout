@@ -25,45 +25,61 @@ export default function CalendarPage() {
   const isToday = (date) => date.toDateString() === new Date().toDateString();
 
   return (
-    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="px-4 py-4">
-      <h1 className="text-[22px] font-extrabold mb-1">
-        Drop <span className="text-blue-500">Calendar</span>
+    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
+      <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '4px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em' }}>
+        Drop <span style={{ color: '#3b82f6' }}>Calendar</span>
       </h1>
-      <p className="text-[13px] text-[#737373] mb-5">Never miss a launch</p>
+      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '28px', letterSpacing: '-0.01em' }}>Never miss a launch</p>
 
       {upcomingDates.length === 0 && (
-        <div className="text-center py-14 text-[#525252] text-sm">Loading calendar...</div>
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div className="skeleton" style={{ width: '100%', height: '40px', marginBottom: '12px' }} />
+          <div className="skeleton" style={{ width: '100%', height: '60px', marginBottom: '8px' }} />
+          <div className="skeleton" style={{ width: '100%', height: '60px' }} />
+        </div>
       )}
 
-      <div className="flex flex-col gap-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
         {upcomingDates.map((group) => (
           <div key={group.date.toISOString()}>
             {/* Date label */}
-            <div className="flex items-center gap-3 mb-2.5">
-              <span className={`text-[13px] font-bold px-3 py-1 rounded-md ${
-                isToday(group.date)
-                  ? 'text-blue-500 bg-blue-500/10 border border-blue-500/20'
-                  : 'text-[#a3a3a3] bg-[#111] border border-[#1a1a1a]'
-              }`}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <span style={{
+                fontSize: '12px', fontWeight: 600, padding: '5px 14px', borderRadius: 'var(--radius-sm)',
+                fontFamily: "'Sora', sans-serif", letterSpacing: '-0.01em',
+                ...(isToday(group.date)
+                  ? { color: '#3b82f6', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)' }
+                  : { color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }
+                ),
+              }}>
                 {formatDate(group.date)}
               </span>
-              <div className="flex-1 h-px bg-[#1a1a1a]" />
-              <span className="text-xs text-[#525252]">{group.drops.length}</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.04)' }} />
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{group.drops.length}</span>
             </div>
 
             {/* Drops */}
-            <div className="flex flex-col gap-1.5 pl-2 border-l-2 border-[#1a1a1a]">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '12px', borderLeft: '2px solid rgba(255,255,255,0.04)' }}>
               {group.drops.map((drop) => (
-                <Link key={drop.id} href={`/drop/${drop.id}`} className="no-underline text-inherit">
-                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] hover:border-[#262626] transition-colors cursor-pointer">
-                    <div className="w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-[#111]">
-                      <img src={drop.imageUrl} alt={drop.title} className="w-full h-full object-cover" />
+                <Link key={drop.id} href={`/drop/${drop.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '12px',
+                      padding: '10px 14px', borderRadius: 'var(--radius-md)',
+                      background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
+                      cursor: 'pointer', transition: 'all 0.25s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; }}
+                  >
+                    <div style={{ width: '44px', height: '44px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, background: 'var(--bg-secondary)' }}>
+                      <img src={drop.imageUrl} alt={drop.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-semibold text-white truncate">{drop.title}</div>
-                      <div className="text-[11px] text-[#737373]">{drop.brand.name} · {drop.price}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>{drop.title}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{drop.brand.name} · {drop.price}</div>
                     </div>
-                    <div className="shrink-0 hidden sm:block">
+                    <div style={{ flexShrink: 0 }}>
                       <CountdownTimer dropTime={drop.dropTime} />
                     </div>
                   </div>

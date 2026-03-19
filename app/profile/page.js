@@ -58,7 +58,6 @@ export default function ProfilePage() {
       };
     }
 
-    // Fetch full profile from API
     fetchUserProfile(user.id)
       .then((p) => {
         setProfile(p);
@@ -73,7 +72,6 @@ export default function ProfilePage() {
           return;
         }
 
-        // Fallback to localStorage data
         const fallbackProfile = {
           ...user,
           bio: user.bio || '',
@@ -94,7 +92,6 @@ export default function ProfilePage() {
     router.push('/login');
   };
 
-  // Upload profile picture
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user || uploading) return;
@@ -102,7 +99,6 @@ export default function ProfilePage() {
     setMsg('');
     const previousAvatar = profile?.avatar || '';
 
-    // Show preview immediately
     const reader = new FileReader();
     reader.onload = (ev) => {
       setPreviewAvatar(ev.target.result);
@@ -113,7 +109,6 @@ export default function ProfilePage() {
       const result = await uploadImage(file, { folder: 'dropout_avatars' });
       const imageUrl = result.url;
 
-      // Save to profile
       const updated = await updateProfile(user.id, { avatar: imageUrl });
       setProfile(updated);
       const localUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -142,7 +137,6 @@ export default function ProfilePage() {
     e.target.value = '';
   };
 
-  // Save profile edits
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -158,7 +152,6 @@ export default function ProfilePage() {
       setProfile(updated);
       setEditForm(createEditForm(updated));
       setEditing(false);
-      // Update localStorage
       const localUser = JSON.parse(localStorage.getItem('user') || '{}');
       Object.assign(localUser, {
         name: updated.name,
@@ -183,9 +176,10 @@ export default function ProfilePage() {
   const restoringSession = !user && hasStoredToken;
 
   if (restoringSession || !user || !profile) return (
-    <div style={{ textAlign: 'center', padding: '80px 20px', color: '#525252' }}>
-      <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏳</div>
-      <div style={{ fontSize: '14px' }}>{restoringSession ? 'Restoring session...' : 'Loading profile...'}</div>
+    <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+      <div className="skeleton" style={{ width: '86px', height: '86px', borderRadius: '50%', margin: '0 auto 16px' }} />
+      <div className="skeleton" style={{ width: '140px', height: '18px', margin: '0 auto 8px' }} />
+      <div className="skeleton" style={{ width: '100px', height: '14px', margin: '0 auto' }} />
     </div>
   );
 
@@ -203,20 +197,20 @@ export default function ProfilePage() {
 
   const inputStyle = {
     width: '100%', padding: '10px 14px', borderRadius: '10px', fontSize: '14px',
-    background: '#111', border: '1px solid #1a1a1a', color: '#fff', outline: 'none',
-    transition: 'border-color 0.2s ease',
+    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: '#fff', outline: 'none',
+    transition: 'all 0.25s ease', letterSpacing: '-0.01em',
   };
 
   return (
     <ClientShell
       fallback={
-        <div style={{ textAlign: 'center', padding: '80px 20px', color: '#525252' }}>
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>⏳</div>
-          <div style={{ fontSize: '14px' }}>Loading profile...</div>
+        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+          <div className="skeleton" style={{ width: '86px', height: '86px', borderRadius: '50%', margin: '0 auto 16px' }} />
+          <div className="skeleton" style={{ width: '140px', height: '18px', margin: '0 auto' }} />
         </div>
       }
     >
-    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', padding: '20px 16px' }}>
+    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
       {/* ---- Header Section ---- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
         {/* Avatar with upload */}
@@ -232,11 +226,12 @@ export default function ProfilePage() {
             onClick={() => fileRef.current?.click()}
             style={{
               width: '86px', height: '86px', borderRadius: '50%', cursor: 'pointer',
-              background: avatarSrc ? '#111' : 'linear-gradient(135deg, #3b82f6, #60a5fa)',
+              background: avatarSrc ? 'var(--bg-secondary)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: avatarSrc ? '0' : '34px', fontWeight: 800, color: '#fff',
-              border: '3px solid #1a1a1a', transition: 'all 0.3s ease',
+              border: '3px solid rgba(59,130,246,0.15)', transition: 'all 0.3s ease',
               position: 'relative', overflow: 'hidden',
+              fontFamily: "'Sora', sans-serif",
             }}
           >
             {avatarSrc ? (
@@ -271,7 +266,7 @@ export default function ProfilePage() {
             style={{
               position: 'absolute', bottom: '-2px', right: '-2px',
               width: '26px', height: '26px', borderRadius: '50%',
-              background: '#3b82f6', border: '2px solid #000',
+              background: '#3b82f6', border: '2px solid var(--bg-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
             }}
@@ -285,14 +280,14 @@ export default function ProfilePage() {
 
         {/* Name & Role */}
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '2px' }}>{profile.name}</h1>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '2px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em' }}>{profile.name}</h1>
           {profile.username && (
-            <div style={{ fontSize: '13px', color: '#a3a3a3', marginBottom: '4px' }}>@{profile.username}</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px' }}>@{profile.username}</div>
           )}
-          <div style={{ fontSize: '13px', color: '#3b82f6', fontWeight: 500, marginBottom: '4px', textTransform: 'capitalize' }}>
+          <div style={{ fontSize: '12px', color: '#3b82f6', fontWeight: 500, marginBottom: '4px', textTransform: 'capitalize' }}>
             {profile.role === 'brand' ? '🏢 Brand Account' : '👤 User'}
           </div>
-          <div style={{ fontSize: '12px', color: '#525252' }}>{profile.email}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{profile.email}</div>
         </div>
       </div>
 
@@ -301,74 +296,62 @@ export default function ProfilePage() {
         {editing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div>
-              <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Display Name</label>
+              <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Display Name</label>
               <input
                 style={inputStyle}
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
                 placeholder="Your name"
               />
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Username</label>
+              <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Username</label>
               <input
                 style={inputStyle}
                 value={editForm.username}
                 onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
                 placeholder="yourhandle"
               />
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Bio</label>
+              <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bio</label>
               <textarea
                 style={{ ...inputStyle, minHeight: '80px', resize: 'vertical', fontFamily: 'inherit' }}
                 value={editForm.bio}
                 onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
                 placeholder="Tell people about yourself..."
                 maxLength={150}
               />
-              <div style={{ fontSize: '11px', color: '#525252', textAlign: 'right', marginTop: '2px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'right', marginTop: '2px' }}>
                 {editForm.bio.length}/150
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
-                <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Website</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Website</label>
                 <input
                   style={inputStyle}
                   value={editForm.website}
                   onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
-                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                  onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
                   placeholder="yourbrand.com"
                 />
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Instagram</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Instagram</label>
                 <input
                   style={inputStyle}
                   value={editForm.instagramHandle}
                   onChange={(e) => setEditForm({ ...editForm, instagramHandle: e.target.value })}
-                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                  onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
                   placeholder="@yourhandle"
                 />
               </div>
             </div>
             <div>
-              <label style={{ fontSize: '12px', color: '#737373', fontWeight: 600, marginBottom: '4px', display: 'block' }}>Location</label>
+              <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '4px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Location</label>
               <input
                 style={inputStyle}
                 value={editForm.location}
                 onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                onBlur={(e) => e.target.style.borderColor = '#1a1a1a'}
                 placeholder="City, Country"
               />
             </div>
@@ -380,13 +363,14 @@ export default function ProfilePage() {
                   flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
                   background: '#3b82f6', color: '#fff', fontWeight: 600, fontSize: '13px',
                   cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
+                  fontFamily: "'Sora', sans-serif",
                 }}
               >{saving ? 'Saving...' : 'Save'}</button>
               <button
                 onClick={() => { setEditing(false); setEditForm(createEditForm(profile)); }}
                 style={{
                   flex: 1, padding: '10px', borderRadius: '10px',
-                  background: '#111', border: '1px solid #1a1a1a', color: '#a3a3a3',
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: 'var(--text-secondary)',
                   fontWeight: 600, fontSize: '13px', cursor: 'pointer',
                 }}
               >Cancel</button>
@@ -395,24 +379,25 @@ export default function ProfilePage() {
         ) : (
           <div>
             {profile.bio ? (
-              <p style={{ fontSize: '14px', color: '#d4d4d4', lineHeight: 1.5, marginBottom: '8px' }}>{profile.bio}</p>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '10px' }}>{profile.bio}</p>
             ) : (
-              <p style={{ fontSize: '14px', color: '#525252', fontStyle: 'italic', marginBottom: '8px' }}>No bio yet. Tap Edit to add one.</p>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '10px' }}>No bio yet. Tap Edit to add one.</p>
             )}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
               {profile.website && (
                 <a
                   href={websiteHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    padding: '6px 10px',
-                    borderRadius: '999px',
-                    border: '1px solid #1a1a1a',
-                    background: '#0f0f0f',
+                    padding: '5px 12px',
+                    borderRadius: 'var(--radius-full)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'rgba(255,255,255,0.02)',
                     color: '#fff',
                     fontSize: '12px',
                     textDecoration: 'none',
+                    transition: 'all 0.2s ease',
                   }}
                 >
                   {profile.website.replace(/^https?:\/\//, '')}
@@ -420,10 +405,10 @@ export default function ProfilePage() {
               )}
               {profile.instagramHandle && (
                 <span style={{
-                  padding: '6px 10px',
-                  borderRadius: '999px',
-                  border: '1px solid #1a1a1a',
-                  background: '#0f0f0f',
+                  padding: '5px 12px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  background: 'rgba(255,255,255,0.02)',
                   color: '#fff',
                   fontSize: '12px',
                 }}>
@@ -432,10 +417,10 @@ export default function ProfilePage() {
               )}
               {profile.location && (
                 <span style={{
-                  padding: '6px 10px',
-                  borderRadius: '999px',
-                  border: '1px solid #1a1a1a',
-                  background: '#0f0f0f',
+                  padding: '5px 12px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  background: 'rgba(255,255,255,0.02)',
                   color: '#fff',
                   fontSize: '12px',
                 }}>
@@ -446,13 +431,13 @@ export default function ProfilePage() {
             <button
               onClick={() => setEditing(true)}
               style={{
-                width: '100%', padding: '8px', borderRadius: '8px',
-                background: '#111', border: '1px solid #1a1a1a', color: '#fff',
+                width: '100%', padding: '9px', borderRadius: '10px',
+                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: '#fff',
                 fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-                transition: 'all 0.2s',
+                transition: 'all 0.25s',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#1a1a1a'}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.2)'; e.currentTarget.style.background = 'rgba(59,130,246,0.04)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
             >Edit Profile</button>
           </div>
         )}
@@ -460,18 +445,20 @@ export default function ProfilePage() {
 
       {/* ---- Stats ---- */}
       <div style={{
-        display: 'flex', gap: '4px', marginBottom: '20px',
-        background: '#0a0a0a', borderRadius: '12px', padding: '16px',
-        border: '1px solid #1a1a1a',
+        display: 'flex', gap: '8px', marginBottom: '20px',
       }}>
         {[
           { label: 'Saved', value: profile._count?.savedDrops || 0 },
           { label: 'Comments', value: profile._count?.comments || 0 },
           { label: 'Joined', value: joinDate },
         ].map((stat) => (
-          <div key={stat.label} style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: typeof stat.value === 'number' ? '20px' : '13px', fontWeight: 700, color: '#fff' }}>{stat.value}</div>
-            <div style={{ fontSize: '11px', color: '#525252', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{stat.label}</div>
+          <div key={stat.label} style={{
+            flex: 1, textAlign: 'center', padding: '16px 12px',
+            background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)',
+            border: '1px solid rgba(255,255,255,0.04)',
+          }}>
+            <div style={{ fontSize: typeof stat.value === 'number' ? '20px' : '12px', fontWeight: 700, color: '#fff', fontFamily: "'Sora', sans-serif" }}>{stat.value}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>{stat.label}</div>
           </div>
         ))}
       </div>
@@ -480,69 +467,78 @@ export default function ProfilePage() {
       {msg && (
         <div style={{
           padding: '10px 16px', borderRadius: '10px', marginBottom: '16px',
-          background: msg.includes('fail') ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)',
-          border: `1px solid ${msg.includes('fail') ? 'rgba(239,68,68,0.2)' : 'rgba(59,130,246,0.2)'}`,
+          background: msg.includes('fail') ? 'rgba(239,68,68,0.06)' : 'rgba(59,130,246,0.06)',
+          border: `1px solid ${msg.includes('fail') ? 'rgba(239,68,68,0.15)' : 'rgba(59,130,246,0.15)'}`,
           color: msg.includes('fail') ? '#ef4444' : '#60a5fa',
           fontSize: '13px', fontWeight: 500, textAlign: 'center',
         }}>{msg}</div>
       )}
 
       {/* ---- Quick Links ---- */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <Link href="/saved" style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '14px 16px', borderRadius: '12px',
-          background: '#0a0a0a', border: '1px solid #1a1a1a',
+          padding: '14px 16px', borderRadius: 'var(--radius-md)',
+          background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
           color: '#fff', fontSize: '14px', fontWeight: 500,
-          textDecoration: 'none', transition: 'all 0.2s ease',
-        }}>
-          <span style={{ fontSize: '18px' }}>🔖</span>
+          textDecoration: 'none', transition: 'all 0.25s ease',
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; }}
+        >
+          <span style={{ fontSize: '16px' }}>🔖</span>
           <span style={{ flex: 1 }}>Saved Drops</span>
-          <span style={{ color: '#525252', fontSize: '13px' }}>{profile._count?.savedDrops || 0}</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{profile._count?.savedDrops || 0}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
         </Link>
 
         {profile.role === 'brand' && (
           <Link href="/dashboard" style={{
             display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '14px 16px', borderRadius: '12px',
-            background: '#0a0a0a', border: '1px solid #1a1a1a',
+            padding: '14px 16px', borderRadius: 'var(--radius-md)',
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
             color: '#fff', fontSize: '14px', fontWeight: 500,
-            textDecoration: 'none', transition: 'all 0.2s ease',
-          }}>
-            <span style={{ fontSize: '18px' }}>📊</span>
+            textDecoration: 'none', transition: 'all 0.25s ease',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.04)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; }}
+          >
+            <span style={{ fontSize: '16px' }}>📊</span>
             <span style={{ flex: 1 }}>Brand Dashboard</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
           </Link>
         )}
 
         <Link href="/calendar" style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '14px 16px', borderRadius: '12px',
-          background: '#0a0a0a', border: '1px solid #1a1a1a',
+          padding: '14px 16px', borderRadius: 'var(--radius-md)',
+          background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
           color: '#fff', fontSize: '14px', fontWeight: 500,
-          textDecoration: 'none', transition: 'all 0.2s ease',
-        }}>
-          <span style={{ fontSize: '18px' }}>📅</span>
+          textDecoration: 'none', transition: 'all 0.25s ease',
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; }}
+        >
+          <span style={{ fontSize: '16px' }}>📅</span>
           <span style={{ flex: 1 }}>Drop Calendar</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
         </Link>
 
-        <div style={{ height: '1px', background: '#1a1a1a', margin: '4px 0' }} />
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.04)', margin: '4px 0' }} />
 
         <button
           onClick={handleLogout}
           style={{
             display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '14px 16px', borderRadius: '12px', width: '100%',
-            background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.12)',
+            padding: '14px 16px', borderRadius: 'var(--radius-md)', width: '100%',
+            background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.08)',
             color: '#ef4444', fontSize: '14px', fontWeight: 500,
-            cursor: 'pointer', transition: 'all 0.2s ease', textAlign: 'left',
+            cursor: 'pointer', transition: 'all 0.25s ease', textAlign: 'left',
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.04)'}
         >
-          <span style={{ fontSize: '18px' }}>🚪</span>
+          <span style={{ fontSize: '16px' }}>🚪</span>
           <span>Log Out</span>
         </button>
       </div>

@@ -12,18 +12,21 @@ export default function CategoriesPage() {
     const catDrops = getDropsByCategory(selected);
     return (
       <div>
-        <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="px-4 pt-4">
-          <button onClick={() => setSelected(null)} className="bg-transparent border-none text-blue-500 cursor-pointer text-[13px] mb-3 p-0">
+        <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', padding: '24px 16px 16px' }}>
+          <button onClick={() => setSelected(null)} style={{
+            background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer',
+            fontSize: '13px', marginBottom: '12px', padding: 0, fontWeight: 500, letterSpacing: '-0.01em',
+          }}>
             ← All Categories
           </button>
-          <h1 className="text-[22px] font-extrabold mb-1">{cat.icon} {cat.name}</h1>
-          <p className="text-[13px] text-[#737373] mb-2">{catDrops.length} drops</p>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '4px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em' }}>{cat.icon} {cat.name}</h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>{catDrops.length} drops</p>
         </div>
         {catDrops.map((drop) => <DropCard key={drop.id} drop={drop} />)}
         {catDrops.length === 0 && (
-          <div className="text-center py-16 text-[#737373]">
-            <div className="text-4xl mb-2">🔍</div>
-            <div className="text-sm">No drops in this category yet</div>
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '28px', marginBottom: '12px', opacity: 0.5 }}>◇</div>
+            <div style={{ fontSize: '14px' }}>No drops in this category yet</div>
           </div>
         )}
       </div>
@@ -31,24 +34,31 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }} className="px-4 py-4">
-      <h1 className="text-[22px] font-extrabold mb-1">
-        <span className="text-blue-500">Explore</span> Categories
+    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
+      <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '4px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em' }}>
+        <span style={{ color: '#3b82f6' }}>Explore</span> <span style={{ color: '#fff' }}>Categories</span>
       </h1>
-      <p className="text-[13px] text-[#737373] mb-5">Browse drops by category</p>
+      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '24px', letterSpacing: '-0.01em' }}>Browse drops by category</p>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
         {categories.filter(c => c.id !== 'all').map((cat) => {
           const count = getDropsByCategory(cat.id).length;
           return (
             <button
               key={cat.id}
               onClick={() => setSelected(cat.id)}
-              className="text-left p-5 rounded-xl bg-[#0a0a0a] border border-[#1a1a1a] hover:border-blue-500/30 transition-colors cursor-pointer"
+              style={{
+                textAlign: 'left', padding: '22px 18px', borderRadius: 'var(--radius-lg)',
+                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+                cursor: 'pointer', transition: 'all 0.3s ease',
+                color: '#fff',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.2)'; e.currentTarget.style.background = 'rgba(59,130,246,0.04)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--shadow-glow)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
-              <div className="text-3xl mb-2">{cat.icon}</div>
-              <div className="text-sm font-semibold text-white">{cat.name}</div>
-              <div className="text-xs text-[#525252] mt-0.5">{count} drops</div>
+              <div style={{ fontSize: '28px', marginBottom: '10px' }}>{cat.icon}</div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>{cat.name}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px' }}>{count} drops</div>
             </button>
           );
         })}

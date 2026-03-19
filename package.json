@@ -1,8 +1,8 @@
 {
-  "name": "dropout",
+  "name": "dropamyn",
   "version": "0.1.0",
   "private": true,
-  "description": "Dropout — The Instagram for product launches",
+  "description": "Dropamyn — The ultimate destination for product launches",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -4,11 +4,18 @@ import { useState, useEffect } from 'react';
 
 function TimeBlock({ val, label }) {
   return (
-    <div className="flex flex-col items-center">
-      <span className="text-blue-500 font-bold text-lg tabular-nums leading-none">
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <span style={{
+        color: '#3b82f6', fontWeight: 700, fontSize: '17px',
+        fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+        fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
+      }}>
         {String(val).padStart(2, '0')}
       </span>
-      <span className="text-[#525252] text-[9px] uppercase tracking-wide mt-0.5">{label}</span>
+      <span style={{
+        color: 'var(--text-muted)', fontSize: '8px', textTransform: 'uppercase',
+        letterSpacing: '0.08em', marginTop: '3px', fontWeight: 500,
+      }}>{label}</span>
     </div>
   );
 }
@@ -34,21 +41,26 @@ export default function CountdownTimer({ dropTime }) {
   }, [dropTime]);
 
   if (time.expired) {
-    return <span className="text-blue-500 font-bold text-sm">LIVE NOW 🔥</span>;
+    return (
+      <span style={{
+        color: '#3b82f6', fontWeight: 700, fontSize: '13px',
+        fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
+      }}>LIVE NOW 🔥</span>
+    );
   }
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
       {time.d > 0 && (
         <>
           <TimeBlock val={time.d} label="d" />
-          <span className="text-[#262626] font-bold text-lg leading-none">:</span>
+          <span style={{ color: 'rgba(255,255,255,0.12)', fontWeight: 600, fontSize: '16px', lineHeight: 1 }}>:</span>
         </>
       )}
       <TimeBlock val={time.h} label="h" />
-      <span className="text-[#262626] font-bold text-lg leading-none">:</span>
+      <span style={{ color: 'rgba(255,255,255,0.12)', fontWeight: 600, fontSize: '16px', lineHeight: 1 }}>:</span>
       <TimeBlock val={time.m} label="m" />
-      <span className="text-[#262626] font-bold text-lg leading-none">:</span>
+      <span style={{ color: 'rgba(255,255,255,0.12)', fontWeight: 600, fontSize: '16px', lineHeight: 1 }}>:</span>
       <TimeBlock val={time.s} label="s" />
     </div>
   );

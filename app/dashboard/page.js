@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [launchNow, setLaunchNow] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
@@ -105,7 +106,7 @@ export default function DashboardPage() {
     setError('');
     if (!form.imageUrl) { setError('Please upload a product image'); return; }
     if (!form.title) { setError('Please enter a product title'); return; }
-    if (!form.dropDate || !form.dropTime) { setError('Please set the drop date and time'); return; }
+    if (!launchNow && (!form.dropDate || !form.dropTime)) { setError('Please set the drop date and time'); return; }
 
     setSubmitting(true);
     try {
@@ -124,7 +125,9 @@ export default function DashboardPage() {
       }
       const brand = await brandRes.json();
 
-      const dropTime = new Date(`${form.dropDate}T${form.dropTime}:00`).toISOString();
+      const dropTime = launchNow
+        ? new Date(Date.now() - 60000).toISOString()
+        : new Date(`${form.dropDate}T${form.dropTime}:00`).toISOString();
       const dropRes = await fetch(`${API_URL}/api/drops`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -146,8 +149,9 @@ export default function DashboardPage() {
         throw new Error(err.error || 'Failed to create drop');
       }
 
-      setSuccess('🎉 Drop created! Redirecting to feed...');
+      setSuccess(launchNow ? '🎉 Drop is LIVE! Redirecting to feed...' : '🎉 Drop created! Redirecting to feed...');
       setForm({ title: '', description: '', category: 'sneakers', price: '', dropDate: '', dropTime: '', website: '', imageUrl: '', brandName: form.brandName, accessType: 'open', maxQuantity: '' });
+      setLaunchNow(false);
       setImagePreview(null);
       setSubmitting(false);
       setTimeout(() => { setSuccess(''); router.push('/'); }, 1500);
@@ -286,28 +290,60 @@ export default function DashboardPage() {
 
 
 
-          {/* Drop Date + Time */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Drop Date *</label>
-              <input type="date" style={inputStyle} value={form.dropDate} required
-                onChange={(e) => setForm({ ...form, dropDate: e.target.value })} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Drop Time *</label>
-              <input type="time" style={inputStyle} value={form.dropTime} required
-                onChange={(e) => setForm({ ...form, dropTime: e.target.value })} />
+          {/* Launch Type Toggle */}
+          <div>
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Launch Type</label>
+            <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-full)', padding: '4px', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <button type="button" onClick={() => setLaunchNow(true)} style={{
+                flex: 1, padding: '10px 16px', borderRadius: 'var(--radius-full)', border: 'none',
+                background: launchNow ? 'rgba(52,211,153,0.12)' : 'transparent',
+                color: launchNow ? '#34d399' : 'var(--text-muted)',
+                fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.25s ease',
+                fontFamily: "'Sora', sans-serif",
+              }}>⚡ Launch Now</button>
+              <button type="button" onClick={() => setLaunchNow(false)} style={{
+                flex: 1, padding: '10px 16px', borderRadius: 'var(--radius-full)', border: 'none',
+                background: !launchNow ? 'rgba(59,130,246,0.12)' : 'transparent',
+                color: !launchNow ? '#60a5fa' : 'var(--text-muted)',
+                fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.25s ease',
+                fontFamily: "'Sora', sans-serif",
+              }}>🗓 Schedule</button>
             </div>
           </div>
 
-          {form.dropDate && form.dropTime && (
+          {launchNow ? (
             <div style={{
-              padding: '12px 16px', borderRadius: '12px',
-              background: 'rgba(59,130,246,0.04)', border: '1px solid rgba(59,130,246,0.08)',
-              fontSize: '12px', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '12px 16px', borderRadius: '12px', fontSize: '12px',
+              background: 'rgba(52,211,153,0.04)', border: '1px solid rgba(52,211,153,0.1)', color: '#34d399',
+              display: 'flex', alignItems: 'center', gap: '8px',
             }}>
-              🔔 Countdown will tick down to <strong>{form.dropDate} at {form.dropTime}</strong>
+              ⚡ This drop will go <strong>LIVE</strong> immediately after creation
             </div>
+          ) : (
+            <>
+              {/* Drop Date + Time */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Drop Date *</label>
+                  <input type="date" style={inputStyle} value={form.dropDate}
+                    onChange={(e) => setForm({ ...form, dropDate: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Drop Time *</label>
+                  <input type="time" style={inputStyle} value={form.dropTime}
+                    onChange={(e) => setForm({ ...form, dropTime: e.target.value })} />
+                </div>
+              </div>
+              {form.dropDate && form.dropTime && (
+                <div style={{
+                  padding: '12px 16px', borderRadius: '12px',
+                  background: 'rgba(59,130,246,0.04)', border: '1px solid rgba(59,130,246,0.08)',
+                  fontSize: '12px', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px',
+                }}>
+                  🔔 Countdown will tick down to <strong>{form.dropDate} at {form.dropTime}</strong>
+                </div>
+              )}
+            </>
           )}
 
           {/* Website */}
@@ -337,7 +373,7 @@ export default function DashboardPage() {
             transition: 'all 0.25s ease', width: '100%',
             fontFamily: "'Sora', sans-serif", letterSpacing: '-0.01em',
           }}>
-            {submitting ? 'Creating Drop...' : uploading ? 'Uploading Image...' : 'Launch Drop'}
+            {submitting ? 'Creating Drop...' : uploading ? 'Uploading Image...' : launchNow ? '⚡ Go Live' : 'Launch Drop'}
           </button>
         </form>
       )}

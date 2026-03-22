@@ -109,6 +109,8 @@ export default function DashboardPage() {
     if (!launchNow && (!form.dropDate || !form.dropTime)) { setError('Please set the drop date and time'); return; }
 
     setSubmitting(true);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
     try {
       const brandRes = await fetch(`${API_URL}/api/brands`, {
         method: 'POST',
@@ -118,10 +120,11 @@ export default function DashboardPage() {
           logo: `https://ui-avatars.com/api/?name=${encodeURIComponent(form.brandName || user.name)}&background=0a0a0f&color=3b82f6&size=64`,
           website: form.website || '',
         }),
+        signal: controller.signal,
       });
       if (!brandRes.ok) {
-        const err = await brandRes.json();
-        throw new Error(err.error || 'Failed to create brand');
+        const err = await brandRes.json().catch(() => ({}));
+        throw new Error(err.error || `Server error ${brandRes.status}`);
       }
       const brand = await brandRes.json();
 
@@ -143,10 +146,11 @@ export default function DashboardPage() {
           accessType: form.accessType,
           maxQuantity: form.maxQuantity || null,
         }),
+        signal: controller.signal,
       });
       if (!dropRes.ok) {
-        const err = await dropRes.json();
-        throw new Error(err.error || 'Failed to create drop');
+        const err = await dropRes.json().catch(() => ({}));
+        throw new Error(err.error || `Server error ${dropRes.status}`);
       }
 
       setSuccess(launchNow ? '🎉 Drop is LIVE! Redirecting to feed...' : '🎉 Drop created! Redirecting to feed...');
@@ -156,8 +160,14 @@ export default function DashboardPage() {
       setSubmitting(false);
       setTimeout(() => { setSuccess(''); router.push('/'); }, 1500);
     } catch (err) {
-      setError(err.message || 'Failed to create drop');
+      if (err.name === 'AbortError') {
+        setError('Request timed out — the server may be starting up. Please try again in a minute.');
+      } else {
+        setError(err.message || 'Failed to create drop');
+      }
       setSubmitting(false);
+    } finally {
+      clearTimeout(timeout);
     }
   };
 

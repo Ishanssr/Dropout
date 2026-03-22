@@ -9,12 +9,7 @@ import { getNotificationForDrop, requestNotificationPermission, toggleDropRemind
 import { getDropStatus } from '../lib/dropStatus';
 import { notifyUserChanged } from '../lib/userStorage';
 
-const accessLabels = {
-  open: null,
-  raffle: { icon: '🎟', label: 'Raffle', color: '#f59e0b' },
-  waitlist: { icon: '📋', label: 'Waitlist', color: '#8b5cf6' },
-  invite: { icon: '🔒', label: 'Invite Only', color: '#ef4444' },
-};
+
 
 export default function DropCard({ drop, index = 0 }) {
   const router = useRouter();
@@ -48,7 +43,6 @@ export default function DropCard({ drop, index = 0 }) {
   const saves = drop.engagement?.saves || drop._count?.saves || 0;
   const comments = drop.engagement?.comments || drop._count?.comments || 0;
   const dropStatus = getDropStatus(drop);
-  const access = accessLabels[drop.accessType] || null;
 
   const getUser = () => typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
 
@@ -238,17 +232,7 @@ export default function DropCard({ drop, index = 0 }) {
               {notified ? 'Reminder On' : 'Notify Me'}
             </button>
           </div>
-          {/* Access type badge */}
-          {access && (
-            <div style={{
-              position: 'absolute', top: '14px', right: '14px', fontSize: '10px', fontWeight: 600,
-              textTransform: 'uppercase', letterSpacing: '0.08em',
-              background: 'rgba(5,5,8,0.65)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-              padding: '5px 12px', borderRadius: 'var(--radius-full)',
-              border: `1px solid ${access.color}30`,
-              color: access.color,
-            }}>{access.icon} {access.label}</div>
-          )}
+
           {drop.featured && (
             <div style={{
               position: 'absolute', top: '14px', left: '14px', fontSize: '10px', fontWeight: 600,

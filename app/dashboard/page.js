@@ -284,37 +284,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Access Type + Max Quantity */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Access Type</label>
-              <select style={{ ...inputStyle, appearance: 'none' }} value={form.accessType}
-                onChange={(e) => setForm({ ...form, accessType: e.target.value })}>
-                <option value="open">🌐 Open (Everyone)</option>
-                <option value="raffle">🎟 Raffle</option>
-                <option value="waitlist">📋 Waitlist</option>
-                <option value="invite">🔒 Invite Only</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Max Quantity</label>
-              <input type="number" style={inputStyle} placeholder="Unlimited" value={form.maxQuantity}
-                onChange={(e) => setForm({ ...form, maxQuantity: e.target.value })}
-                min="1" />
-            </div>
-          </div>
 
-          {form.accessType !== 'open' && (
-            <div style={{
-              padding: '12px 16px', borderRadius: '12px', fontSize: '12px',
-              background: 'rgba(139,92,246,0.04)', border: '1px solid rgba(139,92,246,0.1)', color: '#a78bfa',
-              display: 'flex', alignItems: 'center', gap: '8px',
-            }}>
-              {form.accessType === 'raffle' && '🎟 Users will enter a raffle to win access to this drop'}
-              {form.accessType === 'waitlist' && '📋 Users will join a waitlist for this drop'}
-              {form.accessType === 'invite' && '🔒 Only invited users can access this drop'}
-            </div>
-          )}
 
           {/* Drop Date + Time */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

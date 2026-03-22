@@ -2,16 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toggleLike, toggleSave, toggleFollowBrand, enterDrop, addComment, formatNumber } from '../../../lib/api';
+import { toggleLike, toggleSave, toggleFollowBrand, addComment, formatNumber } from '../../../lib/api';
 import CountdownTimer from '../../../components/CountdownTimer';
 import Link from 'next/link';
-
-const accessLabels = {
-  open: null,
-  raffle: { icon: '🎟', label: 'Enter Raffle', color: '#f59e0b', activeLabel: 'Entered Raffle' },
-  waitlist: { icon: '📋', label: 'Join Waitlist', color: '#8b5cf6', activeLabel: 'On Waitlist' },
-  invite: { icon: '🔒', label: 'Invite Only', color: '#ef4444', activeLabel: 'Invite Only' },
-};
 
 export default function DropDetailClient({ drop: initialDrop }) {
   const router = useRouter();
@@ -19,13 +12,11 @@ export default function DropDetailClient({ drop: initialDrop }) {
   const [liked, setLiked] = useState(initialDrop.isLiked || false);
   const [likeCount, setLikeCount] = useState(initialDrop._count?.likes || 0);
   const [saved, setSaved] = useState(initialDrop.isSaved || false);
-  const [entered, setEntered] = useState(initialDrop.isEntered || false);
   const [following, setFollowing] = useState(initialDrop.isFollowingBrand || false);
   const [notified, setNotified] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState([]);
   const [posting, setPosting] = useState(false);
-  const [entering, setEntering] = useState(false);
 
   const getUser = () => typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
 
@@ -122,22 +113,7 @@ export default function DropDetailClient({ drop: initialDrop }) {
     }
   };
 
-  const handleEnter = async () => {
-    if (!requireLogin()) return;
-    if (entered) return;
-    setEntering(true);
-    try {
-      const result = await enterDrop(drop.id);
-      setEntered(result.entered);
-    } catch (err) {
-      alert(err.message || 'Failed to enter');
-    }
-    setEntering(false);
-  };
-
-  const access = accessLabels[drop.accessType] || null;
   const saves = drop._count?.saves || 0;
-  const entries = drop._count?.entries || 0;
 
   return (
     <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }}>
@@ -188,16 +164,7 @@ export default function DropDetailClient({ drop: initialDrop }) {
           padding: '6px 14px', borderRadius: 'var(--radius-full)',
           border: '1px solid rgba(255,255,255,0.06)', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
         }}>{drop.price}</div>
-        {/* Access type badge */}
-        {access && (
-          <div style={{
-            position: 'absolute', top: '14px', right: '14px', fontSize: '10px', fontWeight: 600,
-            textTransform: 'uppercase', letterSpacing: '0.08em',
-            background: 'rgba(5,5,8,0.65)', backdropFilter: 'blur(16px)',
-            padding: '5px 12px', borderRadius: 'var(--radius-full)',
-            border: `1px solid ${access.color}30`, color: access.color,
-          }}>{access.icon} {access.label.replace('Enter ', '').replace('Join ', '')}</div>
-        )}
+
       </div>
 
       {/* Actions */}
@@ -236,28 +203,7 @@ export default function DropDetailClient({ drop: initialDrop }) {
         <CountdownTimer dropTime={drop.dropTime} />
       </div>
 
-      {/* Access type entry button */}
-      {access && drop.accessType !== 'open' && (
-        <div style={{ padding: '0 16px 10px' }}>
-          <button
-            onClick={handleEnter}
-            disabled={entered || entering || drop.accessType === 'invite'}
-            style={{
-              width: '100%', padding: '14px', borderRadius: '12px', border: 'none',
-              background: entered ? 'rgba(52,211,153,0.08)' : `${access.color}18`,
-              color: entered ? '#34d399' : access.color,
-              fontSize: '14px', fontWeight: 600, cursor: entered || drop.accessType === 'invite' ? 'default' : 'pointer',
-              transition: 'all 0.25s ease', fontFamily: "'Sora', sans-serif",
-              border: `1px solid ${entered ? 'rgba(52,211,153,0.2)' : access.color + '30'}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            }}
-          >
-            <span>{access.icon}</span>
-            {entering ? 'Entering...' : entered ? access.activeLabel : access.label}
-            {entries > 0 && <span style={{ fontSize: '12px', opacity: 0.7 }}>· {formatNumber(entries)} entered</span>}
-          </button>
-        </div>
-      )}
+
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '8px 16px 16px', gap: '8px' }}>

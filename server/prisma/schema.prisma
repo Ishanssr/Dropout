@@ -21,6 +21,9 @@ model User {
   location        String?
   savedDrops      SavedDrop[]
   comments        Comment[]
+  likes           Like[]
+  follows         Follow[]
+  dropEntries     DropEntry[]
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 }
@@ -31,6 +34,7 @@ model Brand {
   logo      String
   website   String?
   drops     Drop[]
+  followers Follow[]
   createdAt DateTime @default(now())
 }
 
@@ -45,11 +49,14 @@ model Drop {
   dropTime    DateTime
   featured    Boolean     @default(false)
   website     String?
+  accessType  String      @default("open")
+  maxQuantity Int?
   brand       Brand       @relation(fields: [brandId], references: [id])
   brandId     String
-  likes       Int         @default(0)
+  likes       Like[]
   comments    Comment[]
   saves       SavedDrop[]
+  entries     DropEntry[]
   views       Int         @default(0)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -71,6 +78,39 @@ model SavedDrop {
   userId String
   drop   Drop   @relation(fields: [dropId], references: [id])
   dropId String
+
+  @@unique([userId, dropId])
+}
+
+model Like {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  drop   Drop   @relation(fields: [dropId], references: [id])
+  dropId String
+
+  @@unique([userId, dropId])
+}
+
+model Follow {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  brand     Brand    @relation(fields: [brandId], references: [id])
+  brandId   String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, brandId])
+}
+
+model DropEntry {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  drop      Drop     @relation(fields: [dropId], references: [id])
+  dropId    String
+  status    String   @default("entered")
+  createdAt DateTime @default(now())
 
   @@unique([userId, dropId])
 }

@@ -1,5 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { requireAuth } = require('../middleware/auth');
+const { recalculateHypeScore } = require('../utils/hypeScore');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -13,7 +15,7 @@ router.get('/:id', async (req, res) => {
         id: true, email: true, name: true, role: true, avatar: true, bio: true,
         username: true, website: true, instagramHandle: true, location: true,
         createdAt: true,
-        _count: { select: { comments: true, savedDrops: true } },
+        _count: { select: { comments: true, savedDrops: true, likes: true, follows: true } },
       },
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -24,9 +26,14 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// PUT /api/users/:id — update user profile (name, bio, avatar)
-router.put('/:id', async (req, res) => {
+// PUT /api/users/:id — update user profile (auth required)
+router.put('/:id', requireAuth, async (req, res) => {
   try {
+    // Users can only update their own profile
+    if (req.user.id !== req.params.id) {
+      return res.status(403).json({ error: 'You can only update your own profile' });
+    }
+
     const { name, bio, avatar, username, website, instagramHandle, location } = req.body;
     const data = {};
     if (name !== undefined) data.name = name;
@@ -44,7 +51,7 @@ router.put('/:id', async (req, res) => {
         id: true, email: true, name: true, role: true, avatar: true, bio: true,
         username: true, website: true, instagramHandle: true, location: true,
         createdAt: true,
-        _count: { select: { comments: true, savedDrops: true } },
+        _count: { select: { comments: true, savedDrops: true, likes: true, follows: true } },
       },
     });
     res.json(user);
@@ -54,18 +61,26 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// PUT /api/users/:userId/save/:dropId — toggle save
-router.put('/:userId/save/:dropId', async (req, res) => {
+// PUT /api/users/:userId/save/:dropId — toggle save (auth required)
+router.put('/:userId/save/:dropId', requireAuth, async (req, res) => {
   try {
     const { userId, dropId } = req.params;
+
+    // Users can only save for themselves
+    if (req.user.id !== userId) {
+      return res.status(403).json({ error: 'You can only save drops for yourself' });
+    }
+
     const existing = await prisma.savedDrop.findUnique({
       where: { userId_dropId: { userId, dropId } },
     });
     if (existing) {
       await prisma.savedDrop.delete({ where: { id: existing.id } });
+      await recalculateHypeScore(dropId);
       res.json({ saved: false });
     } else {
       await prisma.savedDrop.create({ data: { userId, dropId } });
+      await recalculateHypeScore(dropId);
       res.json({ saved: true });
     }
   } catch (err) {
@@ -79,7 +94,14 @@ router.get('/:id/saved', async (req, res) => {
   try {
     const saves = await prisma.savedDrop.findMany({
       where: { userId: req.params.id },
-      include: { drop: { include: { brand: true } } },
+      include: {
+        drop: {
+          include: {
+            brand: true,
+            _count: { select: { likes: true, comments: true, saves: true, entries: true } },
+          },
+        },
+      },
       orderBy: { id: 'desc' },
     });
     res.json(saves.map(s => s.drop));

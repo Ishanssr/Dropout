@@ -4,16 +4,24 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CountdownTimer from './CountdownTimer';
-import { formatNumber, likeDrop, unlikeDrop, toggleSave } from '../lib/api';
+import { formatNumber, toggleLike, toggleSave, toggleFollowBrand } from '../lib/api';
 import { getNotificationForDrop, requestNotificationPermission, toggleDropReminder } from '../lib/notifications';
 import { getDropStatus } from '../lib/dropStatus';
 import { notifyUserChanged } from '../lib/userStorage';
 
+const accessLabels = {
+  open: null,
+  raffle: { icon: '🎟', label: 'Raffle', color: '#f59e0b' },
+  waitlist: { icon: '📋', label: 'Waitlist', color: '#8b5cf6' },
+  invite: { icon: '🔒', label: 'Invite Only', color: '#ef4444' },
+};
+
 export default function DropCard({ drop, index = 0 }) {
   const router = useRouter();
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(drop.engagement?.likes || drop.likes || 0);
-  const [saved, setSaved] = useState(false);
+  const [liked, setLiked] = useState(drop.isLiked || false);
+  const [likeCount, setLikeCount] = useState(drop.engagement?.likes || drop._count?.likes || 0);
+  const [saved, setSaved] = useState(drop.isSaved || false);
+  const [following, setFollowing] = useState(drop.isFollowingBrand || drop.brand?.isFollowing || false);
   const [notified, setNotified] = useState(() => (
     typeof window !== 'undefined' ? !!getNotificationForDrop(drop.id) : false
   ));
@@ -40,9 +48,12 @@ export default function DropCard({ drop, index = 0 }) {
   const saves = drop.engagement?.saves || drop._count?.saves || 0;
   const comments = drop.engagement?.comments || drop._count?.comments || 0;
   const dropStatus = getDropStatus(drop);
+  const access = accessLabels[drop.accessType] || null;
+
+  const getUser = () => typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
 
   const requireLogin = () => {
-    const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
+    const user = getUser();
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (!user || !token) {
       alert('Log in to interact');
@@ -58,8 +69,9 @@ export default function DropCard({ drop, index = 0 }) {
     setLiked(newLiked);
     setLikeCount(prev => newLiked ? prev + 1 : prev - 1);
     try {
-      if (newLiked) await likeDrop(drop.id);
-      else await unlikeDrop(drop.id);
+      const result = await toggleLike(drop.id);
+      setLiked(result.liked);
+      setLikeCount(result.likes);
     } catch (err) {
       setLiked(!newLiked);
       setLikeCount(prev => newLiked ? prev - 1 : prev + 1);
@@ -67,7 +79,7 @@ export default function DropCard({ drop, index = 0 }) {
   };
 
   const handleSave = async () => {
-    const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
+    const user = getUser();
     if (!user) {
       alert('Log in to interact');
       router.push('/login');
@@ -86,6 +98,22 @@ export default function DropCard({ drop, index = 0 }) {
         alert('Session expired. Please log in again.');
         router.push('/login');
       }
+    }
+  };
+
+  const handleFollow = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!requireLogin()) return;
+    const brandId = drop.brand?.id;
+    if (!brandId) return;
+    const newFollowing = !following;
+    setFollowing(newFollowing);
+    try {
+      const result = await toggleFollowBrand(brandId);
+      setFollowing(result.following);
+    } catch {
+      setFollowing(!newFollowing);
     }
   };
 
@@ -136,9 +164,9 @@ export default function DropCard({ drop, index = 0 }) {
         transition: `opacity 0.6s ease ${index * 0.06}s, transform 0.6s ease ${index * 0.06}s`,
       }}
     >
-      {/* ---- Header: brand ---- */}
-      <Link href={`/drop/${drop.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', gap: '12px' }}>
+      {/* ---- Header: brand + follow ---- */}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', gap: '12px' }}>
+        <Link href={`/drop/${drop.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
           <div style={{
             width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
             background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', padding: '2px',
@@ -150,16 +178,30 @@ export default function DropCard({ drop, index = 0 }) {
               onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${drop.brand?.name}&background=0a0a0f&color=3b82f6&size=36`; }}
             />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff', letterSpacing: '-0.01em' }}>{drop.brand?.name}</div>
           </div>
-          <div style={{
-            padding: '4px 10px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 600,
-            color: '#60a5fa', background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.08)',
-            letterSpacing: '-0.01em',
-          }}>🔥 {drop.hypeScore}</div>
-        </div>
-      </Link>
+        </Link>
+        {/* Follow button */}
+        <button
+          onClick={handleFollow}
+          style={{
+            padding: '5px 14px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 600,
+            border: following ? '1px solid rgba(59,130,246,0.2)' : '1px solid rgba(59,130,246,0.3)',
+            background: following ? 'transparent' : 'rgba(59,130,246,0.1)',
+            color: following ? 'var(--text-secondary)' : '#60a5fa',
+            cursor: 'pointer', transition: 'all 0.25s ease', letterSpacing: '-0.01em', flexShrink: 0,
+          }}
+        >
+          {following ? 'Following' : 'Follow'}
+        </button>
+        {/* Hype score badge */}
+        <div style={{
+          padding: '4px 10px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 600,
+          color: '#60a5fa', background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.08)',
+          letterSpacing: '-0.01em', flexShrink: 0,
+        }}>🔥 {drop.hypeScore}</div>
+      </div>
 
       {/* ---- Image with countdown overlay ---- */}
       <Link href={`/drop/${drop.id}`} style={{ textDecoration: 'none' }}>
@@ -196,6 +238,17 @@ export default function DropCard({ drop, index = 0 }) {
               {notified ? 'Reminder On' : 'Notify Me'}
             </button>
           </div>
+          {/* Access type badge */}
+          {access && (
+            <div style={{
+              position: 'absolute', top: '14px', right: '14px', fontSize: '10px', fontWeight: 600,
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+              background: 'rgba(5,5,8,0.65)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+              padding: '5px 12px', borderRadius: 'var(--radius-full)',
+              border: `1px solid ${access.color}30`,
+              color: access.color,
+            }}>{access.icon} {access.label}</div>
+          )}
           {drop.featured && (
             <div style={{
               position: 'absolute', top: '14px', left: '14px', fontSize: '10px', fontWeight: 600,

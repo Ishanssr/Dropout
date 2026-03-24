@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { login, signup } from '../../lib/api';
@@ -15,178 +15,151 @@ export default function LoginPage() {
   const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const formRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const data = tab === 'login'
         ? await login(email, password)
         : await signup(email, name, password, role);
-
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       notifyUserChanged();
-      router.push('/');
+      router.push('/feed');
     } catch (err) {
       setError(err.message || 'Something went wrong');
       setLoading(false);
     }
   };
 
-  const inputStyle = {
-    padding: '14px 16px', borderRadius: '12px',
-    border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)',
-    color: '#fff', fontSize: '14px', outline: 'none',
-    transition: 'all 0.25s ease', width: '100%', boxSizing: 'border-box',
-    letterSpacing: '-0.01em',
-  };
-
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', padding: '20px',
-      position: 'relative',
-    }}>
-      {/* Subtle background glow */}
-      <div style={{
-        position: 'fixed', top: '-200px', left: '50%', transform: 'translateX(-50%)',
-        width: '600px', height: '600px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)',
-        pointerEvents: 'none', zIndex: 0,
-      }} />
+    <div className="login-root">
+      {/* Ambient background layers */}
+      <div className="login-bg-orb login-bg-orb-1" />
+      <div className="login-bg-orb login-bg-orb-2" />
+      <div className="login-bg-orb login-bg-orb-3" />
+      <div className="login-bg-grain" />
 
-      <div style={{
-        width: '100%', maxWidth: '400px',
-        background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: 'var(--radius-lg)', padding: '40px 32px',
-        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        position: 'relative', zIndex: 1,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-      }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <span style={{ fontSize: '28px', fontWeight: 700, color: '#3b82f6', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.04em' }}>Drop</span>
-            <span style={{ fontSize: '28px', fontWeight: 700, color: '#fff', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.04em' }}>amyn</span>
-          </Link>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '10px', letterSpacing: '-0.01em' }}>
-            Discover what&apos;s dropping next
-          </p>
-        </div>
+      {/* Floating mosaic cards (decorative) */}
+      <div className="login-float login-float-1">
+        <img src="https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=400&q=80" alt="" />
+      </div>
+      <div className="login-float login-float-2">
+        <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=400&q=80" alt="" />
+      </div>
+      <div className="login-float login-float-3">
+        <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=400&q=80" alt="" />
+      </div>
 
-        {/* Tab switch */}
-        <div style={{
-          display: 'flex', gap: '0',
-          background: 'rgba(255,255,255,0.02)', borderRadius: '12px',
-          padding: '3px', marginBottom: '28px',
-          border: '1px solid rgba(255,255,255,0.04)',
-        }}>
-          {['login', 'signup'].map((t) => (
-            <button
-              key={t}
-              onClick={() => { setTab(t); setError(''); }}
-              style={{
-                flex: 1, padding: '10px', borderRadius: '10px',
-                border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-                background: tab === t ? 'rgba(59,130,246,0.1)' : 'transparent',
-                color: tab === t ? '#fff' : 'var(--text-muted)',
-                transition: 'all 0.25s ease',
-                fontFamily: "'Sora', sans-serif",
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {t === 'login' ? 'Log In' : 'Sign Up'}
-            </button>
-          ))}
-        </div>
-
-        {/* Role selector — signup only */}
-        {tab === 'signup' && (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>I am a...</div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {[
-                { id: 'user', label: '👤 User', desc: 'Browse, like, save drops' },
-                { id: 'brand', label: '🏢 Brand', desc: 'Create & manage drops' },
-              ].map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => setRole(r.id)}
-                  style={{
-                    flex: 1, padding: '16px 12px', borderRadius: '12px',
-                    border: role === r.id ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(255,255,255,0.06)',
-                    background: role === r.id ? 'rgba(59,130,246,0.06)' : 'rgba(255,255,255,0.02)',
-                    cursor: 'pointer', transition: 'all 0.25s ease', textAlign: 'center',
-                    color: '#fff',
-                  }}
-                >
-                  <div style={{ fontSize: '20px', marginBottom: '6px' }}>{r.label.split(' ')[0]}</div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: role === r.id ? '#60a5fa' : '#fff', marginBottom: '2px', fontFamily: "'Sora', sans-serif" }}>
-                    {r.label.split(' ')[1]}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{r.desc}</div>
-                </button>
-              ))}
+      {/* Main card */}
+      <div className="login-container">
+        <div className="login-card">
+          {/* Logo */}
+          <div className="login-logo">
+            <div className="login-logo-mark">
+              <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                <defs>
+                  <linearGradient id="lg" x1="0" y1="0" x2="32" y2="32">
+                    <stop offset="0%" stopColor="#7c9cff" />
+                    <stop offset="100%" stopColor="#c4a6ff" />
+                  </linearGradient>
+                </defs>
+                <circle cx="16" cy="16" r="14" fill="url(#lg)" />
+              </svg>
             </div>
+            <Link href="/" style={{ textDecoration: 'none' }}>
+              <span className="login-logo-text">
+                <span style={{ color: '#fff' }}>Drop</span>
+                <span style={{ background: 'linear-gradient(90deg, #b8ccff, #c4a6ff)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>amyn</span>
+              </span>
+            </Link>
+            <p className="login-subtitle">
+              {tab === 'login' ? 'Welcome back. Discover what\'s dropping next.' : 'Join the community. Never miss a drop.'}
+            </p>
           </div>
-        )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Tab switch */}
+          <div className="login-tabs">
+            {['login', 'signup'].map((t) => (
+              <button
+                key={t}
+                onClick={() => { setTab(t); setError(''); }}
+                className={`login-tab ${tab === t ? 'active' : ''}`}
+              >
+                {t === 'login' ? 'Log In' : 'Sign Up'}
+              </button>
+            ))}
+          </div>
+
+          {/* Role selector — signup only */}
           {tab === 'signup' && (
-            <input
-              type="text" placeholder="Full Name" value={name}
-              onChange={(e) => setName(e.target.value)} required
-              style={inputStyle}
-            />
-          )}
-          <input
-            type="email" placeholder="Email" value={email}
-            onChange={(e) => setEmail(e.target.value)} required
-            style={inputStyle}
-          />
-          <input
-            type="password" placeholder="Password" value={password}
-            onChange={(e) => setPassword(e.target.value)} required minLength={6}
-            style={inputStyle}
-          />
-
-          {error && (
-            <div style={{
-              padding: '10px 14px', borderRadius: '10px',
-              background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)',
-              color: '#ef4444', fontSize: '13px',
-            }}>{error}</div>
+            <div className="login-roles">
+              <div className="login-roles-label">I am a...</div>
+              <div className="login-roles-grid">
+                {[
+                  { id: 'user', emoji: '👤', label: 'User', desc: 'Browse, like, save' },
+                  { id: 'brand', emoji: '🏢', label: 'Brand', desc: 'Create & manage drops' },
+                ].map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setRole(r.id)}
+                    className={`login-role-btn ${role === r.id ? 'active' : ''}`}
+                  >
+                    <span className="login-role-emoji">{r.emoji}</span>
+                    <span className="login-role-name">{r.label}</span>
+                    <span className="login-role-desc">{r.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
 
-          <button type="submit" disabled={loading} style={{
-            padding: '14px', borderRadius: '12px', border: 'none',
-            background: loading ? 'rgba(255,255,255,0.04)' : '#3b82f6', color: '#fff',
-            fontSize: '14px', fontWeight: 600,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'all 0.25s ease', marginTop: '4px',
-            fontFamily: "'Sora', sans-serif", letterSpacing: '-0.01em',
-          }}
-            onMouseEnter={(e) => { if (!loading) e.target.style.background = '#2563eb'; }}
-            onMouseLeave={(e) => { if (!loading) e.target.style.background = '#3b82f6'; }}
-          >
-            {loading ? 'Loading...' : tab === 'login' ? 'Log In' : `Create ${role === 'brand' ? 'Brand ' : ''}Account`}
-          </button>
-        </form>
+          {/* Form */}
+          <form ref={formRef} onSubmit={handleSubmit} className="login-form">
+            {tab === 'signup' && (
+              <div className="login-input-wrap">
+                <input
+                  type="text" placeholder="Full Name" value={name}
+                  onChange={(e) => setName(e.target.value)} required
+                  className="login-input"
+                />
+              </div>
+            )}
+            <div className="login-input-wrap">
+              <input
+                type="email" placeholder="Email address" value={email}
+                onChange={(e) => setEmail(e.target.value)} required
+                className="login-input"
+              />
+            </div>
+            <div className="login-input-wrap">
+              <input
+                type="password" placeholder="Password" value={password}
+                onChange={(e) => setPassword(e.target.value)} required minLength={6}
+                className="login-input"
+              />
+            </div>
 
-        {/* Demo credentials */}
-        <div style={{
-          marginTop: '28px', padding: '14px 16px', borderRadius: '12px',
-          background: 'rgba(59,130,246,0.03)', border: '1px solid rgba(59,130,246,0.06)',
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>Demo Account</div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            <span style={{ color: '#60a5fa' }}>demo@dropspace.app</span> / <span style={{ color: '#60a5fa' }}>demo123</span>
+            {error && (
+              <div className="login-error">{error}</div>
+            )}
+
+            <button type="submit" disabled={loading} className="login-submit">
+              {loading ? (
+                <span className="login-spinner" />
+              ) : tab === 'login' ? 'Log In' : `Create ${role === 'brand' ? 'Brand ' : ''}Account`}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="login-footer">
+            <Link href="/feed" className="login-footer-link">
+              Browse as guest →
+            </Link>
           </div>
         </div>
       </div>

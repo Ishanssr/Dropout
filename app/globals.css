@@ -770,3 +770,79 @@ input:focus, textarea:focus, select:focus {
   .login-container { padding: 16px; }
 }
 
+/* ═══════════════════════════════════
+   GLASS BUTTON EFFECT
+═══════════════════════════════════ */
+.glass-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.glass-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255,255,255,0.06) 35%,
+    rgba(255,255,255,0.12) 40%,
+    rgba(255,255,255,0.06) 45%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: none;
+  z-index: 1;
+  pointer-events: none;
+}
+.glass-btn:hover::before {
+  animation: glassShimmer 0.8s ease forwards;
+}
+@keyframes glassShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Glass CTA for landing */
+.landing-cta-primary.glass-btn,
+.landing-cta-secondary.glass-btn {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ═══════════════════════════════════
+   LOGIN EMERGE FROM DARK
+═══════════════════════════════════ */
+.login-emerge {
+  animation: emergeFromDark 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+@keyframes emergeFromDark {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.92);
+    filter: brightness(0) blur(8px);
+  }
+  40% {
+    filter: brightness(0.5) blur(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1) blur(0px);
+  }
+}
+
+/* Glass plate effect for login card */
+.login-glass-plate {
+  background: rgba(10, 10, 20, 0.45) !important;
+  backdrop-filter: blur(60px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(1.4) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  box-shadow:
+    0 24px 80px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 1px 0 rgba(255,255,255,0.06) inset !important;
+}

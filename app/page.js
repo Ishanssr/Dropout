@@ -126,10 +126,10 @@ export default function LandingPage() {
 
             {/* CTAs */}
             <div className="landing-ctas">
-              <Link href="/feed" className="landing-cta-primary">
+              <Link href="/feed" className="landing-cta-primary glass-btn">
                 Explore Drops →
               </Link>
-              <Link href="/login" className="landing-cta-secondary">
+              <Link href="/login" className="landing-cta-secondary glass-btn">
                 Sign In
               </Link>
             </div>

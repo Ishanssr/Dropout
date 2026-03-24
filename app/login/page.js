@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { login, signup } from '../../lib/api';
 import { notifyUserChanged } from '../../lib/userStorage';
+import dynamic from 'next/dynamic';
+
+const FluidCanvas = dynamic(() => import('../../components/FluidCanvas'), { ssr: false });
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,7 +18,6 @@ export default function LoginPage() {
   const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const formRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,26 +39,17 @@ export default function LoginPage() {
 
   return (
     <div className="login-root">
-      {/* Ambient background layers */}
+      {/* Interactive fluid background */}
+      <FluidCanvas />
+
+      {/* Static ambient layers */}
       <div className="login-bg-orb login-bg-orb-1" />
       <div className="login-bg-orb login-bg-orb-2" />
-      <div className="login-bg-orb login-bg-orb-3" />
       <div className="login-bg-grain" />
 
-      {/* Floating mosaic cards (decorative) */}
-      <div className="login-float login-float-1">
-        <img src="https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=400&q=80" alt="" />
-      </div>
-      <div className="login-float login-float-2">
-        <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=400&q=80" alt="" />
-      </div>
-      <div className="login-float login-float-3">
-        <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=400&q=80" alt="" />
-      </div>
-
-      {/* Main card */}
-      <div className="login-container">
-        <div className="login-card">
+      {/* Main card — emerges from dark */}
+      <div className="login-container login-emerge">
+        <div className="login-card login-glass-plate">
           {/* Logo */}
           <div className="login-logo">
             <div className="login-logo-mark">
@@ -119,39 +112,26 @@ export default function LoginPage() {
           )}
 
           {/* Form */}
-          <form ref={formRef} onSubmit={handleSubmit} className="login-form">
+          <form onSubmit={handleSubmit} className="login-form">
             {tab === 'signup' && (
               <div className="login-input-wrap">
-                <input
-                  type="text" placeholder="Full Name" value={name}
-                  onChange={(e) => setName(e.target.value)} required
-                  className="login-input"
-                />
+                <input type="text" placeholder="Full Name" value={name}
+                  onChange={(e) => setName(e.target.value)} required className="login-input" />
               </div>
             )}
             <div className="login-input-wrap">
-              <input
-                type="email" placeholder="Email address" value={email}
-                onChange={(e) => setEmail(e.target.value)} required
-                className="login-input"
-              />
+              <input type="email" placeholder="Email address" value={email}
+                onChange={(e) => setEmail(e.target.value)} required className="login-input" />
             </div>
             <div className="login-input-wrap">
-              <input
-                type="password" placeholder="Password" value={password}
-                onChange={(e) => setPassword(e.target.value)} required minLength={6}
-                className="login-input"
-              />
+              <input type="password" placeholder="Password" value={password}
+                onChange={(e) => setPassword(e.target.value)} required minLength={6} className="login-input" />
             </div>
 
-            {error && (
-              <div className="login-error">{error}</div>
-            )}
+            {error && <div className="login-error">{error}</div>}
 
-            <button type="submit" disabled={loading} className="login-submit">
-              {loading ? (
-                <span className="login-spinner" />
-              ) : tab === 'login' ? 'Log In' : `Create ${role === 'brand' ? 'Brand ' : ''}Account`}
+            <button type="submit" disabled={loading} className="login-submit glass-btn">
+              {loading ? <span className="login-spinner" /> : tab === 'login' ? 'Log In' : `Create ${role === 'brand' ? 'Brand ' : ''}Account`}
             </button>
           </form>
 

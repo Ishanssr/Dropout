@@ -16,6 +16,8 @@ app.use(cors({
   origin: [
     process.env.FRONTEND_URL || 'http://localhost:3000',
     'https://dropout-eta.vercel.app',
+    'https://dropamyn.com',
+    'https://www.dropamyn.com',
     'http://localhost:3000',
   ],
   credentials: true,

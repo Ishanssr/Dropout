@@ -1,6 +1,6 @@
-# 🚀 DropSpace
+# DropSpace
 
-**The Instagram for Product Launches**
+**The All in One App for Product Launches**
 
 DropSpace is a social discovery platform for upcoming product launches and brand drops. Users scroll through a feed to discover upcoming releases across sneakers, tech, streetwear, gaming, AI tools, creator merch, and limited edition collaborations.
 

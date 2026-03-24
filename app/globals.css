@@ -548,108 +548,63 @@ input:focus, textarea:focus, select:focus {
 ═══════════════════════════════════ */
 .login-root {
   min-height: 100vh; position: relative; overflow: hidden;
-  background: #050508;
+  background: #030305;
   display: flex; align-items: center; justify-content: center;
 }
 
-/* Background orbs */
-.login-bg-orb {
-  position: fixed; border-radius: 50%; pointer-events: none;
-  filter: blur(80px); opacity: 0.5;
-}
-.login-bg-orb-1 {
-  width: 500px; height: 500px; top: -150px; left: -100px;
-  background: radial-gradient(circle, rgba(124,156,255,0.12), transparent 70%);
-  animation: loginOrbFloat1 12s ease-in-out infinite;
-}
-.login-bg-orb-2 {
-  width: 400px; height: 400px; bottom: -100px; right: -80px;
-  background: radial-gradient(circle, rgba(196,166,255,0.10), transparent 70%);
-  animation: loginOrbFloat2 15s ease-in-out infinite;
-}
-.login-bg-orb-3 {
-  width: 300px; height: 300px; top: 40%; left: 50%;
-  background: radial-gradient(circle, rgba(255,154,108,0.06), transparent 70%);
-  animation: loginOrbFloat3 18s ease-in-out infinite;
-}
-@keyframes loginOrbFloat1 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 20px); }
-}
-@keyframes loginOrbFloat2 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-20px, -30px); }
-}
-@keyframes loginOrbFloat3 {
-  0%, 100% { transform: translate(-50%, 0); }
-  50% { transform: translate(-50%, -20px); }
-}
-
+/* Subtle grain only — no orbs, no blobs */
 .login-bg-grain {
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  opacity: 0.02;
+  opacity: 0.018;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
   background-size: 200px 200px;
 }
 
-/* Floating images */
-.login-float {
-  position: fixed; pointer-events: none; z-index: 0;
-  border-radius: 20px; overflow: hidden; opacity: 0.15;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-.login-float img {
-  width: 100%; height: 100%; object-fit: cover;
-  filter: saturate(0.5) brightness(0.7);
-}
-.login-float-1 {
-  width: 180px; height: 240px; top: 8%; left: 5%;
-  transform: rotate(-8deg);
-  animation: loginFloat 20s ease-in-out infinite;
-}
-.login-float-2 {
-  width: 160px; height: 200px; bottom: 10%; right: 8%;
-  transform: rotate(5deg);
-  animation: loginFloat 25s ease-in-out infinite reverse;
-}
-.login-float-3 {
-  width: 140px; height: 180px; top: 15%; right: 12%;
-  transform: rotate(-3deg);
-  animation: loginFloat 22s ease-in-out infinite 3s;
-}
-@keyframes loginFloat {
-  0%, 100% { transform: translateY(0) rotate(var(--r, -5deg)); }
-  50% { transform: translateY(-20px) rotate(var(--r, -5deg)); }
+/* ── 3D Perspective Wrapper ── */
+.login-perspective-wrap {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 420px; padding: 20px;
+  perspective: 1200px;
 }
 
-/* Card */
-.login-container {
-  position: relative; z-index: 10; width: 100%; max-width: 420px;
-  padding: 20px;
-  animation: fadeSlideUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+/* ── 3D Glass Plate — tilts up from ground ── */
+.login-glass-3d {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 28px;
+  padding: 40px 32px;
+  backdrop-filter: blur(50px) saturate(1.3);
+  -webkit-backdrop-filter: blur(50px) saturate(1.3);
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 1px 0 rgba(255,255,255,0.08) inset;
+  transform-origin: center bottom;
+  animation: glassPlateLift 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
 }
-.login-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 28px; padding: 40px 32px;
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  box-shadow: 0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03) inset;
+
+@keyframes glassPlateLift {
+  0% {
+    opacity: 0;
+    transform: rotateX(55deg) translateY(60px) scale(0.85);
+  }
+  30% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg) translateY(0) scale(1);
+  }
 }
 
 /* Logo */
 .login-logo { text-align: center; margin-bottom: 32px; }
-.login-logo-mark {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 48px; height: 48px; border-radius: 50%;
-  background: rgba(124,156,255,0.08);
-  margin-bottom: 16px;
-}
 .login-logo-text {
   display: block; font-family: 'Sora', sans-serif;
-  font-size: 26px; font-weight: 700; letter-spacing: -0.04em;
+  font-size: 28px; font-weight: 700; letter-spacing: -0.04em;
 }
 .login-subtitle {
-  color: rgba(240,237,232,0.45); font-size: 13px; margin-top: 8px;
+  color: rgba(240,237,232,0.35); font-size: 13px; margin-top: 8px;
   letter-spacing: -0.01em;
 }
 
@@ -662,34 +617,34 @@ input:focus, textarea:focus, select:focus {
 .login-tab {
   flex: 1; padding: 11px; border-radius: 12px; border: none;
   cursor: pointer; font-size: 13px; font-weight: 600;
-  background: transparent; color: rgba(240,237,232,0.4);
+  background: transparent; color: rgba(240,237,232,0.35);
   font-family: 'Sora', sans-serif; letter-spacing: -0.01em;
   transition: all 0.25s ease;
 }
 .login-tab.active {
-  background: rgba(124,156,255,0.1);
+  background: rgba(124,156,255,0.08);
   color: #fff;
 }
 .login-tab:hover:not(.active) {
-  color: rgba(240,237,232,0.7);
+  color: rgba(240,237,232,0.6);
 }
 
 /* Roles */
 .login-roles { margin-bottom: 20px; }
 .login-roles-label {
-  font-size: 11px; color: rgba(240,237,232,0.4); margin-bottom: 10px;
+  font-size: 11px; color: rgba(240,237,232,0.3); margin-bottom: 10px;
   text-align: center; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
 }
 .login-roles-grid { display: flex; gap: 10px; }
 .login-role-btn {
   flex: 1; padding: 16px 12px; border-radius: 14px; cursor: pointer;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.05);
   background: rgba(255,255,255,0.02); text-align: center;
   transition: all 0.25s ease; color: #fff;
 }
 .login-role-btn.active {
-  border-color: rgba(124,156,255,0.3);
-  background: rgba(124,156,255,0.06);
+  border-color: rgba(124,156,255,0.25);
+  background: rgba(124,156,255,0.05);
 }
 .login-role-emoji { font-size: 20px; display: block; margin-bottom: 6px; }
 .login-role-name {
@@ -697,51 +652,30 @@ input:focus, textarea:focus, select:focus {
   font-family: 'Sora', sans-serif;
 }
 .login-role-btn.active .login-role-name { color: #b8ccff; }
-.login-role-desc { font-size: 11px; color: rgba(240,237,232,0.45); display: block; }
+.login-role-desc { font-size: 11px; color: rgba(240,237,232,0.35); display: block; }
 
 /* Form */
-.login-form {
-  display: flex; flex-direction: column; gap: 12px;
-}
+.login-form { display: flex; flex-direction: column; gap: 12px; }
 .login-input-wrap { position: relative; }
 .login-input {
   width: 100%; padding: 14px 16px; border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.025);
   color: #fff; font-size: 14px; outline: none;
   transition: all 0.3s ease; letter-spacing: -0.01em;
   font-family: 'Space Grotesk', sans-serif;
 }
-.login-input::placeholder { color: rgba(240,237,232,0.25); }
+.login-input::placeholder { color: rgba(240,237,232,0.2); }
 .login-input:focus {
-  border-color: rgba(124,156,255,0.4) !important;
-  background: rgba(124,156,255,0.04);
-  box-shadow: 0 0 0 4px rgba(124,156,255,0.08) !important;
+  border-color: rgba(124,156,255,0.35) !important;
+  background: rgba(124,156,255,0.03);
+  box-shadow: 0 0 0 4px rgba(124,156,255,0.06) !important;
 }
 
 .login-error {
   padding: 10px 14px; border-radius: 12px;
-  background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.15);
+  background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.12);
   color: #ef4444; font-size: 13px;
-}
-
-.login-submit {
-  padding: 14px; border-radius: 14px; border: none; margin-top: 4px;
-  background: linear-gradient(135deg, rgba(124,156,255,0.2), rgba(159,140,255,0.15));
-  border: 1px solid rgba(255,255,255,0.08);
-  color: rgba(240,237,232,0.9); font-size: 14px; font-weight: 600;
-  cursor: pointer; font-family: 'Sora', sans-serif;
-  letter-spacing: -0.01em; transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
-  display: flex; align-items: center; justify-content: center; min-height: 48px;
-}
-.login-submit:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: linear-gradient(135deg, rgba(124,156,255,0.3), rgba(159,140,255,0.22));
-  border-color: rgba(255,255,255,0.14);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-}
-.login-submit:disabled {
-  opacity: 0.5; cursor: not-allowed;
 }
 
 .login-spinner {
@@ -754,95 +688,99 @@ input:focus, textarea:focus, select:focus {
   to { transform: rotate(360deg); }
 }
 
-.login-footer {
-  margin-top: 24px; text-align: center;
-}
+.login-footer { margin-top: 24px; text-align: center; }
 .login-footer-link {
-  font-size: 13px; color: rgba(240,237,232,0.35); text-decoration: none;
+  font-size: 13px; color: rgba(240,237,232,0.25); text-decoration: none;
   transition: color 0.2s ease;
 }
-.login-footer-link:hover { color: rgba(240,237,232,0.7); }
+.login-footer-link:hover { color: rgba(240,237,232,0.6); }
 
 /* Login mobile */
 @media (max-width: 768px) {
-  .login-float { display: none; }
-  .login-card { padding: 32px 24px; border-radius: 24px; }
-  .login-container { padding: 16px; }
+  .login-glass-3d { padding: 32px 24px; border-radius: 24px; }
+  .login-perspective-wrap { padding: 16px; }
 }
 
 /* ═══════════════════════════════════
-   GLASS BUTTON EFFECT
+   LIQUID GLASS BUTTONS
+   — Organic, raised, soft glowing edges
+   — Like water glass rising from screen
 ═══════════════════════════════════ */
+
+/* Login submit — liquid glass */
+.login-submit.glass-btn-liquid {
+  position: relative;
+  padding: 15px; margin-top: 6px;
+  border: none; border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(124,156,255,0.12) 0%,
+    rgba(159,140,255,0.08) 50%,
+    rgba(124,156,255,0.12) 100%
+  );
+  color: rgba(240,237,232,0.85); font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: 'Sora', sans-serif;
+  letter-spacing: -0.01em;
+  display: flex; align-items: center; justify-content: center; min-height: 50px;
+  overflow: hidden;
+  /* Liquid glass raised effect */
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.1) inset,
+    0 -1px 0 rgba(0,0,0,0.2) inset,
+    0 4px 16px rgba(124,156,255,0.08),
+    0 8px 32px rgba(0,0,0,0.3);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.login-submit.glass-btn-liquid::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+.login-submit.glass-btn-liquid:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.14) inset,
+    0 -1px 0 rgba(0,0,0,0.2) inset,
+    0 6px 24px rgba(124,156,255,0.15),
+    0 12px 48px rgba(0,0,0,0.35);
+}
+.login-submit.glass-btn-liquid:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 -1px 0 rgba(0,0,0,0.3) inset,
+    0 2px 8px rgba(124,156,255,0.06),
+    0 4px 16px rgba(0,0,0,0.3);
+}
+.login-submit.glass-btn-liquid:disabled {
+  opacity: 0.4; cursor: not-allowed;
+}
+
+/* ── Landing CTA — Liquid Glass ── */
 .glass-btn {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  /* Soft raised glass edges */
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 -1px 0 rgba(0,0,0,0.15) inset,
+    0 4px 20px rgba(0,0,0,0.25) !important;
 }
 .glass-btn::before {
   content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    105deg,
-    transparent 20%,
-    rgba(255,255,255,0.06) 35%,
-    rgba(255,255,255,0.12) 40%,
-    rgba(255,255,255,0.06) 45%,
-    transparent 60%
-  );
-  transform: translateX(-100%);
-  transition: none;
-  z-index: 1;
-  pointer-events: none;
+  position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 45%);
+  pointer-events: none; z-index: 1;
 }
-.glass-btn:hover::before {
-  animation: glassShimmer 0.8s ease forwards;
-}
-@keyframes glassShimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* Glass CTA for landing */
-.landing-cta-primary.glass-btn,
-.landing-cta-secondary.glass-btn {
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-/* ═══════════════════════════════════
-   LOGIN EMERGE FROM DARK
-═══════════════════════════════════ */
-.login-emerge {
-  animation: emergeFromDark 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
-}
-
-@keyframes emergeFromDark {
-  0% {
-    opacity: 0;
-    transform: translateY(40px) scale(0.92);
-    filter: brightness(0) blur(8px);
-  }
-  40% {
-    filter: brightness(0.5) blur(3px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: brightness(1) blur(0px);
-  }
-}
-
-/* Glass plate effect for login card */
-.login-glass-plate {
-  background: rgba(10, 10, 20, 0.45) !important;
-  backdrop-filter: blur(60px) saturate(1.4) !important;
-  -webkit-backdrop-filter: blur(60px) saturate(1.4) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
+.glass-btn:hover {
   box-shadow:
-    0 24px 80px rgba(0,0,0,0.5),
-    0 0 0 1px rgba(255,255,255,0.04) inset,
-    0 1px 0 rgba(255,255,255,0.06) inset !important;
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 -1px 0 rgba(0,0,0,0.15) inset,
+    0 6px 30px rgba(124,156,255,0.1),
+    0 12px 40px rgba(0,0,0,0.3) !important;
 }
+
+
+

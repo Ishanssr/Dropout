@@ -7,7 +7,7 @@ import { login, signup } from '../../lib/api';
 import { notifyUserChanged } from '../../lib/userStorage';
 import dynamic from 'next/dynamic';
 
-const FluidCanvas = dynamic(() => import('../../components/FluidCanvas'), { ssr: false });
+const StarField = dynamic(() => import('../../components/FluidCanvas'), { ssr: false });
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,30 +39,14 @@ export default function LoginPage() {
 
   return (
     <div className="login-root">
-      {/* Interactive fluid background */}
-      <FluidCanvas />
+      {/* Pure dark + star field */}
+      <StarField />
 
-      {/* Static ambient layers */}
-      <div className="login-bg-orb login-bg-orb-1" />
-      <div className="login-bg-orb login-bg-orb-2" />
-      <div className="login-bg-grain" />
-
-      {/* Main card — emerges from dark */}
-      <div className="login-container login-emerge">
-        <div className="login-card login-glass-plate">
+      {/* 3D Glass Plate — tilts up from ground */}
+      <div className="login-perspective-wrap">
+        <div className="login-glass-3d">
           {/* Logo */}
           <div className="login-logo">
-            <div className="login-logo-mark">
-              <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                <defs>
-                  <linearGradient id="lg" x1="0" y1="0" x2="32" y2="32">
-                    <stop offset="0%" stopColor="#7c9cff" />
-                    <stop offset="100%" stopColor="#c4a6ff" />
-                  </linearGradient>
-                </defs>
-                <circle cx="16" cy="16" r="14" fill="url(#lg)" />
-              </svg>
-            </div>
             <Link href="/" style={{ textDecoration: 'none' }}>
               <span className="login-logo-text">
                 <span style={{ color: '#fff' }}>Drop</span>
@@ -70,24 +54,21 @@ export default function LoginPage() {
               </span>
             </Link>
             <p className="login-subtitle">
-              {tab === 'login' ? 'Welcome back. Discover what\'s dropping next.' : 'Join the community. Never miss a drop.'}
+              {tab === 'login' ? 'Welcome back.' : 'Join the community.'}
             </p>
           </div>
 
-          {/* Tab switch */}
+          {/* Tabs */}
           <div className="login-tabs">
             {['login', 'signup'].map((t) => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setError(''); }}
-                className={`login-tab ${tab === t ? 'active' : ''}`}
-              >
+              <button key={t} onClick={() => { setTab(t); setError(''); }}
+                className={`login-tab ${tab === t ? 'active' : ''}`}>
                 {t === 'login' ? 'Log In' : 'Sign Up'}
               </button>
             ))}
           </div>
 
-          {/* Role selector — signup only */}
+          {/* Role selector */}
           {tab === 'signup' && (
             <div className="login-roles">
               <div className="login-roles-label">I am a...</div>
@@ -96,12 +77,8 @@ export default function LoginPage() {
                   { id: 'user', emoji: '👤', label: 'User', desc: 'Browse, like, save' },
                   { id: 'brand', emoji: '🏢', label: 'Brand', desc: 'Create & manage drops' },
                 ].map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => setRole(r.id)}
-                    className={`login-role-btn ${role === r.id ? 'active' : ''}`}
-                  >
+                  <button key={r.id} type="button" onClick={() => setRole(r.id)}
+                    className={`login-role-btn ${role === r.id ? 'active' : ''}`}>
                     <span className="login-role-emoji">{r.emoji}</span>
                     <span className="login-role-name">{r.label}</span>
                     <span className="login-role-desc">{r.desc}</span>
@@ -130,16 +107,13 @@ export default function LoginPage() {
 
             {error && <div className="login-error">{error}</div>}
 
-            <button type="submit" disabled={loading} className="login-submit glass-btn">
+            <button type="submit" disabled={loading} className="login-submit glass-btn-liquid">
               {loading ? <span className="login-spinner" /> : tab === 'login' ? 'Log In' : `Create ${role === 'brand' ? 'Brand ' : ''}Account`}
             </button>
           </form>
 
-          {/* Footer */}
           <div className="login-footer">
-            <Link href="/feed" className="login-footer-link">
-              Browse as guest →
-            </Link>
+            <Link href="/feed" className="login-footer-link">Browse as guest →</Link>
           </div>
         </div>
       </div>

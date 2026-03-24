@@ -26,7 +26,17 @@ router.get('/search', async (req, res) => {
       take: 20,
       orderBy: { name: 'asc' },
     });
-    res.json(users);
+
+    // For brand users, find their associated brand
+    const enriched = await Promise.all(users.map(async (u) => {
+      if (u.role === 'brand') {
+        const brand = await prisma.brand.findFirst({ where: { name: u.name }, select: { id: true } });
+        return { ...u, brandId: brand?.id || null };
+      }
+      return u;
+    }));
+
+    res.json(enriched);
   } catch (err) {
     console.error('GET /api/users/search error:', err);
     res.status(500).json({ error: 'Search failed' });

@@ -112,10 +112,14 @@ export default function SearchPage() {
       {/* Results */}
       {!loading && results.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {results.map(user => (
+          {results.map(user => {
+            const profileUrl = (user.role === 'brand' && user.brandId)
+              ? `/brand/${user.brandId}`
+              : `/profile/${user.id}`;
+            return (
             <Link
               key={user.id}
-              href={`/profile/${user.id}`}
+              href={profileUrl}
               style={{
                 display: 'flex', alignItems: 'center', gap: '14px',
                 padding: '12px 14px', borderRadius: '16px',
@@ -173,7 +177,8 @@ export default function SearchPage() {
                 <polyline points="9 18 15 12 9 6"/>
               </svg>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
 

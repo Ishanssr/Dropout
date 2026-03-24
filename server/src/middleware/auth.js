@@ -8,8 +8,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dropspace-secret-key-change-in-pro
 async function requireAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
+    console.log(`[AUTH] ${req.method} ${req.path} — Authorization: ${authHeader ? authHeader.substring(0, 20) + '...' : 'MISSING'}`);
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ error: 'Authentication required — no token sent' });
     }
 
     const token = authHeader.split(' ')[1];

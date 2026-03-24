@@ -73,25 +73,14 @@ export default function DropCard({ drop, index = 0 }) {
   };
 
   const handleSave = async () => {
+    if (!requireLogin()) return;
     const user = getUser();
-    if (!user) {
-      alert('Log in to interact');
-      router.push('/login');
-      return;
-    }
     const newSaved = !saved;
     setSaved(newSaved);
     try {
       await toggleSave(user.id, drop.id);
     } catch (err) {
       setSaved(!newSaved);
-      if (err.message?.includes('User not found') || err.message?.includes('500') || err.message?.includes('API error')) {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        notifyUserChanged();
-        alert('Session expired. Please log in again.');
-        router.push('/login');
-      }
     }
   };
 

@@ -42,7 +42,8 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
-  const [catOpen, setCatOpen] = useState(false);
+  const [desktopCatOpen, setDesktopCatOpen] = useState(false);
+  const [mobileCatOpen, setMobileCatOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState(() => ([]));
   const [unreadCount, setUnreadCount] = useState(() => (0));
@@ -143,7 +144,7 @@ export default function Sidebar() {
               whiteSpace: 'nowrap',
               fontFamily: "'Sora', sans-serif",
             }}>
-              <span style={{ color: '#3b82f6' }}>Drop</span>amyn
+              <span style={{ color: '#fff' }}>Drop</span><span style={{ color: '#3b82f6' }}>amyn</span>
             </span>
           ) : (
             <span style={{ fontSize: '24px', fontWeight: 800, color: '#3b82f6', fontFamily: "'Sora', sans-serif" }}>D</span>
@@ -209,29 +210,29 @@ export default function Sidebar() {
           {/* Categories expandable */}
           <div>
             <button
-              onClick={() => setCatOpen(!catOpen)}
+              onClick={() => setDesktopCatOpen(!desktopCatOpen)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '14px', width: '100%',
                 padding: '11px 12px', borderRadius: '12px', border: 'none',
-                color: catOpen ? '#60a5fa' : 'var(--text-secondary)',
-                background: catOpen ? 'rgba(59,130,246,0.06)' : 'transparent',
-                cursor: 'pointer', fontSize: '14px', fontWeight: catOpen ? 600 : 400,
+                color: desktopCatOpen ? '#60a5fa' : 'var(--text-secondary)',
+                background: desktopCatOpen ? 'rgba(59,130,246,0.06)' : 'transparent',
+                cursor: 'pointer', fontSize: '14px', fontWeight: desktopCatOpen ? 600 : 400,
                 transition: 'all 0.2s ease', minHeight: '44px', textAlign: 'left',
               }}
-              onMouseEnter={(e) => { if (!catOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#fff'; }}}
-              onMouseLeave={(e) => { if (!catOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}
+              onMouseEnter={(e) => { if (!desktopCatOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#fff'; }}}
+              onMouseLeave={(e) => { if (!desktopCatOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}
             >
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '22px', flexShrink: 0, opacity: catOpen ? 1 : 0.7 }}>
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '22px', flexShrink: 0, opacity: desktopCatOpen ? 1 : 0.7 }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
               </span>
               {expanded && <span style={{ flex: 1 }}>Categories</span>}
               {expanded && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transition: 'transform 0.2s ease', transform: catOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transition: 'transform 0.2s ease', transform: desktopCatOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                   <polyline points="6 9 12 15 18 9"/>
                 </svg>
               )}
             </button>
-            {catOpen && expanded && (
+            {desktopCatOpen && expanded && (
               <div style={{
                 maxHeight: '200px', overflowY: 'auto', scrollbarWidth: 'thin',
                 padding: '4px 0 4px 36px',
@@ -324,7 +325,7 @@ export default function Sidebar() {
         {/* Logo */}
         <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '2px' }}>
           <span style={{ fontSize: '18px', fontWeight: 700, fontFamily: "'Sora', sans-serif", letterSpacing: '-0.04em' }}>
-            <span style={{ color: '#3b82f6' }}>Drop</span><span style={{ color: '#fff' }}>amyn</span>
+            <span style={{ color: '#fff' }}>Drop</span><span style={{ color: '#3b82f6' }}>amyn</span>
           </span>
         </Link>
         {/* Right icons */}
@@ -438,10 +439,10 @@ export default function Sidebar() {
       </div>
 
       {/* ===== MOBILE CATEGORIES PANEL ===== */}
-      {catOpen && (
+      {mobileCatOpen && (
         <>
           <div
-            onClick={() => setCatOpen(false)}
+            onClick={() => setMobileCatOpen(false)}
             style={{
               position: 'fixed', inset: 0, zIndex: 98,
               background: 'rgba(0,0,0,0.6)',
@@ -468,7 +469,7 @@ export default function Sidebar() {
                 <Link
                   key={cat.id}
                   href={`/?category=${cat.id}`}
-                  onClick={() => setCatOpen(false)}
+                  onClick={() => setMobileCatOpen(false)}
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                     padding: '14px 6px', borderRadius: '14px',
@@ -525,17 +526,17 @@ export default function Sidebar() {
 
         {/* Categories button */}
         <button
-          onClick={() => setCatOpen(!catOpen)}
+          onClick={() => setMobileCatOpen(!mobileCatOpen)}
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             padding: '6px 8px', background: 'none', border: 'none',
-            color: catOpen ? '#3b82f6' : 'var(--text-muted)',
+            color: mobileCatOpen ? '#3b82f6' : 'var(--text-muted)',
             cursor: 'pointer', transition: 'color 0.2s ease',
             position: 'relative',
           }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-          {catOpen && (
+          {mobileCatOpen && (
             <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#3b82f6', marginTop: '4px' }} />
           )}
         </button>

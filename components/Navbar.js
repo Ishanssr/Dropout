@@ -18,6 +18,7 @@ import {
   restoreStoredUserSession,
   subscribeToStoredUser,
 } from '../lib/userStorage';
+import { categories } from '../lib/drops';
 
 const navItems = [
   { href: '/', label: 'Home', icon: (
@@ -26,7 +27,7 @@ const navItems = [
   { href: '/trending', label: 'Trending', icon: (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
   )},
-  { href: '/categories', label: 'Explore', icon: (
+  { href: '/search', label: 'Search', icon: (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   )},
   { href: '/calendar', label: 'Calendar', icon: (
@@ -41,6 +42,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
+  const [catOpen, setCatOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState(() => ([]));
   const [unreadCount, setUnreadCount] = useState(() => (0));
@@ -204,6 +206,57 @@ export default function Sidebar() {
               </Link>
             );
           })}
+          {/* Categories expandable */}
+          <div>
+            <button
+              onClick={() => setCatOpen(!catOpen)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '14px', width: '100%',
+                padding: '11px 12px', borderRadius: '12px', border: 'none',
+                color: catOpen ? '#60a5fa' : 'var(--text-secondary)',
+                background: catOpen ? 'rgba(59,130,246,0.06)' : 'transparent',
+                cursor: 'pointer', fontSize: '14px', fontWeight: catOpen ? 600 : 400,
+                transition: 'all 0.2s ease', minHeight: '44px', textAlign: 'left',
+              }}
+              onMouseEnter={(e) => { if (!catOpen) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#fff'; }}}
+              onMouseLeave={(e) => { if (!catOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '22px', flexShrink: 0, opacity: catOpen ? 1 : 0.7 }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+              </span>
+              {expanded && <span style={{ flex: 1 }}>Categories</span>}
+              {expanded && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transition: 'transform 0.2s ease', transform: catOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              )}
+            </button>
+            {catOpen && expanded && (
+              <div style={{
+                maxHeight: '200px', overflowY: 'auto', scrollbarWidth: 'thin',
+                padding: '4px 0 4px 36px',
+                display: 'flex', flexDirection: 'column', gap: '1px',
+              }}>
+                {categories.filter(c => c.id !== 'all').map(cat => (
+                  <Link
+                    key={cat.id}
+                    href={`/?category=${cat.id}`}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      padding: '8px 10px', borderRadius: '8px',
+                      fontSize: '13px', color: 'var(--text-secondary)',
+                      textDecoration: 'none', transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.06)'; e.currentTarget.style.color = '#60a5fa'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                  >
+                    <span style={{ fontSize: '15px' }}>{cat.icon}</span>
+                    <span>{cat.name}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* ---- Bottom Items ---- */}
@@ -400,7 +453,7 @@ export default function Sidebar() {
         {[
           { href: '/', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>) },
           { href: '/trending', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>) },
-          { href: '/categories', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>) },
+          { href: '/search', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>) },
           { href: '/saved', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>) },
           ...(loggedIn && isBrand ? [{
             href: '/dashboard',

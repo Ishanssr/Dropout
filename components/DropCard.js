@@ -160,7 +160,7 @@ export default function DropCard({ drop, index = 0 }) {
     >
       {/* ---- Header: brand + follow ---- */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', gap: '12px' }}>
-        <Link href={`/drop/${drop.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+        <Link href={`/brand/${drop.brand?.id || drop.brandId}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
           <div style={{
             width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
             background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', padding: '2px',

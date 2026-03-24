@@ -6,6 +6,33 @@ const { recalculateHypeScore } = require('../utils/hypeScore');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// GET /api/users/search?q=... — search users by username or name
+router.get('/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 1) return res.json([]);
+
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { username: { contains: q.trim(), mode: 'insensitive' } },
+          { name: { contains: q.trim(), mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true, name: true, username: true, avatar: true, bio: true, role: true,
+        _count: { select: { likes: true, follows: true } },
+      },
+      take: 20,
+      orderBy: { name: 'asc' },
+    });
+    res.json(users);
+  } catch (err) {
+    console.error('GET /api/users/search error:', err);
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
 // GET /api/users/:id — get user profile
 router.get('/:id', async (req, res) => {
   try {

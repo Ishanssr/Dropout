@@ -1,16 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import DropCard from '../components/DropCard';
-import { categories } from '../lib/drops';
 import { fetchDrops, transformDrop } from '../lib/api';
 import { filterDropsByTab } from '../lib/dropStatus';
 
 export default function Home() {
-  const [active, setActive] = useState('all');
+  const searchParams = useSearchParams();
+  const categoryFromUrl = searchParams.get('category') || 'all';
+  const [active, setActive] = useState(categoryFromUrl);
   const [tab, setTab] = useState('upcoming');
   const [drops, setDrops] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setActive(categoryFromUrl);
+  }, [categoryFromUrl]);
 
   useEffect(() => {
     setLoading(true);
@@ -37,7 +43,7 @@ export default function Home() {
   return (
     <div>
       {/* ---- Segmented Control: Upcoming / Live / All ---- */}
-      <div style={{ padding: '24px 16px 14px', maxWidth: '470px', margin: '0 auto', width: '100%' }}>
+      <div style={{ padding: '24px 16px 18px', maxWidth: '470px', margin: '0 auto', width: '100%' }}>
         <div style={{
           display: 'flex', borderRadius: 'var(--radius-full)',
           border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden',
@@ -64,33 +70,25 @@ export default function Home() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* ---- Category pills (horizontal scroll) ---- */}
-      <div style={{
-        display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none',
-        padding: '4px 16px 18px', maxWidth: '600px', margin: '0 auto', width: '100%',
-        WebkitOverflowScrolling: 'touch',
-      }}>
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActive(cat.id)}
-            style={{
-              flexShrink: 0, padding: '7px 18px', borderRadius: 'var(--radius-full)',
-              fontSize: '12px', fontWeight: 500, cursor: 'pointer',
-              border: active === cat.id ? '1px solid rgba(59,130,246,0.2)' : '1px solid rgba(255,255,255,0.06)',
-              background: active === cat.id ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.02)',
-              color: active === cat.id ? '#60a5fa' : 'var(--text-secondary)',
-              transition: 'all 0.25s ease',
-              letterSpacing: '-0.01em',
-            }}
-            onMouseEnter={(e) => { if (active !== cat.id) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}}
-            onMouseLeave={(e) => { if (active !== cat.id) { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}}
-          >
-            {cat.name}
-          </button>
-        ))}
+        {/* Active category indicator */}
+        {active !== 'all' && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '8px', marginTop: '12px',
+          }}>
+            <span style={{ fontSize: '12px', color: '#60a5fa', fontWeight: 500 }}>
+              Filtered: {active.charAt(0).toUpperCase() + active.slice(1).replace('-', ' ')}
+            </span>
+            <button
+              onClick={() => setActive('all')}
+              style={{
+                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)',
+                borderRadius: 'var(--radius-full)', padding: '3px 10px',
+                fontSize: '11px', color: '#ef4444', cursor: 'pointer', fontWeight: 500,
+              }}
+            >✕ Clear</button>
+          </div>
+        )}
       </div>
 
       {/* Loading skeleton */}

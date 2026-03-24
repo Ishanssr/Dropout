@@ -437,6 +437,55 @@ export default function Sidebar() {
         </div>
       </div>
 
+      {/* ===== MOBILE CATEGORIES PANEL ===== */}
+      {catOpen && (
+        <>
+          <div
+            onClick={() => setCatOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 98,
+              background: 'rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(4px)',
+            }}
+          />
+          <div style={{
+            position: 'fixed', bottom: '66px', left: '8px', right: '8px', zIndex: 99,
+            background: 'rgba(10,10,18,0.97)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: '20px',
+            padding: '18px 16px 14px',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(24px)',
+            maxHeight: '55vh', overflowY: 'auto',
+          }}
+            className="mobile-bottom-nav"
+          >
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '14px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>
+              Categories
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              {categories.filter(c => c.id !== 'all').map(cat => (
+                <Link
+                  key={cat.id}
+                  href={`/?category=${cat.id}`}
+                  onClick={() => setCatOpen(false)}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                    padding: '14px 6px', borderRadius: '14px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.04)',
+                    textDecoration: 'none', transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span style={{ fontSize: '20px' }}>{cat.icon}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'center' }}>{cat.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
       {/* ===== BOTTOM NAV (Mobile only) ===== */}
       <div
         className="mobile-bottom-nav"
@@ -454,11 +503,6 @@ export default function Sidebar() {
           { href: '/', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>) },
           { href: '/trending', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>) },
           { href: '/search', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>) },
-          { href: '/saved', icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>) },
-          ...(loggedIn && isBrand ? [{
-            href: '/dashboard',
-            icon: (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>),
-          }] : []),
         ].map((item) => (
           <Link
             key={item.href}
@@ -473,15 +517,46 @@ export default function Sidebar() {
             }}
           >
             <span style={{ display: 'flex' }}>{item.icon}</span>
-            {/* Active dot indicator */}
             {pathname === item.href && (
-              <span style={{
-                width: '4px', height: '4px', borderRadius: '50%',
-                background: '#3b82f6', marginTop: '4px',
-              }} />
+              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#3b82f6', marginTop: '4px' }} />
             )}
           </Link>
         ))}
+
+        {/* Categories button */}
+        <button
+          onClick={() => setCatOpen(!catOpen)}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            padding: '6px 8px', background: 'none', border: 'none',
+            color: catOpen ? '#3b82f6' : 'var(--text-muted)',
+            cursor: 'pointer', transition: 'color 0.2s ease',
+            position: 'relative',
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          {catOpen && (
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#3b82f6', marginTop: '4px' }} />
+          )}
+        </button>
+
+        {/* Saved */}
+        <Link
+          href="/saved"
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            padding: '6px 8px',
+            color: pathname === '/saved' ? '#3b82f6' : 'var(--text-muted)',
+            textDecoration: 'none',
+            transition: 'color 0.2s ease',
+            position: 'relative',
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          {pathname === '/saved' && (
+            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#3b82f6', marginTop: '4px' }} />
+          )}
+        </Link>
       </div>
     </>
   );

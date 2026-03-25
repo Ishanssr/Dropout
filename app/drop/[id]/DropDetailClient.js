@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toggleLike, toggleSave, toggleFollowBrand, addComment, toggleCommentUpvote, formatNumber } from '../../../lib/api';
+import { toggleLike, toggleSave, toggleFollowBrand, addComment, formatNumber } from '../../../lib/api';
 import CountdownTimer from '../../../components/CountdownTimer';
 import Link from 'next/link';
 
@@ -36,8 +36,6 @@ export default function DropDetailClient({ drop: initialDrop }) {
         user: c.user?.name || 'Anonymous',
         text: c.text,
         time: getTimeAgo(c.createdAt),
-        upvotes: c.upvotes || c._count?.commentLikes || 0,
-        upvoted: false,
       })));
     }
   }, [initialDrop]);
@@ -66,8 +64,6 @@ export default function DropDetailClient({ drop: initialDrop }) {
         user: comment.user?.name || user.name,
         text: comment.text,
         time: 'now',
-        upvotes: 0,
-        upvoted: false,
       }, ...comments]);
       setNewComment('');
     } catch (err) {
@@ -88,32 +84,6 @@ export default function DropDetailClient({ drop: initialDrop }) {
     } catch {
       setLiked(!newLiked);
       setLikeCount(prev => newLiked ? prev - 1 : prev + 1);
-    }
-  };
-
-  const handleCommentUpvote = async (commentId) => {
-    if (!requireLogin()) return;
-    setComments(prev => prev.map(c => {
-      if (c.id === commentId) {
-        return { ...c, upvoted: !c.upvoted, upvotes: c.upvoted ? c.upvotes - 1 : c.upvotes + 1 };
-      }
-      return c;
-    }));
-    try {
-      const result = await toggleCommentUpvote(commentId);
-      setComments(prev => prev.map(c => {
-        if (c.id === commentId) {
-          return { ...c, upvoted: result.upvoted, upvotes: result.upvotes };
-        }
-        return c;
-      }));
-    } catch {
-      setComments(prev => prev.map(c => {
-        if (c.id === commentId) {
-          return { ...c, upvoted: !c.upvoted, upvotes: c.upvoted ? c.upvotes - 1 : c.upvotes + 1 };
-        }
-        return c;
-      }));
     }
   };
 
@@ -285,19 +255,6 @@ export default function DropDetailClient({ drop: initialDrop }) {
           )}
           {comments.map((c) => (
             <div key={c.id} style={{ display: 'flex', gap: '10px', fontSize: '13px' }}>
-              {/* Upvote button for comment */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '28px' }}>
-                <button onClick={() => handleCommentUpvote(c.id)} style={{
-                  background: 'none', border: 'none', cursor: 'pointer', padding: '2px',
-                  display: 'flex', transition: 'all 0.2s',
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill={c.upvoted ? '#3b82f6' : 'none'} stroke={c.upvoted ? '#3b82f6' : 'var(--text-muted)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                </button>
-                {c.upvotes > 0 && (
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: c.upvoted ? '#3b82f6' : 'var(--text-muted)' }}>{c.upvotes}</span>
-                )}
-              </div>
-              {/* Avatar */}
               <div style={{
                 width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(59,130,246,0.08)', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',

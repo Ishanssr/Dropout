@@ -208,32 +208,6 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/drops/comments/:commentId/upvote — toggle comment upvote (auth required)
-router.put('/comments/:commentId/upvote', requireAuth, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { commentId } = req.params;
-
-    const existing = await prisma.commentLike.findUnique({
-      where: { userId_commentId: { userId, commentId } },
-    });
-
-    if (existing) {
-      await prisma.commentLike.delete({ where: { id: existing.id } });
-    } else {
-      await prisma.commentLike.create({ data: { userId, commentId } });
-    }
-
-    // Update denormalized count
-    const count = await prisma.commentLike.count({ where: { commentId } });
-    await prisma.comment.update({ where: { id: commentId }, data: { upvotes: count } });
-
-    res.json({ upvoted: !existing, upvotes: count });
-  } catch (err) {
-    console.error('PUT /api/drops/comments/:commentId/upvote error:', err);
-    res.status(500).json({ error: 'Failed to toggle upvote' });
-  }
-});
 
 // PUT /api/drops/:id/view — increment views
 router.put('/:id/view', async (req, res) => {

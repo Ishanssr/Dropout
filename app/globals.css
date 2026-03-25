@@ -1209,10 +1209,22 @@ input:focus, textarea:focus, select:focus {
   background: transparent;
   border: none;
   outline: none;
+  -webkit-appearance: none;
+  appearance: none;
   color: #fff;
   font-size: 16px;
   font-family: "Space Grotesk", sans-serif;
   letter-spacing: -0.01em;
+  box-shadow: none;
+}
+.search-bar-input:focus {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+.search-bar-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px rgba(5,5,10,1) inset !important;
+  -webkit-text-fill-color: #fff !important;
 }
 .search-bar-input::placeholder {
   color: rgba(255,255,255,0.3);

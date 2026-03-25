@@ -46,6 +46,7 @@ export default function Sidebar() {
   const [desktopCatOpen, setDesktopCatOpen] = useState(false);
   const [mobileCatOpen, setMobileCatOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [notifications, setNotifications] = useState(() => ([]));
   const [unreadCount, setUnreadCount] = useState(() => (0));
   const rawStoredUser = useSyncExternalStore(subscribeToStoredUser, getStoredUserSnapshot, () => null);
@@ -73,9 +74,14 @@ export default function Sidebar() {
 
     window.addEventListener('dropout-notifications-changed', handleNotificationsChanged);
 
+    // Scroll listener for mobile header
+    const handleScroll = () => setScrolled(window.scrollY > 30);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       window.clearInterval(intervalId);
       window.removeEventListener('dropout-notifications-changed', handleNotificationsChanged);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [pathname, storedUser]);
 
@@ -330,8 +336,15 @@ export default function Sidebar() {
           padding: '10px 16px', height: '52px',
         }}
       >
-        {/* Logo */}
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '2px' }}>
+        {/* Logo — fades out on scroll */}
+        <Link href="/" style={{
+          textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '2px',
+          transition: 'all 0.3s ease',
+          opacity: scrolled ? 0 : 1,
+          width: scrolled ? 0 : 'auto',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+        }}>
           <span style={{ fontSize: '18px', fontWeight: 700, fontFamily: "'Sora', sans-serif", letterSpacing: '-0.04em' }}>
             <span style={{ color: '#fff' }}>Drop</span><span style={{ color: '#3b82f6' }}>amyn</span>
           </span>

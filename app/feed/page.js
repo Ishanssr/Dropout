@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import DropCard from '../../components/DropCard';
 import { fetchDrops, transformDrop } from '../../lib/api';
 import { filterDropsByTab } from '../../lib/dropStatus';
-import { GlassLayers } from '../../components/LiquidGlass';
+import { GlassPanelLayers } from '../../components/LiquidGlass';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -53,7 +53,7 @@ export default function Home() {
           background: 'rgba(5,5,10,0.55)',
           boxShadow: '0 6px 6px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.1)',
         }}>
-          <GlassLayers />
+          <GlassPanelLayers />
           {/* Sliding indicator pill */}
           <div style={{
             position: 'absolute',

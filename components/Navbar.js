@@ -125,8 +125,8 @@ export default function Sidebar() {
         }}
         className="hidden md:flex"
       >
-        {/* Liquid glass distortion layers */}
-        <GlassLayers />
+        {/* Clean frosted glass layers (no SVG distortion) */}
+        <GlassPanelLayers />
         {/* ---- Logo ---- */}
         <Link
           href="/"

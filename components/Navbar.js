@@ -120,8 +120,9 @@ export default function Sidebar() {
           left: 0, top: 0, bottom: 0,
           zIndex: 50,
           overflow: 'hidden',
-          background: 'rgba(5,5,10,0.55)',
-          boxShadow: '0 6px 6px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.1)',
+          background: 'rgba(5,5,10,0.4)',
+          borderRight: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 0 6px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.1), inset 1px 1px 0.5px -0.5px rgba(255,255,255,0.15), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.08), inset 0 0 8px 4px rgba(255,255,255,0.03), 4px 0 20px rgba(0,0,0,0.15)',
         }}
         className="hidden md:flex"
       >

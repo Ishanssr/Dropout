@@ -15,17 +15,18 @@ function dropInclude(userId) {
   return include;
 }
 
-// Helper: add isLiked, isSaved, isEntered flags
+// Helper: add isLiked, isSaved, isEntered, isFollowingBrand flags
 async function enrichDrop(drop, userId) {
-  if (!userId) return { ...drop, isLiked: false, isSaved: false, isEntered: false };
+  if (!userId) return { ...drop, isLiked: false, isSaved: false, isEntered: false, isFollowingBrand: false };
 
-  const [like, save, entry] = await Promise.all([
+  const [like, save, entry, follow] = await Promise.all([
     prisma.like.findUnique({ where: { userId_dropId: { userId, dropId: drop.id } } }),
     prisma.savedDrop.findUnique({ where: { userId_dropId: { userId, dropId: drop.id } } }),
     prisma.dropEntry.findUnique({ where: { userId_dropId: { userId, dropId: drop.id } } }),
+    prisma.follow.findUnique({ where: { userId_brandId: { userId, brandId: drop.brandId } } }),
   ]);
 
-  return { ...drop, isLiked: !!like, isSaved: !!save, isEntered: !!entry };
+  return { ...drop, isLiked: !!like, isSaved: !!save, isEntered: !!entry, isFollowingBrand: !!follow };
 }
 
 // GET /api/drops — list all drops (with filters)

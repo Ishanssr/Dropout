@@ -138,7 +138,7 @@ export default function Sidebar() {
         <div style={{ position: 'relative', zIndex: 5, display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         {/* ---- Logo ---- */}
         <Link
-          href="/"
+          href="/feed"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -337,7 +337,7 @@ export default function Sidebar() {
         }}
       >
         {/* Logo — fades out on scroll */}
-        <Link href="/" style={{
+        <Link href="/feed" style={{
           textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '2px',
           transition: 'all 0.3s ease',
           opacity: scrolled ? 0 : 1,

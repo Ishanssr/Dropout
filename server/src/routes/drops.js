@@ -105,7 +105,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
     res.json(enriched);
   } catch (err) {
     console.error('GET /api/drops/:id error:', err);
-    res.status(500).json({ error: 'Failed to fetch drop' });
+    res.status(500).json({ error: 'Failed to fetch drop', detail: err.message });
   }
 });
 

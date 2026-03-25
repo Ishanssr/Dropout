@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import DropCard from '../../components/DropCard';
 import { fetchDrops, transformDrop } from '../../lib/api';
 import { filterDropsByTab } from '../../lib/dropStatus';
+import { GlassLayers } from '../../components/LiquidGlass';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -44,26 +45,43 @@ export default function Home() {
     <div>
       {/* ---- Segmented Control: Upcoming / Live / All ---- */}
       <div style={{ padding: '24px 16px 18px', maxWidth: '470px', margin: '0 auto', width: '100%' }}>
-        <div className="lg-tabs" style={{
+        <div style={{
           display: 'flex', borderRadius: 'var(--radius-full)',
           overflow: 'hidden',
-          backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
           padding: '3px',
+          position: 'relative',
+          background: 'rgba(5,5,10,0.55)',
+          boxShadow: '0 6px 6px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.1)',
         }}>
+          <GlassLayers />
+          {/* Sliding indicator pill */}
+          <div style={{
+            position: 'absolute',
+            top: '3px',
+            left: `calc(${tabs.findIndex(t => t.id === tab) * 100 / 3}% + 3px)`,
+            width: `calc(${100 / 3}% - 6px)`,
+            height: 'calc(100% - 6px)',
+            borderRadius: 'var(--radius-full)',
+            background: 'rgba(59,130,246,0.1)',
+            boxShadow: 'inset 1px 1px 0.5px -0.5px rgba(255,255,255,0.3), inset -1px -1px 0.5px -0.5px rgba(255,255,255,0.2), inset 0 0 4px 2px rgba(59,130,246,0.06)',
+            transition: 'left 0.5s cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+            zIndex: 4,
+          }} />
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={tab === t.id ? 'lg-tab-active' : ''}
               style={{
                 flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
                 fontSize: '13px', fontWeight: tab === t.id ? 600 : 400,
                 background: 'transparent',
                 color: tab === t.id ? '#fff' : 'var(--text-muted)',
-                transition: 'all 0.25s ease',
+                transition: 'color 0.3s ease, font-weight 0.3s ease',
                 borderRadius: 'var(--radius-full)',
                 letterSpacing: '-0.01em',
                 fontFamily: "'Sora', sans-serif",
+                position: 'relative',
+                zIndex: 5,
               }}
             >
               {t.label}

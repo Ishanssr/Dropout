@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { GlassFilter } from './LiquidGlass';
+import { GlassFilter, GlassLayers } from './LiquidGlass';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
@@ -120,9 +120,13 @@ export default function Sidebar() {
           left: 0, top: 0, bottom: 0,
           zIndex: 50,
           overflow: 'hidden',
+          background: 'rgba(5,5,10,0.55)',
+          boxShadow: '0 6px 6px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.1)',
         }}
-        className="hidden md:flex liquid-glass-sidebar"
+        className="hidden md:flex"
       >
+        {/* Liquid glass distortion layers */}
+        <GlassLayers />
         {/* ---- Logo ---- */}
         <Link
           href="/"

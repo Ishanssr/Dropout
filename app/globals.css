@@ -1074,3 +1074,13 @@ input:focus, textarea:focus, select:focus {
     0 4px 16px rgba(0,0,0,0.2) !important;
   border: none !important;
 }
+
+/* Landing CTA glass buttons */
+.landing-cta-glass {
+  align-items: center;
+  justify-content: center;
+}
+.landing-cta-glass:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 12px rgba(0,0,0,0.3), 0 0 30px rgba(0,0,0,0.15) !important;
+}

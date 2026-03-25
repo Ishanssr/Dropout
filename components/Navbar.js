@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { GlassFilter, GlassLayers } from './LiquidGlass';
+import { GlassFilter, GlassPanelLayers } from './LiquidGlass';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {

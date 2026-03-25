@@ -17,7 +17,7 @@ export default function SearchPage() {
     inputRef.current?.focus();
   }, []);
 
-  const searchUsers = (q) => {
+  const searchBrands = (q) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!q.trim()) { setResults([]); setSearched(false); return; }
 
@@ -27,7 +27,8 @@ export default function SearchPage() {
         const res = await fetch(`${API_URL}/api/users/search?q=${encodeURIComponent(q.trim())}`);
         if (res.ok) {
           const data = await res.json();
-          setResults(data);
+          // Only show brands
+          setResults(data.filter(u => u.role === 'brand'));
         }
       } catch { /* ignore */ }
       setLoading(false);
@@ -37,170 +38,142 @@ export default function SearchPage() {
 
   const handleChange = (e) => {
     setQuery(e.target.value);
-    searchUsers(e.target.value);
+    searchBrands(e.target.value);
   };
 
   return (
-    <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
-      {/* Search Header */}
-      <h1 style={{
-        fontSize: '22px', fontWeight: 700, marginBottom: '18px',
-        fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em',
-      }}>
-        <span style={{ color: '#3b82f6' }}>Search</span> <span style={{ color: '#fff' }}>Users</span>
-      </h1>
+    <div style={{ maxWidth: '520px', margin: '0 auto', width: '100%', padding: '32px 16px' }}>
 
-      {/* Search Input */}
-      <div style={{
-        position: 'relative', marginBottom: '24px',
-      }}>
-        <div style={{
-          position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
-          color: 'var(--text-muted)', display: 'flex', pointerEvents: 'none',
+      {/* ---- Header ---- */}
+      <div style={{ marginBottom: '28px' }}>
+        <h1 style={{
+          fontSize: '26px', fontWeight: 700, margin: 0,
+          fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em',
+          color: '#fff',
         }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-        </div>
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search by username or name..."
-          value={query}
-          onChange={handleChange}
-          style={{
-            width: '100%', padding: '14px 16px 14px 46px',
-            borderRadius: 'var(--radius-full)',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: '#fff', fontSize: '14px', outline: 'none',
-            transition: 'all 0.25s ease',
-            fontFamily: "'Space Grotesk', sans-serif",
-            letterSpacing: '-0.01em',
-          }}
-          onFocus={(e) => { e.target.style.borderColor = 'rgba(59,130,246,0.3)'; e.target.style.background = 'rgba(59,130,246,0.04)'; }}
-          onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; e.target.style.background = 'rgba(255,255,255,0.04)'; }}
-        />
-        {query && (
-          <button
-            onClick={() => { setQuery(''); setResults([]); setSearched(false); inputRef.current?.focus(); }}
-            style={{
-              position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)',
-              background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%',
-              width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: 'var(--text-muted)', fontSize: '12px',
-            }}
-          >✕</button>
-        )}
+          Discover <span style={{ background: 'linear-gradient(90deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Brands</span>
+        </h1>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', letterSpacing: '-0.01em' }}>
+          Find your favorite brands and follow their drops
+        </p>
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {[1,2,3].map(i => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '12px 14px' }}>
-              <div className="skeleton" style={{ width: '48px', height: '48px', borderRadius: '50%' }} />
-              <div style={{ flex: 1 }}>
-                <div className="skeleton" style={{ width: '120px', height: '14px', marginBottom: '6px' }} />
-                <div className="skeleton" style={{ width: '80px', height: '12px' }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* ---- Glassmorphism Search Panel ---- */}
+      <div className="search-glass-panel">
 
-      {/* Results */}
-      {!loading && results.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {results.map(user => {
-            const profileUrl = (user.role === 'brand' && user.brandId)
-              ? `/brand/${user.brandId}`
-              : `/profile/${user.id}`;
-            return (
-            <Link
-              key={user.id}
-              href={profileUrl}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '14px',
-                padding: '12px 14px', borderRadius: '16px',
-                textDecoration: 'none', color: 'inherit',
-                transition: 'background 0.2s ease',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              {/* Avatar */}
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                background: user.avatar ? 'transparent' : 'rgba(59,130,246,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: '2px solid rgba(59,130,246,0.15)',
-              }}>
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span style={{ fontSize: '18px', fontWeight: 700, color: '#60a5fa' }}>
-                    {user.name?.charAt(0).toUpperCase() || '?'}
-                  </span>
-                )}
-              </div>
-              {/* Info */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: '14px', fontWeight: 600, color: '#fff',
-                  letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: '6px',
-                }}>
-                  {user.name}
-                  {user.role === 'brand' && (
-                    <span style={{
-                      fontSize: '9px', fontWeight: 600, padding: '2px 6px',
-                      borderRadius: 'var(--radius-full)',
-                      background: 'rgba(59,130,246,0.1)', color: '#60a5fa',
-                      textTransform: 'uppercase', letterSpacing: '0.05em',
-                    }}>Brand</span>
-                  )}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  @{user.username || 'user'}
-                </div>
-                {user.bio && (
-                  <div style={{
-                    fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {user.bio}
-                  </div>
-                )}
-              </div>
-              {/* Arrow */}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </Link>
-            );
-          })}
-        </div>
-      )}
-
-      {/* No results */}
-      {!loading && searched && results.length === 0 && query.trim() && (
-        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: '28px', marginBottom: '12px', opacity: 0.5 }}>◇</div>
-          <div style={{ fontSize: '14px', fontWeight: 500 }}>No users found for &ldquo;{query}&rdquo;</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>Try a different name or username</div>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!loading && !searched && (
-        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.3, marginBottom: '16px' }}>
+        {/* Search bar */}
+        <div className="search-glass-bar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <div style={{ fontSize: '14px', fontWeight: 500, color: '#fff', marginBottom: '4px' }}>Find people</div>
-          <div style={{ fontSize: '12px' }}>Search by username or name</div>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search brands..."
+            value={query}
+            onChange={handleChange}
+            className="search-glass-input"
+          />
+          {query && (
+            <button
+              onClick={() => { setQuery(''); setResults([]); setSearched(false); inputRef.current?.focus(); }}
+              className="search-glass-clear"
+            >✕</button>
+          )}
         </div>
-      )}
+
+        {/* Divider */}
+        <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)', margin: '0 -4px' }} />
+
+        {/* Results area */}
+        <div style={{ minHeight: '200px' }}>
+
+          {/* Loading shimmer */}
+          {loading && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px 0' }}>
+              {[1,2,3].map(i => (
+                <div key={i} className="search-result-shimmer">
+                  <div className="skeleton" style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
+                  <div style={{ flex: 1 }}>
+                    <div className="skeleton" style={{ width: '110px', height: '14px', marginBottom: '6px' }} />
+                    <div className="skeleton" style={{ width: '70px', height: '11px' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Brand results */}
+          {!loading && results.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '8px 0' }}>
+              {results.map(brand => (
+                <Link
+                  key={brand.id}
+                  href={brand.brandId ? `/brand/${brand.brandId}` : `/profile/${brand.id}`}
+                  className="search-brand-result"
+                >
+                  {/* Avatar */}
+                  <div className="search-brand-avatar">
+                    {brand.avatar ? (
+                      <img src={brand.avatar} alt={brand.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                    ) : (
+                      <span style={{ fontSize: '17px', fontWeight: 700, color: '#60a5fa' }}>
+                        {brand.name?.charAt(0).toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff', letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {brand.name}
+                      <span className="search-brand-badge">Brand</span>
+                    </div>
+                    {brand.bio && (
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {brand.bio}
+                      </div>
+                    )}
+                  </div>
+                  {/* Follow arrow */}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* No results */}
+          {!loading && searched && results.length === 0 && query.trim() && (
+            <div className="search-empty-state">
+              <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.2 }}>🔍</div>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: '#fff' }}>No brands found for &ldquo;{query}&rdquo;</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>Try a different brand name</div>
+            </div>
+          )}
+
+          {/* Empty / default state */}
+          {!loading && !searched && (
+            <div className="search-empty-state">
+              <div className="search-empty-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#searchGrad)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <defs>
+                    <linearGradient id="searchGrad" x1="0" y1="0" x2="24" y2="24">
+                      <stop offset="0%" stopColor="#60a5fa" />
+                      <stop offset="100%" stopColor="#a78bfa" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff', marginBottom: '4px' }}>Discover Brands</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                Search for brands to follow their latest drops,<br/>launches, and exclusive releases
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

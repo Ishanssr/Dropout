@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { GlassFilter } from '../components/LiquidGlass';
 
@@ -38,6 +38,16 @@ const mosaicImages = [
 export default function LandingPage() {
   const typedRef = useRef(null);
   const auraRef = useRef(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check auth from localStorage
+    try {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      if (token && user) setLoggedIn(true);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     // Typewriter
@@ -128,11 +138,17 @@ export default function LandingPage() {
             {/* CTAs */}
             <div className="landing-ctas">
               <Link href="/feed" className="lg-cta lg-cta-primary">
-                Explore Drops →
+                {loggedIn ? 'My Feed →' : 'Explore Drops →'}
               </Link>
-              <Link href="/login" className="lg-cta lg-cta-secondary">
-                Sign In
-              </Link>
+              {loggedIn ? (
+                <Link href="/profile" className="lg-cta lg-cta-secondary">
+                  My Profile
+                </Link>
+              ) : (
+                <Link href="/login" className="lg-cta lg-cta-secondary">
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         </section>

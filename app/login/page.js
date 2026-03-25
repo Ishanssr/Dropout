@@ -33,6 +33,7 @@ export default function LoginPage() {
       notifyUserChanged();
       router.push('/feed');
     } catch (err) {
+      console.error('[Login] Error:', err);
       setError(err.message || 'Something went wrong');
       setLoading(false);
     }

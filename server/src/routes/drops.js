@@ -81,10 +81,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
       include: {
         brand: { include: { _count: { select: { followers: true } } } },
         comments: {
-          include: {
-            user: true,
-            _count: { select: { commentLikes: true } },
-          },
+          include: { user: true },
           orderBy: { createdAt: 'desc' },
           take: 50,
         },

@@ -234,12 +234,12 @@ export default function DropCard({ drop, index = 0 }) {
 
       {/* ---- Action buttons ---- */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '10px 12px 4px', gap: '2px' }}>
-        {/* Like */}
+        {/* Upvote */}
         <button onClick={handleLike} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', transition: 'all 0.2s' }}
           onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.12)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill={liked ? '#ef4444' : 'none'} stroke={liked ? '#ef4444' : 'var(--text-secondary)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill={liked ? '#3b82f6' : 'none'} stroke={liked ? '#3b82f6' : 'var(--text-secondary)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
         {/* Comment */}
         <button onClick={handleComment} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', transition: 'all 0.2s' }}
@@ -269,7 +269,7 @@ export default function DropCard({ drop, index = 0 }) {
 
       {/* ---- Stats row ---- */}
       <div style={{ padding: '0 16px 6px', display: 'flex', gap: '14px', fontSize: '13px' }}>
-        <span style={{ fontWeight: 600, color: '#fff' }}>{formatNumber(likeCount)} likes</span>
+        <span style={{ fontWeight: 600, color: '#fff' }}>{formatNumber(likeCount)} upvotes</span>
         <span style={{ color: 'var(--text-muted)' }}>{formatNumber(saves)} saves</span>
         <span style={{ color: 'var(--text-muted)', cursor: 'pointer' }} onClick={handleComment}>{formatNumber(comments)} comments</span>
       </div>

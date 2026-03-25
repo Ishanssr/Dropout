@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toggleLike, toggleSave, toggleFollowBrand, addComment, formatNumber } from '../../../lib/api';
+import { toggleLike, toggleSave, toggleFollowBrand, addComment, toggleCommentUpvote, formatNumber } from '../../../lib/api';
 import CountdownTimer from '../../../components/CountdownTimer';
 import Link from 'next/link';
 
@@ -36,6 +36,8 @@ export default function DropDetailClient({ drop: initialDrop }) {
         user: c.user?.name || 'Anonymous',
         text: c.text,
         time: getTimeAgo(c.createdAt),
+        upvotes: c.upvotes || c._count?.commentLikes || 0,
+        upvoted: false,
       })));
     }
   }, [initialDrop]);
@@ -64,6 +66,8 @@ export default function DropDetailClient({ drop: initialDrop }) {
         user: comment.user?.name || user.name,
         text: comment.text,
         time: 'now',
+        upvotes: 0,
+        upvoted: false,
       }, ...comments]);
       setNewComment('');
     } catch (err) {
@@ -84,6 +88,32 @@ export default function DropDetailClient({ drop: initialDrop }) {
     } catch {
       setLiked(!newLiked);
       setLikeCount(prev => newLiked ? prev - 1 : prev + 1);
+    }
+  };
+
+  const handleCommentUpvote = async (commentId) => {
+    if (!requireLogin()) return;
+    setComments(prev => prev.map(c => {
+      if (c.id === commentId) {
+        return { ...c, upvoted: !c.upvoted, upvotes: c.upvoted ? c.upvotes - 1 : c.upvotes + 1 };
+      }
+      return c;
+    }));
+    try {
+      const result = await toggleCommentUpvote(commentId);
+      setComments(prev => prev.map(c => {
+        if (c.id === commentId) {
+          return { ...c, upvoted: result.upvoted, upvotes: result.upvotes };
+        }
+        return c;
+      }));
+    } catch {
+      setComments(prev => prev.map(c => {
+        if (c.id === commentId) {
+          return { ...c, upvoted: !c.upvoted, upvotes: c.upvoted ? c.upvotes - 1 : c.upvotes + 1 };
+        }
+        return c;
+      }));
     }
   };
 
@@ -170,7 +200,7 @@ export default function DropDetailClient({ drop: initialDrop }) {
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', gap: '4px' }}>
         <button onClick={handleLike} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', transition: 'all 0.2s' }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill={liked ? '#ef4444' : 'none'} stroke={liked ? '#ef4444' : 'var(--text-secondary)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill={liked ? '#3b82f6' : 'none'} stroke={liked ? '#3b82f6' : 'var(--text-secondary)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
         <button onClick={() => document.getElementById('comment-input')?.focus()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', transition: 'all 0.2s' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -209,7 +239,7 @@ export default function DropDetailClient({ drop: initialDrop }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '8px 16px 16px', gap: '8px' }}>
         {[
           { label: 'Views', value: formatNumber(drop.views || 0) },
-          { label: 'Likes', value: formatNumber(likeCount) },
+          { label: 'Upvotes', value: formatNumber(likeCount) },
           { label: 'Comments', value: formatNumber(comments.length) },
           { label: 'Saves', value: formatNumber(saves) },
         ].map((s) => (
@@ -255,6 +285,19 @@ export default function DropDetailClient({ drop: initialDrop }) {
           )}
           {comments.map((c) => (
             <div key={c.id} style={{ display: 'flex', gap: '10px', fontSize: '13px' }}>
+              {/* Upvote button for comment */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '28px' }}>
+                <button onClick={() => handleCommentUpvote(c.id)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '2px',
+                  display: 'flex', transition: 'all 0.2s',
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={c.upvoted ? '#3b82f6' : 'none'} stroke={c.upvoted ? '#3b82f6' : 'var(--text-muted)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                </button>
+                {c.upvotes > 0 && (
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: c.upvoted ? '#3b82f6' : 'var(--text-muted)' }}>{c.upvotes}</span>
+                )}
+              </div>
+              {/* Avatar */}
               <div style={{
                 width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(59,130,246,0.08)', flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',

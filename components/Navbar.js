@@ -127,6 +127,8 @@ export default function Sidebar() {
       >
         {/* Clean frosted glass layers (no SVG distortion) */}
         <GlassPanelLayers />
+        {/* Content wrapper — must be above glass layers */}
+        <div style={{ position: 'relative', zIndex: 5, display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
         {/* ---- Logo ---- */}
         <Link
           href="/"
@@ -311,6 +313,7 @@ export default function Sidebar() {
             {expanded && <span>Profile</span>}
           </Link>
         </div>
+        </div>{/* end content wrapper */}
       </aside>
 
       {/* ===== MOBILE TOP HEADER ===== */}

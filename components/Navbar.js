@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { GlassFilter } from './LiquidGlass';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
@@ -103,6 +104,9 @@ export default function Sidebar() {
 
   return (
     <>
+      {/* SVG filters for liquid glass */}
+      <GlassFilter />
+
       {/* ===== LEFT SIDEBAR (Desktop) ===== */}
       <aside
         onMouseEnter={() => setExpanded(true)}
@@ -115,13 +119,9 @@ export default function Sidebar() {
           position: 'fixed',
           left: 0, top: 0, bottom: 0,
           zIndex: 50,
-          borderRight: '1px solid rgba(255,255,255,0.04)',
-          background: 'rgba(5,5,8,0.85)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
           overflow: 'hidden',
         }}
-        className="hidden md:flex"
+        className="hidden md:flex liquid-glass-sidebar"
       >
         {/* ---- Logo ---- */}
         <Link

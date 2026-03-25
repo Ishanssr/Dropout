@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { login, signup } from '../../lib/api';
 import { notifyUserChanged } from '../../lib/userStorage';
 import dynamic from 'next/dynamic';
+import { GlassFilter, LiquidGlassButton } from '../../components/LiquidGlass';
 
 const StarField = dynamic(() => import('../../components/FluidCanvas'), { ssr: false });
 
@@ -41,6 +42,7 @@ export default function LoginPage() {
     <div className="login-root">
       {/* Pure dark + star field */}
       <StarField />
+      <GlassFilter />
 
       {/* 3D Glass Plate — tilts up from ground */}
       <div className="login-perspective-wrap">
@@ -107,9 +109,9 @@ export default function LoginPage() {
 
             {error && <div className="login-error">{error}</div>}
 
-            <button type="submit" disabled={loading} className="login-submit glass-btn-liquid">
+            <LiquidGlassButton type="submit" disabled={loading} className="login-liquid-submit">
               {loading ? <span className="login-spinner" /> : tab === 'login' ? 'Log In' : `Create ${role === 'brand' ? 'Brand ' : ''}Account`}
-            </button>
+            </LiquidGlassButton>
           </form>
 
           <div className="login-footer">

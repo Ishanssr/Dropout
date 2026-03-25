@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { GlassFilter } from '../components/LiquidGlass';
 
 const phrases = [
   "Before your group chat knows.",
@@ -136,6 +137,7 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+      <GlassFilter />
     </div>
   );
 }

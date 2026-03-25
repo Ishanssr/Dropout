@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { GlassFilter, GlassEffect } from '../components/LiquidGlass';
+import { GlassFilter } from '../components/LiquidGlass';
 
 const phrases = [
   "Before your group chat knows.",
@@ -127,24 +127,12 @@ export default function LandingPage() {
 
             {/* CTAs */}
             <div className="landing-ctas">
-              <GlassEffect
-                className="landing-cta-glass"
-                style={{ borderRadius: '24px', padding: '16px 36px' }}
-                onClick={() => window.location.href = '/feed'}
-              >
-                <span style={{ color: '#fff', fontSize: '15px', fontWeight: 600, fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>
-                  Explore Drops →
-                </span>
-              </GlassEffect>
-              <GlassEffect
-                className="landing-cta-glass"
-                style={{ borderRadius: '24px', padding: '14px 32px' }}
-                onClick={() => window.location.href = '/login'}
-              >
-                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '15px', fontWeight: 500, fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>
-                  Sign In
-                </span>
-              </GlassEffect>
+              <Link href="/feed" className="lg-cta lg-cta-primary">
+                Explore Drops →
+              </Link>
+              <Link href="/login" className="lg-cta lg-cta-secondary">
+                Sign In
+              </Link>
             </div>
           </div>
         </section>

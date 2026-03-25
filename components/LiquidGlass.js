@@ -3,17 +3,12 @@
 import React from 'react';
 
 /**
- * SVG Glass Distortion Filter — renders once per page.
- * Only used by GlassEffect on small elements (buttons, CTAs).
+ * SVG Glass Distortion Filter — only used by LiquidGlassButton.
  */
 export function GlassFilter() {
   return (
     <svg style={{ display: 'none' }}>
-      <filter
-        id="glass-distortion"
-        x="0%" y="0%" width="100%" height="100%"
-        filterUnits="objectBoundingBox"
-      >
+      <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
         <feTurbulence type="fractalNoise" baseFrequency="0.001 0.005" numOctaves="1" seed="17" result="turbulence" />
         <feComponentTransfer in="turbulence" result="mapped">
           <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
@@ -32,35 +27,37 @@ export function GlassFilter() {
 }
 
 /**
- * GlassPanelLayers — for LARGE panels (sidebar, tab bars, modals).
- * Clean frosted glass: backdrop-blur + white tint + inset edge highlights.
- * NO SVG distortion filter (it destroys text readability on large surfaces).
+ * GlassPanelLayers — for sidebar & tabs.
+ * Visible frosted glass with bright inset edge highlights.
  */
 export function GlassPanelLayers() {
   return (
     <>
-      {/* Layer 1: Frosted blur */}
+      {/* Frosted blur */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 0,
         borderRadius: 'inherit',
-        backdropFilter: 'blur(20px) saturate(1.2)',
-        WebkitBackdropFilter: 'blur(20px) saturate(1.2)',
+        backdropFilter: 'blur(20px) saturate(1.3)',
+        WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
         pointerEvents: 'none',
       }} />
-      {/* Layer 2: Subtle white tint */}
+      {/* Top gradient glow */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1,
         borderRadius: 'inherit',
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.01) 30%, transparent 100%)',
         pointerEvents: 'none',
       }} />
-      {/* Layer 3: Inset edge highlights */}
+      {/* Visible inset edge highlights */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 2,
         borderRadius: 'inherit',
         boxShadow:
-          'inset 1px 1px 0 rgba(255,255,255,0.08), inset -1px -1px 0 rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.1)',
-        border: '1px solid rgba(255,255,255,0.06)',
+          'inset 1px 1px 0 rgba(255,255,255,0.12), ' +
+          'inset -1px -1px 0 rgba(255,255,255,0.05), ' +
+          'inset 0 1px 0 rgba(255,255,255,0.15), ' +
+          'inset 0 0 8px 2px rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
         pointerEvents: 'none',
       }} />
     </>
@@ -68,64 +65,8 @@ export function GlassPanelLayers() {
 }
 
 /**
- * GlassLayers — for SMALL elements (buttons, pills).
- * Uses SVG distortion filter for the full liquid glass effect.
- * DO NOT use on large panels — it will mangle text content.
- */
-export function GlassLayers() {
-  return (
-    <>
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 0,
-        overflow: 'hidden', borderRadius: 'inherit',
-        backdropFilter: 'blur(3px)',
-        WebkitBackdropFilter: 'blur(3px)',
-        filter: 'url(#glass-distortion)',
-        isolation: 'isolate',
-      }} />
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 1,
-        borderRadius: 'inherit',
-        background: 'rgba(255, 255, 255, 0.06)',
-      }} />
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 2,
-        borderRadius: 'inherit', overflow: 'hidden',
-        boxShadow: 'inset 2px 2px 1px 0 rgba(255,255,255,0.12), inset -1px -1px 1px 1px rgba(255,255,255,0.08)',
-      }} />
-    </>
-  );
-}
-
-/**
- * GlassEffect wrapper — for small interactive elements (buttons, CTAs).
- * Wraps children with full glass layers including SVG distortion.
- */
-export function GlassEffect({ children, className = '', style = {}, onClick }) {
-  return (
-    <div
-      className={className}
-      onClick={onClick}
-      style={{
-        position: 'relative',
-        display: 'flex',
-        overflow: 'hidden',
-        cursor: 'pointer',
-        transition: 'all 0.7s cubic-bezier(0.175, 0.885, 0.32, 2.2)',
-        boxShadow: '0 6px 6px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.1)',
-        ...style,
-      }}
-    >
-      <GlassLayers />
-      <div style={{ position: 'relative', zIndex: 3, width: '100%' }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Liquid Glass Button — pill-shaped glass button for forms.
+ * Liquid Glass Button — pill button with multi-shadow glass bubble.
+ * This is the CSS-shadow approach that works reliably on all platforms.
  */
 export function LiquidGlassButton({ children, onClick, disabled, className = '', type = 'button' }) {
   return (
@@ -134,29 +75,8 @@ export function LiquidGlassButton({ children, onClick, disabled, className = '',
       onClick={onClick}
       disabled={disabled}
       className={`liquid-glass-button ${className}`}
-      style={{
-        position: 'relative',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        border: 'none',
-        borderRadius: '999px',
-        padding: '14px 32px',
-        fontFamily: "'Sora', sans-serif",
-        fontSize: '14px',
-        fontWeight: 600,
-        color: 'rgba(240,237,232,0.9)',
-        background: 'transparent',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.4 : 1,
-        transition: 'all 0.7s cubic-bezier(0.175, 0.885, 0.32, 2.2)',
-        minHeight: '50px',
-        boxShadow: '0 6px 6px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.1)',
-      }}
     >
-      <GlassLayers />
-      <span style={{ position: 'relative', zIndex: 3, display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <span className="liquid-glass-button-content">
         {children}
       </span>
     </button>

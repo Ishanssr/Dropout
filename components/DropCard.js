@@ -168,12 +168,11 @@ export default function DropCard({ drop, index = 0 }) {
         {/* Follow button */}
         <button
           onClick={handleFollow}
+          className="lg-pill"
           style={{
             padding: '5px 14px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 600,
-            border: following ? '1px solid rgba(59,130,246,0.2)' : '1px solid rgba(59,130,246,0.3)',
-            background: following ? 'transparent' : 'rgba(59,130,246,0.1)',
             color: following ? 'var(--text-secondary)' : '#60a5fa',
-            cursor: 'pointer', transition: 'all 0.25s ease', letterSpacing: '-0.01em', flexShrink: 0,
+            cursor: 'pointer', letterSpacing: '-0.01em', flexShrink: 0,
           }}
         >
           {following ? 'Following' : 'Follow'}
@@ -197,21 +196,20 @@ export default function DropCard({ drop, index = 0 }) {
             onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; }}
           />
           {/* Countdown + Notify Me overlay */}
-          <div style={{
+          <div className="lg-overlay-bar" style={{
             position: 'absolute', bottom: '14px', left: '14px', right: '14px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             background: 'rgba(5,5,8,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
             borderRadius: 'var(--radius-md)', padding: '10px 14px',
-            border: '1px solid rgba(255,255,255,0.06)',
           }}>
             <CountdownTimer dropTime={drop.dropTime} />
             <button
               onClick={handleNotify}
+              className="lg-notify"
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '8px 16px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-                background: notified ? '#1e40af' : '#3b82f6', color: '#fff',
-                fontSize: '12px', fontWeight: 600, transition: 'all 0.2s ease',
+                padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
+                color: '#fff', fontSize: '12px', fontWeight: 600,
                 opacity: dropStatus === 'ended' ? 0.5 : 1,
                 letterSpacing: '-0.01em',
               }}
@@ -294,15 +292,13 @@ export default function DropCard({ drop, index = 0 }) {
             href={drop.website}
             target="_blank"
             rel="noopener noreferrer"
+            className="lg-shop"
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '8px 18px', borderRadius: '10px',
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
               color: '#fff', fontSize: '13px', fontWeight: 500, textDecoration: 'none',
-              transition: 'all 0.25s ease', letterSpacing: '-0.01em',
+              letterSpacing: '-0.01em',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.25)'; e.currentTarget.style.background = 'rgba(59,130,246,0.06)'; e.currentTarget.style.color = '#60a5fa'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#fff'; }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Shop Now

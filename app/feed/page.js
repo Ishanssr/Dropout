@@ -44,10 +44,9 @@ export default function Home() {
     <div>
       {/* ---- Segmented Control: Upcoming / Live / All ---- */}
       <div style={{ padding: '24px 16px 18px', maxWidth: '470px', margin: '0 auto', width: '100%' }}>
-        <div style={{
+        <div className="lg-tabs" style={{
           display: 'flex', borderRadius: 'var(--radius-full)',
-          border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden',
-          background: 'rgba(255,255,255,0.02)',
+          overflow: 'hidden',
           backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
           padding: '3px',
         }}>
@@ -55,10 +54,11 @@ export default function Home() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
+              className={tab === t.id ? 'lg-tab-active' : ''}
               style={{
                 flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
                 fontSize: '13px', fontWeight: tab === t.id ? 600 : 400,
-                background: tab === t.id ? 'rgba(59,130,246,0.1)' : 'transparent',
+                background: 'transparent',
                 color: tab === t.id ? '#fff' : 'var(--text-muted)',
                 transition: 'all 0.25s ease',
                 borderRadius: 'var(--radius-full)',

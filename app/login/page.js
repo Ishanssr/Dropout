@@ -23,6 +23,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
   const handleGoogleResponse = useCallback(async (response) => {
     if (!response.credential) return;
@@ -192,9 +193,20 @@ export default function LoginPage() {
               <input type="email" placeholder="Email address" value={email}
                 onChange={(e) => setEmail(e.target.value)} required className="login-input" />
             </div>
-            <div className="login-input-wrap">
-              <input type="password" placeholder="Password" value={password}
-                onChange={(e) => setPassword(e.target.value)} required minLength={6} className="login-input" />
+            <div className="login-input-wrap" style={{ position: 'relative' }}>
+              <input type={showPw ? 'text' : 'password'} placeholder="Password" value={password}
+                onChange={(e) => setPassword(e.target.value)} required minLength={8} className="login-input" style={{ paddingRight: '44px' }} />
+              <button type="button" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'Hide password' : 'Show password'}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.35)', transition: 'color 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
+              >
+                {showPw ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                )}
+              </button>
             </div>
 
             {error && <div className="login-error">{error}</div>}

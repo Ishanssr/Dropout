@@ -24,7 +24,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://res.cloudinary.com https://*.googleusercontent.com",
-              "connect-src 'self' https://dropout-api.onrender.com https://oauth2.googleapis.com https://accounts.google.com",
+              "connect-src 'self' https://*.onrender.com https://oauth2.googleapis.com https://accounts.google.com",
               "frame-src https://accounts.google.com",
             ].join('; '),
           },

@@ -52,6 +52,7 @@ router.get('/:id', async (req, res) => {
         id: true, email: true, name: true, role: true, avatar: true, bio: true,
         username: true, website: true, instagramHandle: true, location: true,
         createdAt: true,
+        follows: { include: { brand: { select: { id: true, name: true, logo: true } } }, orderBy: { createdAt: 'desc' } },
         _count: { select: { comments: true, savedDrops: true, likes: true, follows: true } },
       },
     });

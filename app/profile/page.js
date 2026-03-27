@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { fetchUserProfile, updateProfile, uploadImage } from '../../lib/api';
 import ClientShell from '../../components/ClientShell';
+import { GlassPanelLayers } from '../../components/LiquidGlass';
 import {
   clearStoredUser,
   getStoredUserSnapshot,
@@ -39,6 +40,7 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState(createEditForm());
   const [msg, setMsg] = useState('');
   const [previewAvatar, setPreviewAvatar] = useState('');
+  const [showFollowing, setShowFollowing] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -449,15 +451,23 @@ export default function ProfilePage() {
       }}>
         {[
           { label: 'Saved', value: profile._count?.savedDrops || 0 },
-          { label: 'Comments', value: profile._count?.comments || 0 },
+          { label: 'Following', value: profile._count?.follows || 0, clickable: true },
           { label: 'Joined', value: joinDate },
         ].map((stat) => (
-          <div key={stat.label} style={{
-            flex: 1, textAlign: 'center', padding: '16px 12px',
-            background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)',
-            border: '1px solid rgba(255,255,255,0.04)',
-          }}>
-            <div style={{ fontSize: typeof stat.value === 'number' ? '20px' : '12px', fontWeight: 700, color: '#fff', fontFamily: "'Sora', sans-serif" }}>{stat.value}</div>
+          <div
+            key={stat.label}
+            onClick={stat.clickable ? () => setShowFollowing(true) : undefined}
+            style={{
+              flex: 1, textAlign: 'center', padding: '16px 12px',
+              background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(255,255,255,0.04)',
+              cursor: stat.clickable ? 'pointer' : 'default',
+              transition: 'all 0.25s ease',
+            }}
+            onMouseEnter={stat.clickable ? (e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.04)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'; } : undefined}
+            onMouseLeave={stat.clickable ? (e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; } : undefined}
+          >
+            <div style={{ fontSize: typeof stat.value === 'number' ? '20px' : '12px', fontWeight: 700, color: stat.clickable ? '#60a5fa' : '#fff', fontFamily: "'Sora', sans-serif" }}>{stat.value}</div>
             <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>{stat.label}</div>
           </div>
         ))}
@@ -524,7 +534,25 @@ export default function ProfilePage() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
         </Link>
 
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.04)', margin: '4px 0' }} />
+          <button
+          onClick={() => setShowFollowing(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
+            padding: '14px 16px', borderRadius: 'var(--radius-md)',
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
+            color: '#fff', fontSize: '14px', fontWeight: 500,
+            textDecoration: 'none', transition: 'all 0.25s ease', cursor: 'pointer',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; }}
+        >
+          <span style={{ fontSize: '16px' }}>👥</span>
+          <span style={{ flex: 1 }}>Following</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{profile._count?.follows || 0}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+      <div style={{ height: '1px', background: 'rgba(255,255,255,0.04)', margin: '4px 0' }} />
 
         <button
           onClick={handleLogout}
@@ -543,6 +571,103 @@ export default function ProfilePage() {
         </button>
       </div>
     </div>
+
+    {/* ---- Following Modal ---- */}
+    {showFollowing && (
+      <div
+        onClick={() => setShowFollowing(false)}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '20px',
+        }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: '100%', maxWidth: '400px', maxHeight: '70vh',
+            borderRadius: '24px', overflow: 'hidden',
+            background: 'rgba(12,12,20,0.85)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+            position: 'relative',
+          }}
+        >
+          <GlassPanelLayers />
+          {/* Header */}
+          <div style={{
+            padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            position: 'relative', zIndex: 5,
+          }}>
+            <h3 style={{
+              fontSize: '16px', fontWeight: 700, color: '#fff',
+              fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em', margin: 0,
+            }}>Following</h3>
+            <button
+              onClick={() => setShowFollowing(false)}
+              style={{
+                background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '50%',
+                width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#fff', fontSize: '16px',
+              }}
+            >✕</button>
+          </div>
+          {/* List */}
+          <div style={{ padding: '12px 16px', overflowY: 'auto', maxHeight: 'calc(70vh - 70px)', position: 'relative', zIndex: 5 }}>
+            {(!profile.follows || profile.follows.length === 0) ? (
+              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)', fontSize: '14px' }}>
+                Not following any brands yet.
+                <Link href="/search" style={{ display: 'block', marginTop: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: 600, fontSize: '13px' }}>
+                  Discover brands →
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {profile.follows.map((f) => (
+                  <Link
+                    key={f.id}
+                    href={`/profile/${f.brand?.id}`}
+                    onClick={() => setShowFollowing(false)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '12px',
+                      padding: '12px 14px', borderRadius: '14px',
+                      textDecoration: 'none', color: '#fff',
+                      transition: 'all 0.2s ease',
+                      background: 'transparent',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{
+                      width: '44px', height: '44px', borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, overflow: 'hidden',
+                      border: '2px solid rgba(59,130,246,0.15)',
+                    }}>
+                      {f.brand?.logo ? (
+                        <img src={f.brand.logo} alt={f.brand.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '18px', fontWeight: 700 }}>{f.brand?.name?.charAt(0) || '?'}</span>
+                      )}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '14px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>{f.brand?.name}</div>
+                      <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 500, marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Brand</div>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
     </ClientShell>
   );
 }

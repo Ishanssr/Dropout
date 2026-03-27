@@ -89,6 +89,9 @@ router.post('/login', async (req, res) => {
     }
 
     // Check password
+    if (!user.password) {
+      return res.status(401).json({ error: 'This account uses Google Sign-In. Please use the Google button.' });
+    }
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid email or password' });
@@ -114,6 +117,76 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Failed to login' });
+  }
+});
+
+// POST /api/auth/google — Google Sign-In
+router.post('/google', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ error: 'ID token is required' });
+    }
+
+    // Verify token with Google
+    const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+    if (!googleRes.ok) {
+      return res.status(401).json({ error: 'Invalid Google token' });
+    }
+    const payload = await googleRes.json();
+
+    const { sub: googleId, email, name, picture } = payload;
+    if (!email) {
+      return res.status(400).json({ error: 'Google account has no email' });
+    }
+
+    // Find existing user by googleId or email
+    let user = await prisma.user.findFirst({
+      where: { OR: [{ googleId }, { email }] },
+    });
+
+    if (user) {
+      // Link googleId if not already set
+      if (!user.googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId, avatar: user.avatar || picture },
+        });
+      }
+    } else {
+      // Create new user
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: name || email.split('@')[0],
+          googleId,
+          avatar: picture || null,
+          username: buildUsername(name, email),
+          role: 'user',
+        },
+      });
+    }
+
+    // Generate JWT
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar,
+        username: user.username,
+        website: user.website,
+        instagramHandle: user.instagramHandle,
+        location: user.location,
+      },
+    });
+  } catch (err) {
+    console.error('Google auth error:', err);
+    res.status(500).json({ error: 'Google sign-in failed' });
   }
 });
 

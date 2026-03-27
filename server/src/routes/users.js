@@ -1,22 +1,25 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-const { requireAuth } = require('../middleware/auth');
+const prisma = require('../utils/prisma');
+const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { recalculateHypeScore } = require('../utils/hypeScore');
+const { sanitizeText, sanitizeUsername, isValidUrl } = require('../utils/sanitize');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
-// GET /api/users/search?q=... — search users by username or name
+// SECURITY: Whitelist of fields a user can update on their own profile
+const ALLOWED_UPDATE_FIELDS = ['name', 'bio', 'avatar', 'username', 'website', 'instagramHandle', 'location'];
+
+// GET /api/users/search?q=... — search users
 router.get('/search', async (req, res) => {
   try {
-    const { q } = req.query;
-    if (!q || q.trim().length < 1) return res.json([]);
+    const q = sanitizeText(req.query.q, 100);
+    if (!q || q.length < 1) return res.json([]);
 
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          { username: { contains: q.trim(), mode: 'insensitive' } },
-          { name: { contains: q.trim(), mode: 'insensitive' } },
+          { username: { contains: q, mode: 'insensitive' } },
+          { name: { contains: q, mode: 'insensitive' } },
         ],
       },
       select: {
@@ -27,7 +30,6 @@ router.get('/search', async (req, res) => {
       orderBy: { name: 'asc' },
     });
 
-    // For brand users, find their associated brand
     const enriched = await Promise.all(users.map(async (u) => {
       if (u.role === 'brand') {
         const brand = await prisma.brand.findFirst({ where: { name: u.name }, select: { id: true } });
@@ -43,13 +45,16 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// GET /api/users/:id — get user profile
-router.get('/:id', async (req, res) => {
+// GET /api/users/:id — get user profile (email only visible to self)
+router.get('/:id', optionalAuth, async (req, res) => {
   try {
+    const isSelf = req.user?.id === req.params.id;
     const user = await prisma.user.findUnique({
       where: { id: req.params.id },
       select: {
-        id: true, email: true, name: true, role: true, avatar: true, bio: true,
+        id: true,
+        email: isSelf, // SECURITY: Only include email if viewing own profile
+        name: true, role: true, avatar: true, bio: true,
         username: true, website: true, instagramHandle: true, location: true,
         createdAt: true,
         follows: { include: { brand: { select: { id: true, name: true, logo: true } } }, orderBy: { createdAt: 'desc' } },
@@ -64,23 +69,36 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// PUT /api/users/:id — update user profile (auth required)
+// PUT /api/users/:id — update profile (auth + ownership required)
 router.put('/:id', requireAuth, async (req, res) => {
   try {
-    // Users can only update their own profile
+    // SECURITY: Users can only update their own profile
     if (req.user.id !== req.params.id) {
       return res.status(403).json({ error: 'You can only update your own profile' });
     }
 
-    const { name, bio, avatar, username, website, instagramHandle, location } = req.body;
+    // SECURITY: Strict whitelist — only allow known safe fields
     const data = {};
-    if (name !== undefined) data.name = name;
-    if (bio !== undefined) data.bio = bio;
-    if (avatar !== undefined) data.avatar = avatar;
-    if (username !== undefined) data.username = username;
-    if (website !== undefined) data.website = website;
-    if (instagramHandle !== undefined) data.instagramHandle = instagramHandle;
-    if (location !== undefined) data.location = location;
+    for (const field of ALLOWED_UPDATE_FIELDS) {
+      if (req.body[field] !== undefined) {
+        const val = req.body[field];
+        if (field === 'name') data.name = sanitizeText(val, 50);
+        else if (field === 'bio') data.bio = sanitizeText(val, 150);
+        else if (field === 'username') data.username = sanitizeUsername(val);
+        else if (field === 'website') {
+          if (val && !isValidUrl(val)) continue; // skip invalid
+          data.website = val ? val.trim().slice(0, 200) : '';
+        }
+        else if (field === 'instagramHandle') data.instagramHandle = sanitizeText(val, 30).replace(/^@+/, '');
+        else if (field === 'location') data.location = sanitizeText(val, 100);
+        else if (field === 'avatar') {
+          // Only allow Cloudinary URLs for avatars
+          if (typeof val === 'string' && (val.includes('cloudinary.com') || val.includes('res.cloudinary') || val === '')) {
+            data.avatar = val;
+          }
+        }
+      }
+    }
 
     const user = await prisma.user.update({
       where: { id: req.params.id },
@@ -99,19 +117,15 @@ router.put('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/users/:userId/save/:dropId — toggle save (auth required)
+// PUT /api/users/:userId/save/:dropId — toggle save
 router.put('/:userId/save/:dropId', requireAuth, async (req, res) => {
   try {
     const { userId, dropId } = req.params;
-
-    // Users can only save for themselves
     if (req.user.id !== userId) {
       return res.status(403).json({ error: 'You can only save drops for yourself' });
     }
 
-    const existing = await prisma.savedDrop.findUnique({
-      where: { userId_dropId: { userId, dropId } },
-    });
+    const existing = await prisma.savedDrop.findUnique({ where: { userId_dropId: { userId, dropId } } });
     if (existing) {
       await prisma.savedDrop.delete({ where: { id: existing.id } });
       await recalculateHypeScore(dropId);

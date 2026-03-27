@@ -1,12 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../utils/prisma');
+const { JWT_SECRET } = require('../middleware/auth');
+const { sanitizeText, isValidEmail, validatePassword } = require('../utils/sanitize');
 
 const router = express.Router();
-const prisma = new PrismaClient();
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dropspace-secret-key-change-in-production';
 
 function buildUsername(name, email) {
   const namePart = (name || email || 'dropout-user')
@@ -14,6 +13,28 @@ function buildUsername(name, email) {
     .replace(/[^a-z0-9]+/g, '')
     .slice(0, 18);
   return namePart || 'dropoutuser';
+}
+
+function signToken(user) {
+  return jwt.sign(
+    { userId: user.id, email: user.email },
+    JWT_SECRET,
+    { expiresIn: '7d', issuer: 'dropamyn', audience: 'dropamyn-api' }
+  );
+}
+
+function safeUserResponse(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    avatar: user.avatar,
+    username: user.username,
+    website: user.website,
+    instagramHandle: user.instagramHandle,
+    location: user.location,
+  };
 }
 
 // POST /api/auth/signup
@@ -25,64 +46,56 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'Email, name, and password are required' });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    // Validate email
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
     }
 
+    // Validate password strength
+    const pwError = validatePassword(password);
+    if (pwError) {
+      return res.status(400).json({ error: pwError });
+    }
+
+    // Sanitize name
+    const safeName = sanitizeText(name, 50);
+    if (!safeName) return res.status(400).json({ error: 'Invalid name' });
+
     // Check if user exists
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
     if (existing) {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password (cost factor 12 for stronger hashing)
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user
     const userRole = role === 'brand' ? 'brand' : 'user';
     const user = await prisma.user.create({
       data: {
-        email,
-        name,
+        email: email.toLowerCase().trim(),
+        name: safeName,
         password: hashedPassword,
         role: userRole,
-        username: buildUsername(name, email),
+        username: buildUsername(safeName, email),
       },
     });
 
     // If brand, auto-create a Brand record
     if (userRole === 'brand') {
       try {
+        const safeCategory = brandCategory ? sanitizeText(brandCategory, 50) : null;
         await prisma.brand.create({
-          data: {
-            name,
-            logo: '',
-            category: brandCategory || null,
-          },
+          data: { name: safeName, logo: '', category: safeCategory },
         });
       } catch (brandErr) {
-        // Brand may already exist with this name, that's OK
-        console.log('Brand create note:', brandErr.message);
+        // Brand may already exist with this name
       }
     }
 
-    // Generate token
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-
-    res.status(201).json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
-        username: user.username,
-        website: user.website,
-        instagramHandle: user.instagramHandle,
-        location: user.location,
-      },
-    });
+    const token = signToken(user);
+    res.status(201).json({ token, user: safeUserResponse(user) });
   } catch (err) {
     console.error('Signup error:', err);
     res.status(500).json({ error: 'Failed to create account' });
@@ -98,13 +111,11 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Find user
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Check password
     if (!user.password) {
       return res.status(401).json({ error: 'This account uses Google Sign-In. Please use the Google button.' });
     }
@@ -113,23 +124,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Generate token
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
-        username: user.username,
-        website: user.website,
-        instagramHandle: user.instagramHandle,
-        location: user.location,
-      },
-    });
+    const token = signToken(user);
+    res.json({ token, user: safeUserResponse(user) });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Failed to login' });
@@ -140,12 +136,12 @@ router.post('/login', async (req, res) => {
 router.post('/google', async (req, res) => {
   try {
     const { idToken } = req.body;
-    if (!idToken) {
+    if (!idToken || typeof idToken !== 'string') {
       return res.status(400).json({ error: 'ID token is required' });
     }
 
     // Verify token with Google
-    const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+    const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
     if (!googleRes.ok) {
       return res.status(401).json({ error: 'Invalid Google token' });
     }
@@ -156,13 +152,11 @@ router.post('/google', async (req, res) => {
       return res.status(400).json({ error: 'Google account has no email' });
     }
 
-    // Find existing user by googleId or email
     let user = await prisma.user.findFirst({
       where: { OR: [{ googleId }, { email }] },
     });
 
     if (user) {
-      // Link googleId if not already set
       if (!user.googleId) {
         user = await prisma.user.update({
           where: { id: user.id },
@@ -170,11 +164,10 @@ router.post('/google', async (req, res) => {
         });
       }
     } else {
-      // Create new user
       user = await prisma.user.create({
         data: {
           email,
-          name: name || email.split('@')[0],
+          name: sanitizeText(name || email.split('@')[0], 50),
           googleId,
           avatar: picture || null,
           username: buildUsername(name, email),
@@ -183,23 +176,8 @@ router.post('/google', async (req, res) => {
       });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
-        username: user.username,
-        website: user.website,
-        instagramHandle: user.instagramHandle,
-        location: user.location,
-      },
-    });
+    const token = signToken(user);
+    res.json({ token, user: safeUserResponse(user) });
   } catch (err) {
     console.error('Google auth error:', err);
     res.status(500).json({ error: 'Google sign-in failed' });
@@ -215,22 +193,16 @@ router.get('/me', async (req, res) => {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET, {
+      issuer: 'dropamyn',
+      audience: 'dropamyn-api',
+    });
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        avatar: true,
-        bio: true,
-        username: true,
-        website: true,
-        instagramHandle: true,
-        location: true,
-        createdAt: true,
+        id: true, email: true, name: true, role: true, avatar: true, bio: true,
+        username: true, website: true, instagramHandle: true, location: true, createdAt: true,
       },
     });
 

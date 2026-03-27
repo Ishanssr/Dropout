@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -11,32 +12,38 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Multer — store in memory (we upload to Cloudinary, not disk)
+// Multer — memory storage with strict limits
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  limits: { fileSize: 5 * 1024 * 1024 }, // SECURITY: Reduced to 5MB max
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    // SECURITY: Whitelist specific image MIME types (not just startsWith)
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'), false);
+      cb(new Error('Only JPEG, PNG, WebP, and GIF images are allowed'), false);
     }
   },
 });
 
-// POST /api/upload — upload image to Cloudinary
-router.post('/', upload.single('image'), async (req, res) => {
+// SECURITY: Whitelist of allowed upload folders
+const ALLOWED_FOLDERS = ['dropout', 'dropout_avatars', 'dropout_drops'];
+
+// POST /api/upload — SECURITY: Requires auth
+router.post('/', requireAuth, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No image file provided' });
     }
 
-    const folder = typeof req.body?.folder === 'string' && req.body.folder.trim()
-      ? req.body.folder.trim()
-      : 'dropout';
+    // SECURITY: Validate folder name against whitelist
+    let folder = 'dropout';
+    if (typeof req.body?.folder === 'string' && ALLOWED_FOLDERS.includes(req.body.folder.trim())) {
+      folder = req.body.folder.trim();
+    }
 
-    // Upload buffer to Cloudinary
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
@@ -64,14 +71,31 @@ router.post('/', upload.single('image'), async (req, res) => {
     });
   } catch (err) {
     console.error('Upload error:', err);
-    res.status(500).json({ error: err.message || 'Failed to upload image' });
+    res.status(500).json({ error: 'Failed to upload image' });
   }
 });
 
-// DELETE /api/upload/:publicId — delete image from Cloudinary
-router.delete('/:publicId', async (req, res) => {
+// DELETE /api/upload — SECURITY: Requires auth + brand role
+// publicId sent as query param to handle slashes in Cloudinary IDs
+router.delete('/', requireAuth, async (req, res) => {
   try {
-    await cloudinary.uploader.destroy(req.params.publicId);
+    // SECURITY: Only brand accounts can delete images
+    if (req.user.role !== 'brand') {
+      return res.status(403).json({ error: 'Only brand accounts can delete images' });
+    }
+
+    const publicId = req.query.publicId;
+    if (!publicId || typeof publicId !== 'string') {
+      return res.status(400).json({ error: 'publicId query parameter is required' });
+    }
+
+    // SECURITY: Validate the publicId is within allowed folders
+    const isAllowedFolder = ALLOWED_FOLDERS.some(f => publicId.startsWith(f + '/'));
+    if (!isAllowedFolder) {
+      return res.status(403).json({ error: 'Cannot delete images outside allowed folders' });
+    }
+
+    await cloudinary.uploader.destroy(publicId);
     res.json({ deleted: true });
   } catch (err) {
     console.error('Delete error:', err);

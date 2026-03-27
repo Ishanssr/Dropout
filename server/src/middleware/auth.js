@@ -1,20 +1,35 @@
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../utils/prisma');
 
-const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'dropspace-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set');
+  process.exit(1);
+}
+
+// Verify token — accepts both old tokens (no iss/aud) and new ones
+// New tokens are always signed with issuer/audience for future enforcement
+function verifyToken(token) {
+  try {
+    // Try strict verification first (new tokens)
+    return jwt.verify(token, JWT_SECRET, { issuer: 'dropamyn', audience: 'dropamyn-api' });
+  } catch (strictErr) {
+    // Fall back to basic verification (old tokens without claims)
+    // This allows existing sessions to continue working
+    return jwt.verify(token, JWT_SECRET);
+  }
+}
 
 // Block request if no valid JWT token
 async function requireAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
-    console.log(`[AUTH] ${req.method} ${req.path} — Authorization: ${authHeader ? authHeader.substring(0, 20) + '...' : 'MISSING'}`);
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required — no token sent' });
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = verifyToken(token);
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -42,7 +57,7 @@ async function optionalAuth(req, res, next) {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = verifyToken(token);
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -57,4 +72,4 @@ async function optionalAuth(req, res, next) {
   }
 }
 
-module.exports = { requireAuth, optionalAuth };
+module.exports = { requireAuth, optionalAuth, JWT_SECRET };

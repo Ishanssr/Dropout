@@ -181,7 +181,7 @@ export default function BrandProfilePage() {
               marginBottom: '6px', lineHeight: 1.2,
             }}>{brand.name}</h1>
 
-            {brand.website && (
+            {brand.website && brand.website.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/').length <= 2 && (
               <a href={brand.website} target="_blank" rel="noopener noreferrer"
                 style={{
                   fontSize: '12px', color: 'rgba(96,165,250,0.7)', textDecoration: 'none',

@@ -34,21 +34,14 @@ export default function UserProfilePage() {
         if (userRes.ok) {
           const userData = await userRes.json();
           if (userData.role === 'brand') {
-            // Find the brand by trying to match from brands API
+            // Redirect to the proper brand profile page
             const brandsRes = await fetch(`${API_URL}/api/brands`, { headers });
             if (brandsRes.ok) {
               const brands = await brandsRes.json();
               const matchedBrand = brands.find(b => b.name === userData.name);
               if (matchedBrand) {
-                const brandRes = await fetch(`${API_URL}/api/brands/${matchedBrand.id}`, { headers });
-                if (brandRes.ok) {
-                  const brandData = await brandRes.json();
-                  setBrand(brandData);
-                  setFollowing(brandData.isFollowing || false);
-                  setFollowerCount(brandData._count?.followers || 0);
-                  setLoading(false);
-                  return;
-                }
+                router.replace(`/brand/${matchedBrand.id}`);
+                return;
               }
             }
           }
@@ -95,186 +88,7 @@ export default function UserProfilePage() {
     );
   }
 
-  // ═══════════════════════════════════════════════
-  // BRAND PROFILE (premium design)
-  // ═══════════════════════════════════════════════
-  if (brand) {
-    const totalUpvotes = brand.drops?.reduce((sum, d) => sum + (d._count?.likes || 0), 0) || 0;
 
-    return (
-      <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', paddingBottom: '32px' }}>
-        {/* Back */}
-        <div style={{ padding: '14px 16px' }}>
-          <button onClick={() => router.back()} style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '13px', cursor: 'pointer', fontWeight: 500, padding: 0 }}>← Back</button>
-        </div>
-
-        {/* ═══ BRAND CARD ═══ */}
-        <div style={{
-          margin: '0 16px 24px',
-          borderRadius: '24px',
-          background: 'rgba(12,12,20,0.7)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-          overflow: 'hidden', position: 'relative',
-        }}>
-          <GlassPanelLayers />
-
-          <div style={{ position: 'relative', zIndex: 5, padding: '32px 24px 28px', textAlign: 'center' }}>
-            {/* Avatar */}
-            <div style={{
-              width: '100px', height: '100px', borderRadius: '50%', margin: '0 auto 16px',
-              background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-              padding: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 30px rgba(59,130,246,0.2)',
-            }}>
-              <div style={{
-                width: '100%', height: '100%', borderRadius: '50%',
-                background: '#0a0a0f', overflow: 'hidden',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {brand.logo ? (
-                  <img src={brand.logo} alt={brand.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span style={{ fontSize: '38px', fontWeight: 800, color: '#fff' }}>{brand.name?.charAt(0)}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Verified badge + Name */}
-            <h1 style={{
-              fontSize: '24px', fontWeight: 800, color: '#fff',
-              fontFamily: "'Sora', sans-serif", letterSpacing: '-0.04em',
-              marginBottom: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            }}>
-              {brand.name}
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#3b82f6"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-            </h1>
-
-            {/* Website */}
-            {brand.website && (
-              <a href={brand.website} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: '13px', color: '#60a5fa', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginBottom: '20px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                {brand.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-              </a>
-            )}
-
-            {/* Follow button */}
-            <button
-              onClick={handleFollow}
-              style={{
-                width: '100%', maxWidth: '280px', padding: '14px 24px',
-                borderRadius: '50px', border: 'none',
-                background: following
-                  ? 'rgba(255,255,255,0.06)'
-                  : 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                color: '#fff', fontSize: '15px', fontWeight: 700,
-                fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
-                cursor: 'pointer', transition: 'all 0.3s ease',
-                boxShadow: following ? 'none' : '0 4px 20px rgba(59,130,246,0.3)',
-              }}
-            >
-              {following ? 'Following' : 'Follow Brand'}
-            </button>
-
-            {/* Stats */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '24px' }}>
-              {[
-                { value: brand._count?.drops || 0, label: 'DROPS' },
-                { value: formatNumber(followerCount), label: 'FOLLOWERS' },
-                { value: formatNumber(totalUpvotes), label: 'UPVOTES' },
-              ].map((s) => (
-                <div key={s.label} style={{
-                  flex: 1, padding: '16px 8px', textAlign: 'center',
-                  borderRadius: '16px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.04)',
-                }}>
-                  <div style={{
-                    fontSize: '22px', fontWeight: 800, color: '#fff',
-                    fontFamily: "'Sora', sans-serif", lineHeight: 1,
-                  }}>{s.value}</div>
-                  <div style={{
-                    fontSize: '9px', color: 'var(--text-muted)', marginTop: '6px',
-                    textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 600,
-                  }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ═══ DROPS HEADING ═══ */}
-        <div style={{ padding: '0 16px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{
-            fontSize: '16px', fontWeight: 700, color: '#fff',
-            fontFamily: "'Sora', sans-serif", letterSpacing: '-0.03em', margin: 0,
-          }}>Drops</h2>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            {brand.drops?.length || 0} total
-          </span>
-        </div>
-
-        {/* ═══ DROPS THUMBNAIL GRID ═══ */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr',
-          gap: '8px', padding: '0 16px',
-        }}>
-          {(!brand.drops || brand.drops.length === 0) ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)', fontSize: '14px' }}>
-              No drops yet
-            </div>
-          ) : brand.drops.map((drop) => (
-            <Link
-              key={drop.id}
-              href={`/drop/${drop.id}`}
-              style={{
-                display: 'block', borderRadius: '16px', overflow: 'hidden',
-                position: 'relative', aspectRatio: '1',
-                textDecoration: 'none',
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.04)',
-                transition: 'all 0.25s ease',
-              }}
-            >
-              <img
-                src={drop.imageUrl}
-                alt={drop.title}
-                style={{
-                  width: '100%', height: '100%', objectFit: 'cover',
-                  transition: 'transform 0.3s ease',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              />
-              {/* Floating caption overlay */}
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
-                padding: '32px 12px 12px',
-              }}>
-                <div style={{
-                  fontSize: '13px', fontWeight: 700, color: '#fff',
-                  fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
-                  lineHeight: 1.3,
-                  overflow: 'hidden', textOverflow: 'ellipsis',
-                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                }}>{drop.title}</div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px',
-                  fontSize: '11px', color: 'rgba(255,255,255,0.5)', fontWeight: 500,
-                }}>
-                  <span>↑ {drop._count?.likes || 0}</span>
-                  <span>💬 {drop._count?.comments || 0}</span>
-                  {drop.price && <span style={{ marginLeft: 'auto', color: '#60a5fa', fontWeight: 600 }}>{drop.price}</span>}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   // ═══════════════════════════════════════════════
   // REGULAR USER PROFILE

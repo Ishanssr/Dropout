@@ -56,6 +56,40 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
+// GET /api/drops/following — personalized feed (drops from followed brands)
+router.get('/following', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { category } = req.query;
+
+    // Get brands this user follows
+    const follows = await prisma.follow.findMany({
+      where: { userId },
+      select: { brandId: true },
+    });
+    const brandIds = follows.map(f => f.brandId);
+
+    if (brandIds.length === 0) {
+      return res.json([]);
+    }
+
+    const where = { brandId: { in: brandIds } };
+    if (category && category !== 'all') where.category = category;
+
+    const drops = await prisma.drop.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: dropInclude(),
+    });
+
+    const enriched = await Promise.all(drops.map(d => enrichDrop(d, userId)));
+    res.json(enriched);
+  } catch (err) {
+    console.error('GET /api/drops/following error:', err);
+    res.status(500).json({ error: 'Failed to fetch personalized feed' });
+  }
+});
+
 // GET /api/drops/trending — top 10 by hypeScore
 router.get('/trending', optionalAuth, async (req, res) => {
   try {

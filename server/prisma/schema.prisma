@@ -34,6 +34,7 @@ model Brand {
   name      String   @unique
   logo      String
   website   String?
+  category  String?
   drops     Drop[]
   followers Follow[]
   createdAt DateTime @default(now())

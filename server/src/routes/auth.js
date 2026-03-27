@@ -19,7 +19,7 @@ function buildUsername(name, email) {
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {
   try {
-    const { email, name, password, role } = req.body;
+    const { email, name, password, role, brandCategory } = req.body;
 
     if (!email || !name || !password) {
       return res.status(400).json({ error: 'Email, name, and password are required' });
@@ -49,6 +49,22 @@ router.post('/signup', async (req, res) => {
         username: buildUsername(name, email),
       },
     });
+
+    // If brand, auto-create a Brand record
+    if (userRole === 'brand') {
+      try {
+        await prisma.brand.create({
+          data: {
+            name,
+            logo: '',
+            category: brandCategory || null,
+          },
+        });
+      } catch (brandErr) {
+        // Brand may already exist with this name, that's OK
+        console.log('Brand create note:', brandErr.message);
+      }
+    }
 
     // Generate token
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });

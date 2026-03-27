@@ -657,7 +657,6 @@ export default function ProfilePage() {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: '14px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>{f.brand?.name}</div>
-                      <div style={{ fontSize: '11px', color: '#60a5fa', fontWeight: 500, marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Brand</div>
                     </div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                   </Link>

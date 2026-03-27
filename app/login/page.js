@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('user');
+  const [brandCategory, setBrandCategory] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -78,7 +79,7 @@ export default function LoginPage() {
     try {
       const data = tab === 'login'
         ? await login(email, password)
-        : await signup(email, name, password, role);
+        : await signup(email, name, password, role, role === 'brand' ? brandCategory : null);
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       notifyUserChanged();
@@ -139,6 +140,43 @@ export default function LoginPage() {
                   </button>
                 ))}
               </div>
+              {role === 'brand' && (
+                <div style={{ marginTop: '12px' }}>
+                  <div className="login-roles-label">Brand Category</div>
+                  <select
+                    value={brandCategory}
+                    onChange={(e) => setBrandCategory(e.target.value)}
+                    required={role === 'brand'}
+                    style={{
+                      width: '100%', padding: '10px 14px', borderRadius: '10px', fontSize: '13px',
+                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                      color: brandCategory ? '#fff' : 'rgba(255,255,255,0.3)',
+                      outline: 'none', fontFamily: "'Sora', sans-serif",
+                      appearance: 'none', cursor: 'pointer',
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center',
+                    }}
+                  >
+                    <option value="" disabled>Select a category...</option>
+                    <option value="tech-gadgets">💻 Tech & Gadgets</option>
+                    <option value="ai-software">🤖 AI & Software</option>
+                    <option value="movies-ott">🎬 Movies & OTT</option>
+                    <option value="gaming">🎮 Gaming</option>
+                    <option value="music-entertainment">🎵 Music & Entertainment</option>
+                    <option value="fashion-streetwear">👕 Fashion & Streetwear</option>
+                    <option value="beauty-skincare">💄 Beauty & Skincare</option>
+                    <option value="automobiles">🚗 Automobiles</option>
+                    <option value="mobility-ev">⚡ Mobility & EV</option>
+                    <option value="food-beverages">🍔 Food & Beverages</option>
+                    <option value="lifestyle-home">🏠 Lifestyle & Home</option>
+                    <option value="startups-products">🚀 Startups & Products</option>
+                    <option value="creator-tools-audio">🎧 Creator Tools & Audio</option>
+                    <option value="collectibles-culture">💎 Collectibles & Culture</option>
+                    <option value="sports-equipment">⚽ Sports & Equipment</option>
+                    <option value="travel-experiences">✈️ Travel & Experiences</option>
+                  </select>
+                </div>
+              )}
             </div>
           )}
 

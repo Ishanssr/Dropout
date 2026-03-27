@@ -247,27 +247,52 @@ export default function Sidebar() {
             </button>
             {desktopCatOpen && expanded && (
               <div style={{
-                maxHeight: '200px', overflowY: 'auto', scrollbarWidth: 'thin',
-                padding: '4px 0 4px 36px',
-                display: 'flex', flexDirection: 'column', gap: '1px',
+                position: 'fixed',
+                top: '80px',
+                left: '240px',
+                width: '320px',
+                maxHeight: '70vh',
+                overflowY: 'auto',
+                scrollbarWidth: 'thin',
+                borderRadius: '20px',
+                background: 'rgba(10,10,18,0.88)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
+                boxShadow: '0 16px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+                padding: '18px 16px',
+                zIndex: 100,
               }}>
-                {categories.filter(c => c.id !== 'all').map(cat => (
-                  <Link
-                    key={cat.id}
-                    href={`/feed?category=${cat.id}`}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '8px',
-                      padding: '8px 10px', borderRadius: '8px',
-                      fontSize: '13px', color: 'var(--text-secondary)',
-                      textDecoration: 'none', transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.06)'; e.currentTarget.style.color = '#60a5fa'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-                  >
-                    <span style={{ fontSize: '15px' }}>{cat.icon}</span>
-                    <span>{cat.name}</span>
-                  </Link>
-                ))}
+                <GlassPanelLayers />
+                <div style={{
+                  fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '14px',
+                  fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
+                  position: 'relative', zIndex: 5,
+                }}>Categories</div>
+                <div style={{
+                  display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px',
+                  position: 'relative', zIndex: 5,
+                }}>
+                  {categories.filter(c => c.id !== 'all').map(cat => (
+                    <Link
+                      key={cat.id}
+                      href={`/feed?category=${cat.id}`}
+                      onClick={() => setDesktopCatOpen(false)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '10px 12px', borderRadius: '12px',
+                        fontSize: '12px', color: 'var(--text-secondary)',
+                        textDecoration: 'none', transition: 'all 0.2s ease',
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid rgba(255,255,255,0.03)',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.08)'; e.currentTarget.style.color = '#60a5fa'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.03)'; }}
+                    >
+                      <span style={{ fontSize: '16px' }}>{cat.icon}</span>
+                      <span style={{ fontWeight: 500 }}>{cat.name}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
           </div>

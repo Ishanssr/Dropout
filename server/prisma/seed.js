@@ -71,8 +71,7 @@ async function main() {
         featured: d.featured,
         website: d.website,
         brandId: brandMap[d.brand],
-        likes: d.likes,
-        views: d.views,
+        views: d.views || 0,
       },
     });
   }

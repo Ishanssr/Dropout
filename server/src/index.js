@@ -1,8 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 
 const dropsRouter = require('./routes/drops');
 const brandsRouter = require('./routes/brands');
@@ -13,14 +11,19 @@ const authRouter = require('./routes/auth');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ═══ SECURITY: Helmet — sets secure HTTP headers ═══
-app.use(helmet({
-  contentSecurityPolicy: false, // Let Next.js handle CSP
-  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow Cloudinary images
-}));
-app.disable('x-powered-by'); // Don't expose Express
+// ═══ SECURITY: Manual security headers (replaces helmet) ═══
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.removeHeader('X-Powered-By');
+  next();
+});
 
-// ═══ SECURITY: CORS — restrict origins ═══
+// ═══ SECURITY: CORS ═══
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -35,26 +38,44 @@ app.use(cors({
 }));
 
 // ═══ SECURITY: Body size limits ═══
-app.use(express.json({ limit: '1mb' })); // 1MB for text endpoints
+app.use(express.json({ limit: '1mb' }));
 
-// ═══ SECURITY: Global rate limiter — 100 req/min per IP ═══
-const globalLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100,
-  message: { error: 'Too many requests, please try again later' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(globalLimiter);
+// ═══ SECURITY: In-memory rate limiter (replaces express-rate-limit) ═══
+const rateLimitStore = new Map();
 
-// ═══ SECURITY: Strict rate limit for auth endpoints ═══
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15, // 15 login/signup attempts per 15 min
-  message: { error: 'Too many auth attempts. Please try again in 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+function createRateLimiter(windowMs, max, message) {
+  return (req, res, next) => {
+    const key = req.ip || req.connection.remoteAddress;
+    const now = Date.now();
+    let entry = rateLimitStore.get(key);
+
+    if (!entry || now - entry.start > windowMs) {
+      entry = { start: now, count: 1 };
+      rateLimitStore.set(key, entry);
+    } else {
+      entry.count++;
+    }
+
+    if (entry.count > max) {
+      return res.status(429).json({ error: message });
+    }
+    next();
+  };
+}
+
+// Clean up rate limit store every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitStore) {
+    if (now - entry.start > 15 * 60 * 1000) rateLimitStore.delete(key);
+  }
+}, 5 * 60 * 1000);
+
+// Global: 100 req/min
+app.use(createRateLimiter(60 * 1000, 100, 'Too many requests, please try again later'));
+
+// Auth: 15 req/15min
+const authLimiter = createRateLimiter(15 * 60 * 1000, 15, 'Too many auth attempts. Please try again in 15 minutes.');
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/signup', authLimiter);
 app.use('/api/auth/google', authLimiter);

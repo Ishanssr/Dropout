@@ -45,6 +45,7 @@ model Drop {
   title       String
   description String
   imageUrl    String
+  imageUrls   String[]      @default([])
   price       String
   category    String
   hypeScore   Int         @default(0)

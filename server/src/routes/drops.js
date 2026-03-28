@@ -120,19 +120,27 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'No brand profile found for this account' });
     }
 
-    const { title, description, imageUrl, price, category, dropTime, featured, website, accessType, maxQuantity } = req.body;
+    const { title, description, imageUrl, imageUrls, price, category, dropTime, featured, website, accessType, maxQuantity } = req.body;
+    
+    // Validate & sanitize imageUrls array (max 5)
+    let cleanImageUrls = [];
+    if (Array.isArray(imageUrls)) {
+      cleanImageUrls = imageUrls.filter(u => typeof u === 'string' && u.trim()).slice(0, 5).map(u => u.trim());
+    }
+
     const drop = await prisma.drop.create({
       data: {
         title: sanitizeText(title, 200),
         description: sanitizeText(description, 2000),
         imageUrl: imageUrl.trim(),
+        imageUrls: cleanImageUrls,
         price: sanitizeText(price || '', 50),
         category: sanitizeText(category, 50),
         hypeScore: 0,
         dropTime: new Date(dropTime),
         featured: featured === true,
         website: website ? website.trim().slice(0, 500) : null,
-        brandId: brand.id, // SECURITY: Always use resolved brand, never user-supplied
+        brandId: brand.id,
         accessType: ['open', 'raffle', 'waitlist', 'invite'].includes(accessType) ? accessType : 'open',
         maxQuantity: maxQuantity ? Math.min(parseInt(maxQuantity) || 0, 100000) : null,
       },

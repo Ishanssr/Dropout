@@ -15,9 +15,9 @@ function getUser() {
 export default function Home() {
   const searchParams = useSearchParams();
   const categoryFromUrl = searchParams.get('category') || 'all';
+  const modeFromUrl = searchParams.get('mode') || 'explore'; // 'explore' or 'foryou'
   const [active, setActive] = useState(categoryFromUrl);
   const [tab, setTab] = useState('upcoming');
-  const [feedMode, setFeedMode] = useState('general'); // 'general' or 'foryou'
   const [drops, setDrops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
@@ -32,7 +32,8 @@ export default function Home() {
 
   useEffect(() => {
     setLoading(true);
-    const fetchFn = feedMode === 'foryou' && loggedIn ? fetchFollowingDrops : fetchDrops;
+    const isForYou = modeFromUrl === 'foryou' && loggedIn;
+    const fetchFn = isForYou ? fetchFollowingDrops : fetchDrops;
     fetchFn(active)
       .then((data) => {
         const transformed = data.map(transformDrop);
@@ -45,65 +46,36 @@ export default function Home() {
           setLoading(false);
         });
       });
-  }, [active, tab, feedMode, loggedIn]);
+  }, [active, tab, modeFromUrl, loggedIn]);
 
   const tabs = [
     { id: 'upcoming', label: 'Upcoming' },
     { id: 'live', label: 'Live' },
   ];
 
+  const isForYou = modeFromUrl === 'foryou';
+
   return (
     <div>
-      {/* ---- Feed Mode Toggle + Tabs ---- */}
+      {/* ---- Header + Tabs ---- */}
       <div style={{ padding: '24px 16px 18px', maxWidth: '470px', margin: '0 auto', width: '100%' }}>
 
-        {/* Feed mode: General / For You */}
-        {loggedIn && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+        {/* For You indicator */}
+        {isForYou && loggedIn && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '8px', marginBottom: '14px',
+          }}>
             <div style={{
-              display: 'inline-flex', borderRadius: '50px', padding: '3px',
-              background: 'rgba(5,5,10,0.6)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)',
-              position: 'relative',
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '6px 16px', borderRadius: '50px',
+              background: 'rgba(139,92,246,0.08)',
+              border: '1px solid rgba(139,92,246,0.15)',
+              fontSize: '12px', fontWeight: 600, color: '#a78bfa',
+              fontFamily: "'Sora', sans-serif",
+              letterSpacing: '-0.01em',
             }}>
-              <GlassPanelLayers />
-              {/* Sliding pill */}
-              <div style={{
-                position: 'absolute', top: '3px',
-                left: feedMode === 'general' ? '3px' : 'calc(50% + 1px)',
-                width: 'calc(50% - 4px)', height: 'calc(100% - 6px)',
-                borderRadius: '50px',
-                background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.1))',
-                border: '1px solid rgba(59,130,246,0.15)',
-                transition: 'left 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2)',
-                zIndex: 4,
-              }} />
-              {[
-                { id: 'general', label: 'Explore', icon: '🌍' },
-                { id: 'foryou', label: 'For You', icon: '✨' },
-              ].map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setFeedMode(m.id)}
-                  style={{
-                    padding: '8px 20px', border: 'none', cursor: 'pointer',
-                    fontSize: '12px', fontWeight: feedMode === m.id ? 700 : 500,
-                    background: 'transparent',
-                    color: feedMode === m.id ? '#fff' : 'rgba(255,255,255,0.4)',
-                    transition: 'all 0.3s ease',
-                    borderRadius: '50px',
-                    fontFamily: "'Sora', sans-serif",
-                    letterSpacing: '-0.01em',
-                    position: 'relative', zIndex: 5,
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                  }}
-                >
-                  <span style={{ fontSize: '13px' }}>{m.icon}</span>
-                  {m.label}
-                </button>
-              ))}
+              <span style={{ fontSize: '14px' }}>✨</span> For You
             </div>
           </div>
         )}
@@ -117,7 +89,6 @@ export default function Home() {
           boxShadow: '0 6px 6px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.1)',
         }}>
           <GlassPanelLayers />
-          {/* Sliding indicator pill */}
           <div style={{
             position: 'absolute', top: '3px',
             left: `calc(${tabs.findIndex(t => t.id === tab) * 50}% + 3px)`,
@@ -199,10 +170,10 @@ export default function Home() {
         <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-muted)' }}>
           <div style={{ fontSize: '32px', marginBottom: '16px', opacity: 0.5 }}>◇</div>
           <div style={{ fontWeight: 600, color: '#fff', marginBottom: '6px', fontFamily: "'Sora', sans-serif", fontSize: '16px', letterSpacing: '-0.02em' }}>
-            {feedMode === 'foryou' ? 'No drops from followed brands' : 'No drops found'}
+            {isForYou ? 'No drops from followed brands' : 'No drops found'}
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            {feedMode === 'foryou' ? 'Follow brands to see their drops here' : 'Try a different filter'}
+            {isForYou ? 'Follow brands to see their drops here' : 'Try a different filter'}
           </div>
         </div>
       )}

@@ -28,6 +28,8 @@ export default function DashboardPage() {
   const [error, setError] = useState('');
   const [launchNow, setLaunchNow] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [extraImages, setExtraImages] = useState([]);  // { url, preview }
+  const [extraUploading, setExtraUploading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [brandId, setBrandId] = useState(null);
@@ -101,6 +103,26 @@ export default function DashboardPage() {
     setUploading(false);
   };
 
+  const handleExtraImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || extraImages.length >= 4) return;
+    const reader = new FileReader();
+    const localPreview = await new Promise(r => { reader.onload = (ev) => r(ev.target.result); reader.readAsDataURL(file); });
+    setExtraUploading(true);
+    setError('');
+    try {
+      const result = await uploadImage(file);
+      setExtraImages(prev => [...prev, { url: result.url, preview: localPreview }]);
+    } catch (err) {
+      setError(`Extra image upload failed: ${err.message}`);
+    }
+    setExtraUploading(false);
+  };
+
+  const removeExtraImage = (idx) => {
+    setExtraImages(prev => prev.filter((_, i) => i !== idx));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -131,6 +153,9 @@ export default function DashboardPage() {
       const dropTime = launchNow
         ? new Date(Date.now() - 60000).toISOString()
         : new Date(`${form.dropDate}T${form.dropTime}:00`).toISOString();
+      // Build imageUrls array: primary + extras
+      const allImageUrls = [form.imageUrl, ...extraImages.map(ei => ei.url)].filter(Boolean);
+
       const dropRes = await fetch(`${API_URL}/api/drops`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -138,6 +163,7 @@ export default function DashboardPage() {
           title: form.title,
           description: form.description,
           imageUrl: form.imageUrl,
+          imageUrls: allImageUrls,
           price: form.price ? `$${form.price.replace('$', '')}` : 'TBA',
           category: form.category,
           dropTime,
@@ -157,6 +183,7 @@ export default function DashboardPage() {
       setForm({ title: '', description: '', category: 'sneakers', price: '', dropDate: '', dropTime: '', website: '', imageUrl: '', brandName: form.brandName, accessType: 'open', maxQuantity: '' });
       setLaunchNow(false);
       setImagePreview(null);
+      setExtraImages([]);
       setSubmitting(false);
       setTimeout(() => { setSuccess(''); router.push('/'); }, 1500);
     } catch (err) {
@@ -244,13 +271,49 @@ export default function DashboardPage() {
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                   <div style={{ fontSize: '28px', marginBottom: '10px', opacity: 0.5 }}>◇</div>
                   <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Click to upload image</div>
-                  <div style={{ fontSize: '11px', marginTop: '4px' }}>JPG, PNG, WebP · Max 10MB</div>
+                  <div style={{ fontSize: '11px', marginTop: '4px' }}>JPG, PNG, WebP · Max 5MB</div>
                 </div>
               )}
             </div>
             <div style={{ marginTop: '8px' }}>
               <input style={{ ...inputStyle, fontSize: '12px' }} placeholder="Or paste image URL here (https://...)" value={form.imageUrl}
                 onChange={(e) => { setForm({ ...form, imageUrl: e.target.value }); if (e.target.value) setImagePreview(e.target.value); }} />
+            </div>
+
+            {/* Extra Images Grid */}
+            <div style={{ marginTop: '14px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Additional Photos ({extraImages.length}/4)
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                {extraImages.map((img, idx) => (
+                  <div key={idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <img src={img.preview || img.url} alt={`Extra ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button type="button" onClick={() => removeExtraImage(idx)} style={{
+                      position: 'absolute', top: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%',
+                      background: 'rgba(239,68,68,0.8)', border: 'none', color: '#fff', fontSize: '12px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, padding: 0,
+                    }}>✕</button>
+                  </div>
+                ))}
+                {extraImages.length < 4 && (
+                  <label style={{
+                    aspectRatio: '1', borderRadius: '10px', border: '2px dashed rgba(255,255,255,0.06)',
+                    background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: extraUploading ? 'wait' : 'pointer', transition: 'all 0.2s ease', flexDirection: 'column', gap: '4px',
+                  }}>
+                    <input type="file" accept="image/*" onChange={handleExtraImageSelect} style={{ display: 'none' }} disabled={extraUploading} />
+                    {extraUploading ? (
+                      <div style={{ fontSize: '10px', color: '#60a5fa', fontWeight: 600 }}>...</div>
+                    ) : (
+                      <>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.25)', fontWeight: 500 }}>Add</span>
+                      </>
+                    )}
+                  </label>
+                )}
+              </div>
             </div>
           </div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadImage, fetchBrands, fetchBrandAnalytics, formatNumber } from '../../lib/api';
 import { getStoredToken, restoreStoredUserSession } from '../../lib/userStorage';
+import { categories as allCategories } from '../../lib/drops';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dropout-htf0.onrender.com';
 
@@ -34,7 +35,7 @@ export default function DashboardPage() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [brandId, setBrandId] = useState(null);
   const [form, setForm] = useState({
-    title: '', description: '', category: 'sneakers', price: '',
+    title: '', description: '', category: 'tech-gadgets', price: '',
     dropDate: '', dropTime: '', website: '', imageUrl: '', brandName: '',
     accessType: 'open', maxQuantity: '',
   });
@@ -180,7 +181,7 @@ export default function DashboardPage() {
       }
 
       setSuccess(launchNow ? '🎉 Drop is LIVE! Redirecting to feed...' : '🎉 Drop created! Redirecting to feed...');
-      setForm({ title: '', description: '', category: 'sneakers', price: '', dropDate: '', dropTime: '', website: '', imageUrl: '', brandName: form.brandName, accessType: 'open', maxQuantity: '' });
+      setForm({ title: '', description: '', category: 'tech-gadgets', price: '', dropDate: '', dropTime: '', website: '', imageUrl: '', brandName: form.brandName, accessType: 'open', maxQuantity: '' });
       setLaunchNow(false);
       setImagePreview(null);
       setExtraImages([]);
@@ -345,13 +346,9 @@ export default function DashboardPage() {
               <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Category</label>
               <select style={{ ...inputStyle, appearance: 'none' }} value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                <option value="sneakers">Sneakers</option>
-                <option value="tech">Tech</option>
-                <option value="streetwear">Streetwear</option>
-                <option value="gaming">Gaming</option>
-                <option value="ai-tools">AI Tools</option>
-                <option value="creator-merch">Creator Merch</option>
-                <option value="limited">Limited Edition</option>
+                {allCategories.filter(c => c.id !== 'all').map(c => (
+                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                ))}
               </select>
             </div>
             <div>

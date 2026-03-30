@@ -182,6 +182,40 @@ export default function DropCard({ drop, index = 0 }) {
             </div>
           )}
 
+          {/* Left/Right navigation arrows */}
+          {images.length > 1 && currentImg > 0 && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentImg(currentImg - 1); }}
+              style={{
+                position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)',
+                width: '32px', height: '32px', borderRadius: '50%',
+                background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255,255,255,0.15)', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', transition: 'all 0.2s ease', zIndex: 6,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.75)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.55)'; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          )}
+          {images.length > 1 && currentImg < images.length - 1 && (
+            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentImg(currentImg + 1); }}
+              style={{
+                position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                width: '32px', height: '32px', borderRadius: '50%',
+                background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255,255,255,0.15)', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', transition: 'all 0.2s ease', zIndex: 6,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.75)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.55)'; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          )}
+
           {/* Countdown + Notify Me overlay (only for upcoming drops) */}
           {!isLive && (
           <div className="lg-overlay-bar" style={{

@@ -17,6 +17,10 @@ export default function DropDetailClient({ drop: initialDrop }) {
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState([]);
   const [posting, setPosting] = useState(false);
+  const [currentImg, setCurrentImg] = useState(0);
+
+  const images = (initialDrop.imageUrls && initialDrop.imageUrls.length > 0) ? initialDrop.imageUrls : [initialDrop.imageUrl].filter(Boolean);
+  const touchStartX = { current: 0 };
 
   const getUser = () => typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
 
@@ -156,69 +160,91 @@ export default function DropDetailClient({ drop: initialDrop }) {
       </div>
 
       {/* Image Carousel */}
-      {(() => {
-        const images = (drop.imageUrls && drop.imageUrls.length > 0) ? drop.imageUrls : [drop.imageUrl].filter(Boolean);
-        return (
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '1', overflow: 'hidden', background: 'var(--bg-secondary)' }}
-          onTouchStart={(e) => { e.currentTarget.dataset.touchX = e.touches[0].clientX; }}
-          onTouchEnd={(e) => {
-            if (images.length <= 1) return;
-            const startX = parseFloat(e.currentTarget.dataset.touchX || 0);
-            const delta = startX - e.changedTouches[0].clientX;
-            if (Math.abs(delta) > 50) {
-              const curr = parseInt(e.currentTarget.dataset.currentImg || 0);
-              const next = delta > 0 ? Math.min(curr + 1, images.length - 1) : Math.max(curr - 1, 0);
-              e.currentTarget.dataset.currentImg = next;
-              e.currentTarget.querySelector('[data-carousel-track]').style.transform = `translateX(-${next * (100 / images.length)}%)`;
-              e.currentTarget.querySelectorAll('[data-dot]').forEach((dot, i) => {
-                dot.style.width = i === next ? '16px' : '6px';
-                dot.style.background = i === next ? '#fff' : 'rgba(255,255,255,0.4)';
-              });
-            }
-          }}
-        >
-          <div data-carousel-track style={{
-            display: 'flex', width: `${images.length * 100}%`,
-            transform: 'translateX(0%)',
-            transition: 'transform 0.35s ease',
-            height: '100%',
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '1', overflow: 'hidden', background: 'var(--bg-secondary)' }}
+        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => {
+          if (images.length <= 1) return;
+          const delta = touchStartX.current - e.changedTouches[0].clientX;
+          if (Math.abs(delta) > 50) {
+            if (delta > 0 && currentImg < images.length - 1) setCurrentImg(currentImg + 1);
+            else if (delta < 0 && currentImg > 0) setCurrentImg(currentImg - 1);
+          }
+        }}
+      >
+        <div style={{
+          display: 'flex', width: `${images.length * 100}%`,
+          transform: `translateX(-${currentImg * (100 / images.length)}%)`,
+          transition: 'transform 0.35s ease',
+          height: '100%',
+        }}>
+          {images.map((src, i) => (
+            <img key={i} src={src} alt={`${drop.title} ${i + 1}`}
+              style={{ width: `${100 / images.length}%`, height: '100%', objectFit: 'cover', display: 'block', flexShrink: 0 }}
+            />
+          ))}
+        </div>
+
+        {/* Carousel dots */}
+        {images.length > 1 && (
+          <div style={{
+            position: 'absolute', top: '12px', right: '14px',
+            display: 'flex', gap: '5px', padding: '5px 8px',
+            background: 'rgba(0,0,0,0.4)', borderRadius: '50px',
           }}>
-            {images.map((src, i) => (
-              <img key={i} src={src} alt={`${drop.title} ${i + 1}`}
-                style={{ width: `${100 / images.length}%`, height: '100%', objectFit: 'cover', display: 'block', flexShrink: 0 }}
-              />
+            {images.map((_, i) => (
+              <button key={i} onClick={() => setCurrentImg(i)} style={{
+                width: currentImg === i ? '16px' : '6px', height: '6px', borderRadius: '50px',
+                background: currentImg === i ? '#fff' : 'rgba(255,255,255,0.4)',
+                border: 'none', padding: 0, cursor: 'pointer', transition: 'all 0.3s ease',
+              }} />
             ))}
           </div>
+        )}
 
-          {/* Carousel dots */}
-          {images.length > 1 && (
-            <div style={{
-              position: 'absolute', top: '12px', right: '14px',
-              display: 'flex', gap: '5px', padding: '5px 8px',
-              background: 'rgba(0,0,0,0.4)', borderRadius: '50px',
-            }}>
-              {images.map((_, i) => (
-                <div key={i} data-dot style={{
-                  width: i === 0 ? '16px' : '6px', height: '6px', borderRadius: '50px',
-                  background: i === 0 ? '#fff' : 'rgba(255,255,255,0.4)',
-                  transition: 'all 0.3s ease',
-                }} />
-              ))}
-            </div>
-          )}
+        {/* Left/Right arrows */}
+        {images.length > 1 && currentImg > 0 && (
+          <button onClick={() => setCurrentImg(currentImg - 1)}
+            style={{
+              position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)',
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.15)', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'all 0.2s ease', zIndex: 6,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.75)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.55)'; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+        )}
+        {images.length > 1 && currentImg < images.length - 1 && (
+          <button onClick={() => setCurrentImg(currentImg + 1)}
+            style={{
+              position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.15)', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'all 0.2s ease', zIndex: 6,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.75)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.55)'; }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        )}
 
-          {/* Price badge */}
-          {drop.price && drop.price.trim() !== '' && (
-          <div style={{
-            position: 'absolute', bottom: '14px', right: '14px', fontSize: '13px', fontWeight: 600, color: '#fff',
-            background: 'rgba(5,5,8,0.7)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-            padding: '6px 14px', borderRadius: 'var(--radius-full)',
-            border: '1px solid rgba(255,255,255,0.06)', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
-          }}>{drop.price}</div>
-          )}
-        </div>
-        );
-      })()}
+        {/* Price badge */}
+        {drop.price && drop.price.trim() !== '' && (
+        <div style={{
+          position: 'absolute', bottom: '14px', right: '14px', fontSize: '13px', fontWeight: 600, color: '#fff',
+          background: 'rgba(5,5,8,0.7)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          padding: '6px 14px', borderRadius: 'var(--radius-full)',
+          border: '1px solid rgba(255,255,255,0.06)', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
+        }}>{drop.price}</div>
+        )}
+      </div>
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', gap: '4px' }}>

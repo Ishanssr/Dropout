@@ -255,7 +255,11 @@ export default function DropCard({ drop, index = 0 }) {
 
       {/* Price + Shop Now / View Details */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px 18px' }}>
-        <div style={{ fontSize: '17px', fontWeight: 700, color: '#fff', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>{drop.price}</div>
+        {drop.price && drop.price !== 'TBA' && drop.price.trim() !== '' ? (
+          <div style={{ fontSize: '17px', fontWeight: 700, color: '#fff', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>{drop.price}</div>
+        ) : (
+          <div />
+        )}
         {isLive && drop.website ? (
           <a href={drop.website} target="_blank" rel="noopener noreferrer" className="lg-shop"
             style={{

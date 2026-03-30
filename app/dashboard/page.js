@@ -8,6 +8,32 @@ import { categories as allCategories } from '../../lib/drops';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dropout-htf0.onrender.com';
 
+// Category-aware form config
+const categoryConfig = {
+  'tech-gadgets':        { showPrice: true,  priceLabel: 'Price',            pricePlaceholder: '$999',        titleLabel: 'Product Name *',    titlePlaceholder: 'e.g. iPhone 17 Pro',            descPlaceholder: 'Describe the product, specs, features...',       linkLabel: 'Shop / Pre-order Link',  linkPlaceholder: 'https://brand.com/product',     dateLabel: 'Launch Date',  dropNoun: 'launch' },
+  'ai-software':         { showPrice: 'opt', priceLabel: 'Pricing (optional)', pricePlaceholder: 'Free / $20/mo', titleLabel: 'Product / Feature *', titlePlaceholder: 'e.g. GPT-5 Pro',                descPlaceholder: 'What\'s new? Key features, capabilities...',     linkLabel: 'Try It / Website',       linkPlaceholder: 'https://product.com',            dateLabel: 'Launch Date',  dropNoun: 'launch' },
+  'movies-ott':          { showPrice: false, priceLabel: '',                 pricePlaceholder: '',             titleLabel: 'Title *',           titlePlaceholder: 'e.g. Spiderman: Brand New Day',  descPlaceholder: 'Plot, cast, where to watch...',                  linkLabel: 'Trailer / Streaming Link', linkPlaceholder: 'https://youtube.com/watch?v=...', dateLabel: 'Release Date', dropNoun: 'release' },
+  'gaming':              { showPrice: 'opt', priceLabel: 'Price (optional)',  pricePlaceholder: 'Free / $59.99', titleLabel: 'Game / Update *',    titlePlaceholder: 'e.g. Fortnite x Dragon Ball Z',  descPlaceholder: 'Gameplay details, platforms, features...',       linkLabel: 'Store / Download Link',  linkPlaceholder: 'https://store.steampowered.com', dateLabel: 'Release Date', dropNoun: 'release' },
+  'music-entertainment': { showPrice: false, priceLabel: '',                 pricePlaceholder: '',             titleLabel: 'Title *',           titlePlaceholder: 'e.g. Album: Midnight Sessions',  descPlaceholder: 'Artist, tracklist, streaming platforms...',      linkLabel: 'Listen / Tickets Link',  linkPlaceholder: 'https://spotify.com/album/...',  dateLabel: 'Release Date', dropNoun: 'release' },
+  'fashion-streetwear':  { showPrice: true,  priceLabel: 'Price',            pricePlaceholder: '$48 - $298',   titleLabel: 'Product / Collection *', titlePlaceholder: 'e.g. Summer 2026 Collection',  descPlaceholder: 'Materials, sizing, collab details...',           linkLabel: 'Shop Link',              linkPlaceholder: 'https://brand.com/collection',   dateLabel: 'Drop Date',    dropNoun: 'drop' },
+  'beauty-skincare':     { showPrice: true,  priceLabel: 'Price',            pricePlaceholder: '$35',          titleLabel: 'Product Name *',    titlePlaceholder: 'e.g. Glow Serum Limited Edition', descPlaceholder: 'Ingredients, benefits, skin type...',            linkLabel: 'Shop Link',              linkPlaceholder: 'https://brand.com/product',      dateLabel: 'Drop Date',    dropNoun: 'drop' },
+  'automobiles':         { showPrice: true,  priceLabel: 'Starting Price',   pricePlaceholder: '$45,000',      titleLabel: 'Model Name *',      titlePlaceholder: 'e.g. Model S Plaid+',            descPlaceholder: 'Specs, performance, range, features...',         linkLabel: 'Pre-order / Details Link', linkPlaceholder: 'https://brand.com/model',       dateLabel: 'Reveal Date',  dropNoun: 'reveal' },
+  'mobility-ev':         { showPrice: true,  priceLabel: 'Starting Price',   pricePlaceholder: '$35,000',      titleLabel: 'Vehicle / Product *', titlePlaceholder: 'e.g. Urban EV Scooter',          descPlaceholder: 'Range, speed, charging, features...',            linkLabel: 'Pre-order Link',         linkPlaceholder: 'https://brand.com/product',      dateLabel: 'Launch Date',  dropNoun: 'launch' },
+  'food-beverages':      { showPrice: true,  priceLabel: 'Price',            pricePlaceholder: '$4.99',        titleLabel: 'Product Name *',    titlePlaceholder: 'e.g. KSI x Prime Energy',        descPlaceholder: 'Flavor, ingredients, availability...',           linkLabel: 'Shop / Order Link',      linkPlaceholder: 'https://brand.com/product',      dateLabel: 'Drop Date',    dropNoun: 'drop' },
+  'lifestyle-home':      { showPrice: true,  priceLabel: 'Price',            pricePlaceholder: '$129',         titleLabel: 'Product Name *',    titlePlaceholder: 'e.g. Smart Lamp Pro',             descPlaceholder: 'Features, materials, dimensions...',             linkLabel: 'Shop Link',              linkPlaceholder: 'https://brand.com/product',      dateLabel: 'Drop Date',    dropNoun: 'drop' },
+  'startups-products':   { showPrice: false, priceLabel: '',                 pricePlaceholder: '',             titleLabel: 'Announcement Title *', titlePlaceholder: 'e.g. Series A — $10M Raised',  descPlaceholder: 'What\'s launching? Key details, mission...',     linkLabel: 'Website / Signup Link',  linkPlaceholder: 'https://startup.com',            dateLabel: 'Launch Date',  dropNoun: 'launch' },
+  'creator-tools-audio': { showPrice: 'opt', priceLabel: 'Price (optional)', pricePlaceholder: '$149 / Free',   titleLabel: 'Product Name *',    titlePlaceholder: 'e.g. Studio Mic Pro X',           descPlaceholder: 'Specs, compatibility, what\'s included...',      linkLabel: 'Shop / Download Link',   linkPlaceholder: 'https://brand.com/product',      dateLabel: 'Drop Date',    dropNoun: 'drop' },
+  'collectibles-culture':{ showPrice: true,  priceLabel: 'Price',            pricePlaceholder: '$50 - $500',   titleLabel: 'Item / Collection *', titlePlaceholder: 'e.g. Vintage Poster Series',    descPlaceholder: 'Edition size, materials, artist...',             linkLabel: 'Shop Link',              linkPlaceholder: 'https://brand.com/collection',   dateLabel: 'Drop Date',    dropNoun: 'drop' },
+  'sports-equipment':    { showPrice: true,  priceLabel: 'Price',            pricePlaceholder: '$199',         titleLabel: 'Product Name *',    titlePlaceholder: 'e.g. Pro Carbon Tennis Racket',   descPlaceholder: 'Specs, materials, athlete endorsement...',       linkLabel: 'Shop Link',              linkPlaceholder: 'https://brand.com/product',      dateLabel: 'Drop Date',    dropNoun: 'drop' },
+  'travel-experiences':  { showPrice: 'opt', priceLabel: 'Price (optional)', pricePlaceholder: '$299/person',   titleLabel: 'Experience Title *', titlePlaceholder: 'e.g. Bali Creator Retreat 2026', descPlaceholder: 'Itinerary, dates, what\'s included...',           linkLabel: 'Book / Details Link',    linkPlaceholder: 'https://brand.com/experience',   dateLabel: 'Date',         dropNoun: 'experience' },
+};
+
+const defaultConfig = { showPrice: true, priceLabel: 'Price', pricePlaceholder: '$99', titleLabel: 'Title *', titlePlaceholder: 'e.g. Product Name', descPlaceholder: 'Describe your drop...', linkLabel: 'Official Link', linkPlaceholder: 'https://...', dateLabel: 'Drop Date', dropNoun: 'drop' };
+
+function getCategoryConfig(categoryId) {
+  return categoryConfig[categoryId] || defaultConfig;
+}
+
 function getAuthHeaders() {
   const headers = { 'Content-Type': 'application/json' };
   if (typeof window !== 'undefined') {
@@ -165,7 +191,7 @@ export default function DashboardPage() {
           description: form.description,
           imageUrl: form.imageUrl,
           imageUrls: allImageUrls,
-          price: form.price ? `$${form.price.replace('$', '')}` : 'TBA',
+          price: getCategoryConfig(form.category).showPrice === false ? '' : (form.price ? `$${form.price.replace('$', '')}` : 'TBA'),
           category: form.category,
           dropTime,
           website: form.website,
@@ -325,10 +351,10 @@ export default function DashboardPage() {
               onChange={(e) => setForm({ ...form, brandName: e.target.value })} />
           </div>
 
-          {/* Product Title */}
+          {/* Title — adapts label per category */}
           <div>
-            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Product Title *</label>
-            <input style={inputStyle} placeholder="e.g. Air Max 2030 Limited Edition" value={form.title} required
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{getCategoryConfig(form.category).titleLabel}</label>
+            <input style={inputStyle} placeholder={getCategoryConfig(form.category).titlePlaceholder} value={form.title} required
               onChange={(e) => setForm({ ...form, title: e.target.value })} />
           </div>
 
@@ -336,12 +362,13 @@ export default function DashboardPage() {
           <div>
             <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Caption / Description</label>
             <textarea style={{ ...inputStyle, resize: 'none', minHeight: '100px' }}
-              placeholder="Describe your drop..." value={form.description}
+              placeholder={getCategoryConfig(form.category).descPlaceholder} value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </div>
 
-          {/* Category + Price */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          {/* Category + Price (price adapts or hides per category) */}
+          {(() => { const cfg = getCategoryConfig(form.category); return (
+          <div style={{ display: 'grid', gridTemplateColumns: cfg.showPrice !== false ? '1fr 1fr' : '1fr', gap: '12px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Category</label>
               <select style={{ ...inputStyle, appearance: 'none' }} value={form.category}
@@ -351,12 +378,15 @@ export default function DashboardPage() {
                 ))}
               </select>
             </div>
+            {cfg.showPrice !== false && (
             <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Price</label>
-              <input style={inputStyle} placeholder="$199.99" value={form.price}
+              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{cfg.priceLabel}</label>
+              <input style={inputStyle} placeholder={cfg.pricePlaceholder} value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })} />
             </div>
+            )}
           </div>
+          ); })()}
 
 
 
@@ -394,7 +424,7 @@ export default function DashboardPage() {
               {/* Drop Date + Time */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Drop Date *</label>
+                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{getCategoryConfig(form.category).dateLabel} *</label>
                   <input type="date" style={inputStyle} value={form.dropDate}
                     onChange={(e) => setForm({ ...form, dropDate: e.target.value })} />
                 </div>
@@ -416,13 +446,13 @@ export default function DashboardPage() {
             </>
           )}
 
-          {/* Website */}
+          {/* Website — label adapts per category */}
           <div>
-            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Official Link (Shop Now)</label>
-            <input type="url" style={inputStyle} placeholder="https://yourbrand.com/product"
+            <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{getCategoryConfig(form.category).linkLabel}</label>
+            <input type="url" style={inputStyle} placeholder={getCategoryConfig(form.category).linkPlaceholder}
               value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              This link will appear as the &quot;Shop Now&quot; button on your drop
+              This link will appear as the action button on your {getCategoryConfig(form.category).dropNoun}
             </div>
           </div>
 

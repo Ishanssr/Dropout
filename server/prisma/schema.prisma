@@ -25,6 +25,7 @@ model User {
   likes           Like[]
   follows         Follow[]
   dropEntries     DropEntry[]
+  notifications   DropNotification[]
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 }
@@ -60,6 +61,8 @@ model Drop {
   comments    Comment[]
   saves       SavedDrop[]
   entries     DropEntry[]
+  notifications DropNotification[]
+  notifiedAt DateTime?
   views       Int         @default(0)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -113,6 +116,18 @@ model DropEntry {
   drop      Drop     @relation(fields: [dropId], references: [id])
   dropId    String
   status    String   @default("entered")
+  createdAt DateTime @default(now())
+
+  @@unique([userId, dropId])
+}
+
+model DropNotification {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  drop      Drop     @relation(fields: [dropId], references: [id])
+  dropId    String
+  emailed   Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@unique([userId, dropId])

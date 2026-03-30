@@ -3,6 +3,7 @@ const prisma = require('../utils/prisma');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { recalculateHypeScore } = require('../utils/hypeScore');
 const { sanitizeText, validateDropInput } = require('../utils/sanitize');
+const { sendDropLiveEmail } = require('../utils/email');
 
 const router = express.Router();
 
@@ -247,6 +248,86 @@ router.post('/:id/enter', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('POST /api/drops/:id/enter error:', err);
     res.status(500).json({ error: 'Failed to enter drop' });
+  }
+});
+
+// PUT /api/drops/:id/notify — toggle drop notification
+router.put('/:id/notify', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const dropId = req.params.id;
+    const existing = await prisma.dropNotification.findUnique({
+      where: { userId_dropId: { userId, dropId } },
+    });
+    if (existing) {
+      await prisma.dropNotification.delete({ where: { id: existing.id } });
+      res.json({ notified: false });
+    } else {
+      await prisma.dropNotification.create({ data: { userId, dropId } });
+      res.json({ notified: true });
+    }
+  } catch (err) {
+    console.error('PUT /api/drops/:id/notify error:', err);
+    res.status(500).json({ error: 'Failed to toggle notification' });
+  }
+});
+
+// GET /api/drops/:id/notify — check if user is notified
+router.get('/:id/notify', requireAuth, async (req, res) => {
+  try {
+    const existing = await prisma.dropNotification.findUnique({
+      where: { userId_dropId: { userId: req.user.id, dropId: req.params.id } },
+    });
+    res.json({ notified: !!existing });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to check notification' });
+  }
+});
+
+// POST /api/drops/send-notifications — cron: email users for drops that just went live
+// Call this periodically (e.g. every 5 min) from an external cron service or Render Cron Job
+router.post('/send-notifications', async (req, res) => {
+  try {
+    // Find drops that are now live (dropTime <= now) but haven't been notified yet
+    const now = new Date();
+    const liveDrops = await prisma.drop.findMany({
+      where: {
+        dropTime: { lte: now },
+        notifiedAt: null,
+      },
+      include: {
+        brand: true,
+        notifications: {
+          where: { emailed: false },
+          include: { user: { select: { id: true, email: true, name: true } } },
+        },
+      },
+    });
+
+    let emailsSent = 0;
+    for (const drop of liveDrops) {
+      // Send email to each notified user
+      for (const notification of drop.notifications) {
+        if (notification.user.email) {
+          await sendDropLiveEmail(notification.user.email, notification.user.name, drop);
+          await prisma.dropNotification.update({
+            where: { id: notification.id },
+            data: { emailed: true },
+          });
+          emailsSent++;
+        }
+      }
+      // Mark drop as notified
+      await prisma.drop.update({
+        where: { id: drop.id },
+        data: { notifiedAt: now },
+      });
+    }
+
+    res.json({ processed: liveDrops.length, emailsSent });
+  } catch (err) {
+    console.error('POST /api/drops/send-notifications error:', err);
+    res.status(500).json({ error: 'Failed to process notifications' });
   }
 });
 

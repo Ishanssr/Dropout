@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CountdownTimer from './CountdownTimer';
-import { formatNumber, toggleLike, toggleSave, toggleFollowBrand } from '../lib/api';
+import { formatNumber, toggleLike, toggleSave, toggleFollowBrand, toggleNotify } from '../lib/api';
 import { getNotificationForDrop, requestNotificationPermission, toggleDropReminder } from '../lib/notifications';
 import { getDropStatus } from '../lib/dropStatus';
 import { notifyUserChanged } from '../lib/userStorage';
@@ -96,12 +96,20 @@ export default function DropCard({ drop, index = 0 }) {
   const handleNotify = async (e) => {
     e.preventDefault(); e.stopPropagation();
     if (!requireLogin()) return;
-    if (dropStatus === 'ended') { alert('This drop has already ended.'); return; }
-    const permission = await requestNotificationPermission();
-    if (permission === 'denied') alert('Browser notifications are blocked.');
-    const result = toggleDropReminder(drop);
-    setNotified(result.active);
-    alert(result.active ? 'Reminder saved.' : 'Reminder removed.');
+    if (dropStatus === 'ended') { alert('This drop has already ended.'); return;
+    }
+    try {
+      const result = await toggleNotify(drop.id);
+      setNotified(result.notified);
+      // Also toggle browser notification permission
+      if (result.notified) await requestNotificationPermission();
+    } catch (err) {
+      // Fallback to local if server fails
+      const permission = await requestNotificationPermission();
+      if (permission === 'denied') alert('Browser notifications are blocked.');
+      const result = toggleDropReminder(drop);
+      setNotified(result.active);
+    }
   };
 
   // Swipe handlers for carousel

@@ -1,7 +1,7 @@
 const { Resend } = require('resend');
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Dropamyn <notifications@dropamyn.com>';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Dropamyn <alerts@dropamyn.com>';
 
 async function sendDropLiveEmail(userEmail, userName, drop) {
   if (!resend) {

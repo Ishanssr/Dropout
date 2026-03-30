@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { fetchUserProfile, updateProfile, uploadImage } from '../../lib/api';
 import ClientShell from '../../components/ClientShell';
 import { GlassPanelLayers } from '../../components/LiquidGlass';
+import EdgeGlowCard from '../../components/EdgeGlowCard';
 import {
   clearStoredUser,
   getStoredUserSnapshot,
@@ -117,7 +118,7 @@ export default function ProfilePage() {
     <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%', padding: '16px 12px' }}>
 
       {/* ═══ LIQUID GLASS PROFILE CARD ═══ */}
-      <div style={{ borderRadius: '28px', overflow: 'hidden', position: 'relative', background: 'rgba(8,8,16,0.75)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', boxShadow: '0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)', marginBottom: '16px' }}>
+      <EdgeGlowCard style={{ '--border-radius': '28px', '--glow-padding': '24px', marginBottom: '16px' }}>
         <GlassPanelLayers />
         <div style={{ position: 'relative', zIndex: 5, padding: '32px 24px 28px' }}>
 
@@ -186,7 +187,7 @@ export default function ProfilePage() {
           </div>
           {msg && <div style={{ padding: '10px 16px', borderRadius: '14px', marginTop: '12px', background: msg.includes('fail') ? 'rgba(239,68,68,0.06)' : 'rgba(59,130,246,0.06)', border: `1px solid ${msg.includes('fail') ? 'rgba(239,68,68,0.15)' : 'rgba(59,130,246,0.15)'}`, color: msg.includes('fail') ? '#ef4444' : '#60a5fa', fontSize: '12px', fontWeight: 500, textAlign: 'center' }}>{msg}</div>}
         </div>
-      </div>
+      </EdgeGlowCard>
 
       {/* ═══ QUICK LINKS GLASS CARD ═══ */}
       <div style={{ borderRadius: '24px', overflow: 'hidden', position: 'relative', background: 'rgba(8,8,16,0.6)', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', padding: '8px' }}>
@@ -230,19 +231,20 @@ export default function ProfilePage() {
                 <Link href="/search" style={{ display: 'block', marginTop: '12px', color: '#3b82f6', textDecoration: 'none', fontWeight: 600, fontSize: '13px' }}>Discover brands →</Link>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {profile.follows.map((f) => (
-                  <Link key={f.id} href={`/brand/${f.brand?.id}`} onClick={() => setShowFollowing(false)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '14px', textDecoration: 'none', color: '#fff', transition: 'all 0.2s ease', background: 'transparent' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', border: '2px solid rgba(59,130,246,0.15)' }}>
-                      {f.brand?.logo ? <img src={f.brand.logo} alt={f.brand.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '18px', fontWeight: 700 }}>{f.brand?.name?.charAt(0) || '?'}</span>}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: '14px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>{f.brand?.name}</div>
-                    </div>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  <Link key={f.id} href={`/brand/${f.brand?.id}`} onClick={() => setShowFollowing(false)} style={{ textDecoration: 'none' }}>
+                    <EdgeGlowCard className="glow-compact" style={{ cursor: 'pointer' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', color: '#fff' }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', border: '2px solid rgba(59,130,246,0.15)' }}>
+                          {f.brand?.logo ? <img src={f.brand.logo} alt={f.brand.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '18px', fontWeight: 700 }}>{f.brand?.name?.charAt(0) || '?'}</span>}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: '14px', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em' }}>{f.brand?.name}</div>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                      </div>
+                    </EdgeGlowCard>
                   </Link>
                 ))}
               </div>

@@ -189,16 +189,34 @@ export default function DropCard({ drop, index = 0 }) {
             background: 'rgba(5,5,8,0.75)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
             borderRadius: 'var(--radius-md)', padding: '10px 14px',
           }}>
-            <CountdownTimer dropTime={drop.dropTime} />
-            <button onClick={handleNotify} className="lg-notify" style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
-              color: '#fff', fontSize: '12px', fontWeight: 600,
-              opacity: dropStatus === 'ended' ? 0.5 : 1, letterSpacing: '-0.01em',
-            }} disabled={dropStatus === 'ended'}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill={notified ? '#fff' : 'none'} stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              {notified ? 'Reminder On' : 'Notify Me'}
-            </button>
+            {isLive ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399', animation: 'glowPulse 2s ease-in-out infinite', flexShrink: 0 }} />
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#34d399', letterSpacing: '-0.01em' }}>LIVE NOW</span>
+                </div>
+                {drop.website && (
+                  <a href={drop.website} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                    style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '7px 14px', borderRadius: '8px', background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.25)', color: '#34d399', fontSize: '12px', fontWeight: 600, textDecoration: 'none', letterSpacing: '-0.01em' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Shop Now
+                  </a>
+                )}
+              </>
+            ) : (
+              <>
+                <CountdownTimer dropTime={drop.dropTime} />
+                <button onClick={handleNotify} className="lg-notify" style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
+                  color: '#fff', fontSize: '12px', fontWeight: 600,
+                  opacity: dropStatus === 'ended' ? 0.5 : 1, letterSpacing: '-0.01em',
+                }} disabled={dropStatus === 'ended'}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill={notified ? '#fff' : 'none'} stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  {notified ? 'Reminder On' : 'Notify Me'}
+                </button>
+              </>
+            )}
           </div>
 
           {drop.featured && (

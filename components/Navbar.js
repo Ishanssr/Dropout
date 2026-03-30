@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { GlassFilter, GlassPanelLayers } from './LiquidGlass';
+import EdgeGlowCard from './EdgeGlowCard';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import {
@@ -217,20 +218,14 @@ export default function Sidebar() {
                   fontFamily: "'Sora', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase',
                   position: 'relative', zIndex: 5,
                 }}>Categories</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', position: 'relative', zIndex: 5 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', position: 'relative', zIndex: 5 }}>
                   {categories.filter(c => c.id !== 'all').map(cat => (
-                    <Link key={cat.id} href={`/feed?category=${cat.id}`} onClick={() => setDesktopCatOpen(false)}
-                      style={{
-                        display: 'flex', alignItems: 'center', padding: '11px 14px', borderRadius: '12px',
-                        fontSize: '13px', color: 'rgba(255,255,255,0.55)', fontWeight: 500,
-                        textDecoration: 'none', transition: 'all 0.2s ease',
-                        background: 'transparent', letterSpacing: '-0.01em',
-                        fontFamily: "'Sora', sans-serif",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.06)'; e.currentTarget.style.color = '#93c5fd'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
-                    >
-                      {cat.name}
+                    <Link key={cat.id} href={`/feed?category=${cat.id}`} onClick={() => setDesktopCatOpen(false)} style={{ textDecoration: 'none' }}>
+                      <EdgeGlowCard className="glow-compact" style={{ cursor: 'pointer' }}>
+                        <div style={{ padding: '11px 14px', fontSize: '13px', color: 'rgba(255,255,255,0.6)', fontWeight: 500, letterSpacing: '-0.01em', fontFamily: "'Sora', sans-serif" }}>
+                          {cat.name}
+                        </div>
+                      </EdgeGlowCard>
                     </Link>
                   ))}
                 </div>
@@ -392,18 +387,14 @@ export default function Sidebar() {
             <div style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.3)', marginBottom: '14px', fontFamily: "'Sora', sans-serif", letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               Categories
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
               {categories.filter(c => c.id !== 'all').map(cat => (
-                <Link key={cat.id} href={`/feed?category=${cat.id}`} onClick={() => setMobileCatOpen(false)}
-                  style={{
-                    display: 'flex', alignItems: 'center', padding: '12px 14px', borderRadius: '12px',
-                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)',
-                    textDecoration: 'none', transition: 'all 0.15s ease',
-                    fontSize: '13px', color: 'rgba(255,255,255,0.55)', fontWeight: 500,
-                    fontFamily: "'Sora', sans-serif", letterSpacing: '-0.01em',
-                  }}
-                >
-                  {cat.name}
+                <Link key={cat.id} href={`/feed?category=${cat.id}`} onClick={() => setMobileCatOpen(false)} style={{ textDecoration: 'none' }}>
+                  <EdgeGlowCard className="glow-compact" style={{ cursor: 'pointer' }}>
+                    <div style={{ padding: '12px 14px', fontSize: '13px', color: 'rgba(255,255,255,0.55)', fontWeight: 500, fontFamily: "'Sora', sans-serif", letterSpacing: '-0.01em' }}>
+                      {cat.name}
+                    </div>
+                  </EdgeGlowCard>
                 </Link>
               ))}
             </div>

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toggleFollowBrand, formatNumber } from '../../../lib/api';
 import { GlassPanelLayers } from '../../../components/LiquidGlass';
+import EdgeGlowCard from '../../../components/EdgeGlowCard';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dropout-htf0.onrender.com';
 
@@ -110,13 +111,12 @@ export default function UserProfilePage() {
         <button onClick={() => router.back()} style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '13px', cursor: 'pointer', fontWeight: 500, padding: 0 }}>← Back</button>
       </div>
 
-      {/* Profile Card */}
-      <div style={{
-        margin: '0 16px 20px', borderRadius: '24px',
-        background: 'linear-gradient(145deg, rgba(59,130,246,0.06), rgba(255,255,255,0.02))',
-        border: '1px solid rgba(59,130,246,0.08)', padding: '28px 24px 24px',
-        backdropFilter: 'blur(16px)',
+      <EdgeGlowCard style={{
+        '--border-radius': '24px',
+        '--glow-padding': '20px',
+        margin: '0 16px 20px',
       }}>
+        <div style={{ padding: '28px 24px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <div style={{
             width: '88px', height: '88px', borderRadius: '50%', margin: '0 auto 14px',
@@ -168,7 +168,8 @@ export default function UserProfilePage() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </EdgeGlowCard>
     </div>
   );
 }

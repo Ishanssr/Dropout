@@ -6,6 +6,7 @@ import Link from 'next/link';
 import DropCard from '../../../components/DropCard';
 import { transformDrop, toggleFollowBrand } from '../../../lib/api';
 import { GlassPanelLayers } from '../../../components/LiquidGlass';
+import EdgeGlowCard from '../../../components/EdgeGlowCard';
 import { getDropStatus } from '../../../lib/dropStatus';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dropout-htf0.onrender.com';
@@ -117,15 +118,10 @@ export default function BrandProfilePage() {
       </div>
 
       {/* ═══════ LIQUID GLASS PROFILE CARD ═══════ */}
-      <div style={{
+      <EdgeGlowCard style={{
+        '--border-radius': '28px',
+        '--glow-padding': '24px',
         margin: '0 12px 0',
-        borderRadius: '28px',
-        overflow: 'hidden',
-        position: 'relative',
-        background: 'rgba(8,8,16,0.75)',
-        border: '1px solid rgba(255,255,255,0.07)',
-        backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
       }}>
         <GlassPanelLayers />
 
@@ -242,7 +238,7 @@ export default function BrandProfilePage() {
             ))}
           </div>
         </div>
-      </div>
+      </EdgeGlowCard>
 
       {/* ═══════ DROPS THUMBNAIL GRID ═══════ */}
       <div style={{ padding: '20px 12px 0' }}>

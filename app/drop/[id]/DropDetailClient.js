@@ -155,17 +155,70 @@ export default function DropDetailClient({ drop: initialDrop }) {
         </div>
       </div>
 
-      {/* Image */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '1', overflow: 'hidden', background: 'var(--bg-secondary)' }}>
-        <img src={drop.imageUrl} alt={drop.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        <div style={{
-          position: 'absolute', bottom: '14px', right: '14px', fontSize: '13px', fontWeight: 600, color: '#fff',
-          background: 'rgba(5,5,8,0.7)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-          padding: '6px 14px', borderRadius: 'var(--radius-full)',
-          border: '1px solid rgba(255,255,255,0.06)', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
-        }}>{drop.price}</div>
+      {/* Image Carousel */}
+      {(() => {
+        const images = (drop.imageUrls && drop.imageUrls.length > 0) ? drop.imageUrls : [drop.imageUrl].filter(Boolean);
+        return (
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '1', overflow: 'hidden', background: 'var(--bg-secondary)' }}
+          onTouchStart={(e) => { e.currentTarget.dataset.touchX = e.touches[0].clientX; }}
+          onTouchEnd={(e) => {
+            if (images.length <= 1) return;
+            const startX = parseFloat(e.currentTarget.dataset.touchX || 0);
+            const delta = startX - e.changedTouches[0].clientX;
+            if (Math.abs(delta) > 50) {
+              const curr = parseInt(e.currentTarget.dataset.currentImg || 0);
+              const next = delta > 0 ? Math.min(curr + 1, images.length - 1) : Math.max(curr - 1, 0);
+              e.currentTarget.dataset.currentImg = next;
+              e.currentTarget.querySelector('[data-carousel-track]').style.transform = `translateX(-${next * (100 / images.length)}%)`;
+              e.currentTarget.querySelectorAll('[data-dot]').forEach((dot, i) => {
+                dot.style.width = i === next ? '16px' : '6px';
+                dot.style.background = i === next ? '#fff' : 'rgba(255,255,255,0.4)';
+              });
+            }
+          }}
+        >
+          <div data-carousel-track style={{
+            display: 'flex', width: `${images.length * 100}%`,
+            transform: 'translateX(0%)',
+            transition: 'transform 0.35s ease',
+            height: '100%',
+          }}>
+            {images.map((src, i) => (
+              <img key={i} src={src} alt={`${drop.title} ${i + 1}`}
+                style={{ width: `${100 / images.length}%`, height: '100%', objectFit: 'cover', display: 'block', flexShrink: 0 }}
+              />
+            ))}
+          </div>
 
-      </div>
+          {/* Carousel dots */}
+          {images.length > 1 && (
+            <div style={{
+              position: 'absolute', top: '12px', right: '14px',
+              display: 'flex', gap: '5px', padding: '5px 8px',
+              background: 'rgba(0,0,0,0.4)', borderRadius: '50px',
+            }}>
+              {images.map((_, i) => (
+                <div key={i} data-dot style={{
+                  width: i === 0 ? '16px' : '6px', height: '6px', borderRadius: '50px',
+                  background: i === 0 ? '#fff' : 'rgba(255,255,255,0.4)',
+                  transition: 'all 0.3s ease',
+                }} />
+              ))}
+            </div>
+          )}
+
+          {/* Price badge */}
+          {drop.price && drop.price.trim() !== '' && (
+          <div style={{
+            position: 'absolute', bottom: '14px', right: '14px', fontSize: '13px', fontWeight: 600, color: '#fff',
+            background: 'rgba(5,5,8,0.7)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            padding: '6px 14px', borderRadius: 'var(--radius-full)',
+            border: '1px solid rgba(255,255,255,0.06)', fontFamily: "'Sora', sans-serif", letterSpacing: '-0.02em',
+          }}>{drop.price}</div>
+          )}
+        </div>
+        );
+      })()}
 
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', gap: '4px' }}>

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import DropCard from '../../components/DropCard';
 import { fetchDrops, fetchFollowingDrops, transformDrop } from '../../lib/api';
 import { filterDropsByTab } from '../../lib/dropStatus';
-import { GlassPanelLayers } from '../../components/LiquidGlass';
+
 
 function getUser() {
   if (typeof window === 'undefined') return null;
@@ -85,18 +85,32 @@ export default function Home() {
           display: 'flex', borderRadius: 'var(--radius-full)',
           overflow: 'hidden', padding: '3px',
           position: 'relative',
-          background: 'rgba(5,5,10,0.55)',
-          boxShadow: '0 6px 6px rgba(0,0,0,0.2), 0 0 20px rgba(0,0,0,0.1)',
+          background: 'rgba(255,255,255,0.02)',
+          border: 'none',
+          boxShadow:
+            '0 0 6px rgba(0,0,0,0.04), ' +
+            '0 2px 8px rgba(0,0,0,0.1), ' +
+            'inset 3px 3px 0.5px -3px rgba(255,255,255,0.7), ' +
+            'inset -3px -3px 0.5px -3px rgba(255,255,255,0.6), ' +
+            'inset 1px 1px 1px -0.5px rgba(255,255,255,0.45), ' +
+            'inset -1px -1px 1px -0.5px rgba(255,255,255,0.45), ' +
+            'inset 0 0 6px 5px rgba(255,255,255,0.08), ' +
+            'inset 0 0 2px 2px rgba(255,255,255,0.04), ' +
+            '0 0 12px rgba(0,0,0,0.12)',
         }}>
-          <GlassPanelLayers />
           <div style={{
             position: 'absolute', top: '3px',
             left: `calc(${tabs.findIndex(t => t.id === tab) * 50}% + 3px)`,
             width: `calc(50% - 6px)`,
             height: 'calc(100% - 6px)',
             borderRadius: 'var(--radius-full)',
-            background: 'rgba(59,130,246,0.1)',
-            boxShadow: 'inset 1px 1px 0.5px -0.5px rgba(255,255,255,0.3), inset -1px -1px 0.5px -0.5px rgba(255,255,255,0.2), inset 0 0 4px 2px rgba(59,130,246,0.06)',
+            background: 'rgba(59,130,246,0.08)',
+            boxShadow:
+              'inset 2px 2px 0.5px -1.5px rgba(255,255,255,0.5), ' +
+              'inset -2px -2px 0.5px -1.5px rgba(255,255,255,0.4), ' +
+              'inset 0 0 4px 3px rgba(59,130,246,0.08), ' +
+              'inset 0 0 1px 1px rgba(255,255,255,0.06), ' +
+              '0 0 8px rgba(59,130,246,0.06)',
             transition: 'left 0.5s cubic-bezier(0.175, 0.885, 0.32, 2.2)',
             zIndex: 4,
           }} />

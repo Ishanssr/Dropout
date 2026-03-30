@@ -99,4 +99,45 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Dropamyn API running on port ${PORT}`);
+
+  // Built-in cron: check for newly-live drops & send email notifications every 5 min
+  const prisma = require('./utils/prisma');
+  const { sendDropLiveEmail } = require('./utils/email');
+
+  async function checkAndSendNotifications() {
+    try {
+      const now = new Date();
+      const liveDrops = await prisma.drop.findMany({
+        where: { dropTime: { lte: now }, notifiedAt: null },
+        include: {
+          brand: true,
+          notifications: {
+            where: { emailed: false },
+            include: { user: { select: { id: true, email: true, name: true } } },
+          },
+        },
+      });
+
+      if (liveDrops.length === 0) return;
+
+      let sent = 0;
+      for (const drop of liveDrops) {
+        for (const notif of drop.notifications) {
+          if (notif.user.email) {
+            await sendDropLiveEmail(notif.user.email, notif.user.name, drop);
+            await prisma.dropNotification.update({ where: { id: notif.id }, data: { emailed: true } });
+            sent++;
+          }
+        }
+        await prisma.drop.update({ where: { id: drop.id }, data: { notifiedAt: now } });
+      }
+      if (sent > 0) console.log(`📧 Sent ${sent} drop-live email(s) for ${liveDrops.length} drop(s)`);
+    } catch (err) {
+      console.error('[Cron] Notification check failed:', err.message);
+    }
+  }
+
+  // Run immediately on startup, then every 5 minutes
+  setTimeout(checkAndSendNotifications, 10000);
+  setInterval(checkAndSendNotifications, 5 * 60 * 1000);
 });

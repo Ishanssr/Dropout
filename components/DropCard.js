@@ -142,10 +142,22 @@ export default function DropCard({ drop, index = 0 }) {
             <div style={{ fontSize: '14px', fontWeight: 600, color: '#fff', letterSpacing: '-0.01em' }}>{drop.brand?.name}</div>
           </div>
         </Link>
-        <button onClick={handleFollow} className="lg-pill" style={{
-          padding: '5px 14px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 600,
-          color: following ? 'var(--text-secondary)' : '#60a5fa', cursor: 'pointer', letterSpacing: '-0.01em', flexShrink: 0,
-        }}>{following ? 'Following' : 'Follow'}</button>
+        {(() => {
+          const me = getUser();
+          const isBrandOwner = me && me.role === 'brand' && me.name === drop.brand?.name;
+          return isBrandOwner ? (
+            <div style={{
+              padding: '5px 14px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 600,
+              color: '#34d399', background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.08)',
+              letterSpacing: '-0.01em', flexShrink: 0,
+            }}>Your Drop</div>
+          ) : (
+            <button onClick={handleFollow} className="lg-pill" style={{
+              padding: '5px 14px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 600,
+              color: following ? 'var(--text-secondary)' : '#60a5fa', cursor: 'pointer', letterSpacing: '-0.01em', flexShrink: 0,
+            }}>{following ? 'Following' : 'Follow'}</button>
+          );
+        })()}
         <div style={{
           padding: '4px 10px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 600,
           color: '#60a5fa', background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.08)',

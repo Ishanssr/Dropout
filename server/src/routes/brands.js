@@ -39,11 +39,16 @@ router.get('/:id', optionalAuth, async (req, res) => {
     if (!brand) return res.status(404).json({ error: 'Brand not found' });
 
     let isFollowing = false;
+    let isOwner = false;
     if (req.user) {
       const follow = await prisma.follow.findUnique({ where: { userId_brandId: { userId: req.user.id, brandId: brand.id } } });
       isFollowing = !!follow;
+      // Check if the logged-in user is the brand owner
+      if (req.user.role === 'brand' && req.user.name === brand.name) {
+        isOwner = true;
+      }
     }
-    res.json({ ...brand, isFollowing });
+    res.json({ ...brand, isFollowing, isOwner });
   } catch (err) {
     console.error('GET /api/brands/:id error:', err);
     res.status(500).json({ error: 'Failed to fetch brand' });

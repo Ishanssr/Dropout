@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DropCard from '../../../components/DropCard';
-import { transformDrop, toggleFollowBrand } from '../../../lib/api';
+import { transformDrop, toggleFollowBrand, deleteDrop } from '../../../lib/api';
 import { GlassPanelLayers } from '../../../components/LiquidGlass';
 import EdgeGlowCard from '../../../components/EdgeGlowCard';
 import { getDropStatus } from '../../../lib/dropStatus';
@@ -20,6 +20,11 @@ function getHeaders() {
   return headers;
 }
 
+function getUser() {
+  if (typeof window === 'undefined') return null;
+  try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+}
+
 export default function BrandProfilePage() {
   const { id } = useParams();
   const router = useRouter();
@@ -29,6 +34,9 @@ export default function BrandProfilePage() {
   const [following, setFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [deletingDropId, setDeletingDropId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -39,6 +47,7 @@ export default function BrandProfilePage() {
         setBrand(data);
         setFollowing(data.isFollowing || false);
         setFollowerCount(data._count?.followers || 0);
+        setIsOwner(data.isOwner || false);
         setDrops((data.drops || []).map(d => ({
           ...transformDrop(d),
           brand: { id: data.id, name: data.name, logo: data.logo },
@@ -50,6 +59,15 @@ export default function BrandProfilePage() {
     }
     load();
   }, [id]);
+
+  // Fallback: also check locally if the logged-in user owns this brand
+  useEffect(() => {
+    if (!brand) return;
+    const me = getUser();
+    if (me && me.role === 'brand' && me.name === brand.name) {
+      setIsOwner(true);
+    }
+  }, [brand]);
 
   const handleFollow = async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -73,6 +91,18 @@ export default function BrandProfilePage() {
       setFollowerCount(c => prev ? c + 1 : c - 1);
     }
     setFollowLoading(false);
+  };
+
+  const handleDeleteDrop = async (dropId) => {
+    setDeletingDropId(dropId);
+    try {
+      await deleteDrop(dropId);
+      setDrops(prev => prev.filter(d => d.id !== dropId));
+      setShowDeleteConfirm(null);
+    } catch (err) {
+      alert('Failed to delete drop: ' + (err.message || 'Unknown error'));
+    }
+    setDeletingDropId(null);
   };
 
   if (loading) {
@@ -126,6 +156,23 @@ export default function BrandProfilePage() {
         <GlassPanelLayers />
 
         <div style={{ position: 'relative', zIndex: 5, padding: '32px 24px 28px' }}>
+          {/* Owner badge */}
+          {isOwner && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '6px', marginBottom: '16px',
+              padding: '6px 16px', borderRadius: '50px',
+              background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.15)',
+              fontSize: '12px', fontWeight: 600, color: '#34d399',
+              fontFamily: "'Sora', sans-serif", letterSpacing: '-0.01em',
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Your Brand Profile
+            </div>
+          )}
+
           {/* Avatar with glow ring */}
           <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <div style={{
@@ -192,25 +239,45 @@ export default function BrandProfilePage() {
             )}
           </div>
 
-          {/* Follow */}
-          <button
-            onClick={handleFollow}
-            disabled={followLoading}
-            style={{
-              width: '100%', padding: '13px 0', borderRadius: '50px',
-              fontSize: '14px', fontWeight: 700, cursor: followLoading ? 'wait' : 'pointer',
+          {/* Follow / Owner Actions */}
+          {isOwner ? (
+            <Link href="/dashboard" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '8px', width: '100%', padding: '13px 0', borderRadius: '50px',
+              fontSize: '14px', fontWeight: 700, cursor: 'pointer',
               transition: 'all 0.3s ease', fontFamily: "'Sora', sans-serif",
               letterSpacing: '-0.01em', marginBottom: '22px',
-              border: following ? '1px solid rgba(255,255,255,0.08)' : 'none',
-              background: following
-                ? 'rgba(255,255,255,0.04)'
-                : 'linear-gradient(135deg, #3b82f6, #6366f1)',
-              color: following ? 'rgba(255,255,255,0.5)' : '#fff',
-              boxShadow: following ? 'none' : '0 4px 24px rgba(59,130,246,0.3)',
-            }}
-          >
-            {followLoading ? '...' : following ? 'Following ✓' : 'Follow'}
-          </button>
+              border: '1px solid rgba(52,211,153,0.2)',
+              background: 'rgba(52,211,153,0.06)',
+              color: '#34d399', textDecoration: 'none',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="9" y1="21" x2="9" y2="9"/>
+              </svg>
+              Go to Dashboard
+            </Link>
+          ) : (
+            <button
+              onClick={handleFollow}
+              disabled={followLoading}
+              style={{
+                width: '100%', padding: '13px 0', borderRadius: '50px',
+                fontSize: '14px', fontWeight: 700, cursor: followLoading ? 'wait' : 'pointer',
+                transition: 'all 0.3s ease', fontFamily: "'Sora', sans-serif",
+                letterSpacing: '-0.01em', marginBottom: '22px',
+                border: following ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                background: following
+                  ? 'rgba(255,255,255,0.04)'
+                  : 'linear-gradient(135deg, #3b82f6, #6366f1)',
+                color: following ? 'rgba(255,255,255,0.5)' : '#fff',
+                boxShadow: following ? 'none' : '0 4px 24px rgba(59,130,246,0.3)',
+              }}
+            >
+              {followLoading ? '...' : following ? 'Following ✓' : 'Follow'}
+            </button>
+          )}
 
           {/* Stats */}
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -271,6 +338,20 @@ export default function BrandProfilePage() {
           }}>
             <div style={{ fontSize: '28px', marginBottom: '12px', opacity: 0.4 }}>📦</div>
             <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>No drops yet</div>
+            {isOwner && (
+              <Link href="/dashboard" style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                marginTop: '16px', padding: '10px 20px', borderRadius: '50px',
+                background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+                color: '#fff', fontSize: '13px', fontWeight: 600, textDecoration: 'none',
+                fontFamily: "'Sora', sans-serif",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Create Your First Drop
+              </Link>
+            )}
           </div>
         ) : (
           <div style={{
@@ -283,73 +364,172 @@ export default function BrandProfilePage() {
             {drops.map((drop) => {
               const status = getDropStatus(drop);
               return (
-                <Link
+                <div
                   key={drop.id}
-                  href={`/drop/${drop.id}`}
                   style={{
-                    display: 'block', position: 'relative',
+                    position: 'relative',
                     aspectRatio: '1', overflow: 'hidden',
-                    textDecoration: 'none',
                     background: 'rgba(255,255,255,0.02)',
                   }}
                 >
-                  <img
-                    src={drop.imageUrl}
-                    alt={drop.title}
-                    loading="lazy"
+                  <Link
+                    href={`/drop/${drop.id}`}
                     style={{
-                      width: '100%', height: '100%', objectFit: 'cover',
-                      transition: 'transform 0.3s ease, filter 0.3s ease',
+                      display: 'block', position: 'relative',
+                      width: '100%', height: '100%',
+                      textDecoration: 'none',
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.filter = 'brightness(0.7)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.filter = 'brightness(1)'; }}
-                  />
-
-                  {/* Status badge */}
-                  <div style={{
-                    position: 'absolute', top: '6px', left: '6px',
-                    padding: '2px 6px', borderRadius: '6px',
-                    fontSize: '8px', fontWeight: 700, textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    background: status === 'live'
-                      ? 'rgba(52,211,153,0.85)'
-                      : 'rgba(59,130,246,0.85)',
-                    color: '#fff',
-                    backdropFilter: 'blur(8px)',
-                  }}>
-                    {status === 'live' ? '● LIVE' : 'SOON'}
-                  </div>
-
-                  {/* Bottom overlay on hover */}
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-                    padding: '20px 8px 8px',
-                    opacity: 0,
-                    transition: 'opacity 0.25s ease',
-                  }}
-                    className="thumb-overlay"
                   >
+                    <img
+                      src={drop.imageUrl}
+                      alt={drop.title}
+                      loading="lazy"
+                      style={{
+                        width: '100%', height: '100%', objectFit: 'cover',
+                        transition: 'transform 0.3s ease, filter 0.3s ease',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.filter = 'brightness(0.7)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.filter = 'brightness(1)'; }}
+                    />
+
+                    {/* Status badge */}
                     <div style={{
-                      fontSize: '10px', fontWeight: 700, color: '#fff',
-                      lineHeight: 1.2,
-                      overflow: 'hidden', textOverflow: 'ellipsis',
-                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                    }}>{drop.title}</div>
-                    <div style={{
-                      display: 'flex', gap: '6px', marginTop: '4px',
-                      fontSize: '9px', color: 'rgba(255,255,255,0.6)',
+                      position: 'absolute', top: '6px', left: '6px',
+                      padding: '2px 6px', borderRadius: '6px',
+                      fontSize: '8px', fontWeight: 700, textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      background: status === 'live'
+                        ? 'rgba(52,211,153,0.85)'
+                        : 'rgba(59,130,246,0.85)',
+                      color: '#fff',
+                      backdropFilter: 'blur(8px)',
                     }}>
-                      <span>↑{drop.engagement?.likes || 0}</span>
-                      <span>💬{drop.engagement?.comments || 0}</span>
+                      {status === 'live' ? '● LIVE' : 'SOON'}
                     </div>
-                  </div>
-                </Link>
+
+                    {/* Bottom overlay on hover */}
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0,
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                      padding: '20px 8px 8px',
+                      opacity: 0,
+                      transition: 'opacity 0.25s ease',
+                    }}
+                      className="thumb-overlay"
+                    >
+                      <div style={{
+                        fontSize: '10px', fontWeight: 700, color: '#fff',
+                        lineHeight: 1.2,
+                        overflow: 'hidden', textOverflow: 'ellipsis',
+                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                      }}>{drop.title}</div>
+                      <div style={{
+                        display: 'flex', gap: '6px', marginTop: '4px',
+                        fontSize: '9px', color: 'rgba(255,255,255,0.6)',
+                      }}>
+                        <span>↑{drop.engagement?.likes || 0}</span>
+                        <span>💬{drop.engagement?.comments || 0}</span>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Delete button for brand owner */}
+                  {isOwner && (
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(drop.id); }}
+                      style={{
+                        position: 'absolute', top: '6px', right: '6px',
+                        width: '24px', height: '24px', borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#fff', fontSize: '12px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        padding: 0, zIndex: 10,
+                        transition: 'all 0.2s ease',
+                        opacity: 0.6,
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'rgba(239,68,68,0.8)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.6'; e.currentTarget.style.background = 'rgba(0,0,0,0.6)'; }}
+                      title="Delete drop"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {/* ═══════ DELETE CONFIRMATION MODAL ═══════ */}
+      {showDeleteConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '20px',
+        }}
+          onClick={() => setShowDeleteConfirm(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: '340px',
+              borderRadius: '24px', overflow: 'hidden',
+              background: '#111118', border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+            }}
+          >
+            <div style={{ padding: '28px 24px 20px', textAlign: 'center' }}>
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%', margin: '0 auto 16px',
+                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+              </div>
+              <div style={{ fontSize: '17px', fontWeight: 700, color: '#fff', fontFamily: "'Sora', sans-serif", marginBottom: '8px' }}>
+                Delete this drop?
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                This will permanently remove the drop, including all likes, comments, and saves. This action cannot be undone.
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', padding: '0 24px 24px' }}>
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '12px', border: 'none',
+                  background: 'rgba(255,255,255,0.06)', color: '#fff',
+                  fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                  fontFamily: "'Sora', sans-serif",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteDrop(showDeleteConfirm)}
+                disabled={deletingDropId === showDeleteConfirm}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '12px', border: 'none',
+                  background: deletingDropId === showDeleteConfirm ? 'rgba(239,68,68,0.3)' : '#ef4444',
+                  color: '#fff', fontSize: '14px', fontWeight: 600,
+                  cursor: deletingDropId === showDeleteConfirm ? 'wait' : 'pointer',
+                  fontFamily: "'Sora', sans-serif",
+                }}
+              >
+                {deletingDropId === showDeleteConfirm ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hover CSS for thumbnail overlays */}
       <style jsx global>{`

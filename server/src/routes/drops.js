@@ -251,6 +251,34 @@ router.post('/:id/enter', requireAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/drops/:id — delete a drop (IDOR-safe: brand owner only)
+router.delete('/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'brand') {
+      return res.status(403).json({ error: 'Only brand accounts can delete drops' });
+    }
+    const brand = await prisma.brand.findFirst({ where: { name: req.user.name } });
+    if (!brand) return res.status(403).json({ error: 'No brand profile found' });
+
+    const drop = await prisma.drop.findUnique({ where: { id: req.params.id } });
+    if (!drop) return res.status(404).json({ error: 'Drop not found' });
+    if (drop.brandId !== brand.id) return res.status(403).json({ error: 'You can only delete your own drops' });
+
+    // Delete related records first
+    await prisma.like.deleteMany({ where: { dropId: drop.id } });
+    await prisma.comment.deleteMany({ where: { dropId: drop.id } });
+    await prisma.savedDrop.deleteMany({ where: { dropId: drop.id } });
+    await prisma.dropEntry.deleteMany({ where: { dropId: drop.id } });
+    await prisma.dropNotification.deleteMany({ where: { dropId: drop.id } });
+    await prisma.drop.delete({ where: { id: drop.id } });
+
+    res.json({ deleted: true });
+  } catch (err) {
+    console.error('DELETE /api/drops/:id error:', err);
+    res.status(500).json({ error: 'Failed to delete drop' });
+  }
+});
+
 // PUT /api/drops/:id/notify — toggle drop notification
 router.put('/:id/notify', requireAuth, async (req, res) => {
   try {

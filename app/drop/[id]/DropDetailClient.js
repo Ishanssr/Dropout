@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toggleLike, toggleSave, toggleFollowBrand, addComment, formatNumber } from '../../../lib/api';
 import CountdownTimer from '../../../components/CountdownTimer';
@@ -8,6 +8,17 @@ import Link from 'next/link';
 
 export default function DropDetailClient({ drop: initialDrop }) {
   const router = useRouter();
+  const getUser = () => typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
+  const getTimeAgo = (dateStr) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'now';
+    if (mins < 60) return `${mins}m`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}d`;
+  };
   const [drop] = useState(initialDrop);
   const [liked, setLiked] = useState(initialDrop.isLiked || false);
   const [likeCount, setLikeCount] = useState(initialDrop._count?.likes || 0);
@@ -15,14 +26,17 @@ export default function DropDetailClient({ drop: initialDrop }) {
   const [following, setFollowing] = useState(initialDrop.isFollowingBrand || false);
   const [notified, setNotified] = useState(false);
   const [newComment, setNewComment] = useState('');
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState(() => (initialDrop.comments || []).map((c) => ({
+    id: c.id,
+    user: c.user?.name || 'Anonymous',
+    text: c.text,
+    time: getTimeAgo(c.createdAt),
+  })));
   const [posting, setPosting] = useState(false);
   const [currentImg, setCurrentImg] = useState(0);
 
   const images = (initialDrop.imageUrls && initialDrop.imageUrls.length > 0) ? initialDrop.imageUrls : [initialDrop.imageUrl].filter(Boolean);
-  const touchStartX = { current: 0 };
-
-  const getUser = () => typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
+  const touchStartX = useRef(0);
 
   const requireLogin = () => {
     if (!getUser()) {
@@ -32,28 +46,6 @@ export default function DropDetailClient({ drop: initialDrop }) {
     }
     return true;
   };
-
-  useEffect(() => {
-    if (initialDrop.comments && initialDrop.comments.length > 0) {
-      setComments(initialDrop.comments.map(c => ({
-        id: c.id,
-        user: c.user?.name || 'Anonymous',
-        text: c.text,
-        time: getTimeAgo(c.createdAt),
-      })));
-    }
-  }, [initialDrop]);
-
-  function getTimeAgo(dateStr) {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'now';
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `${days}d`;
-  }
 
   const handleAddComment = async (e) => {
     e.preventDefault();

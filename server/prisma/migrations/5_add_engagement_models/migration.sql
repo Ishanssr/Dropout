@@ -14,9 +14,29 @@ CREATE TABLE IF NOT EXISTS "Like" (
 CREATE UNIQUE INDEX IF NOT EXISTS "Like_userId_dropId_key" ON "Like"("userId", "dropId");
 
 -- AddForeignKey
-ALTER TABLE "Like" ADD CONSTRAINT "Like_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'Like_userId_fkey'
+    ) THEN
+        ALTER TABLE "Like"
+        ADD CONSTRAINT "Like_userId_fkey"
+        FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
-ALTER TABLE "Like" ADD CONSTRAINT "Like_dropId_fkey" FOREIGN KEY ("dropId") REFERENCES "Drop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'Like_dropId_fkey'
+    ) THEN
+        ALTER TABLE "Like"
+        ADD CONSTRAINT "Like_dropId_fkey"
+        FOREIGN KEY ("dropId") REFERENCES "Drop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- CreateTable: Follow
 CREATE TABLE IF NOT EXISTS "Follow" (
@@ -32,9 +52,29 @@ CREATE TABLE IF NOT EXISTS "Follow" (
 CREATE UNIQUE INDEX IF NOT EXISTS "Follow_userId_brandId_key" ON "Follow"("userId", "brandId");
 
 -- AddForeignKey
-ALTER TABLE "Follow" ADD CONSTRAINT "Follow_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'Follow_userId_fkey'
+    ) THEN
+        ALTER TABLE "Follow"
+        ADD CONSTRAINT "Follow_userId_fkey"
+        FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
-ALTER TABLE "Follow" ADD CONSTRAINT "Follow_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'Follow_brandId_fkey'
+    ) THEN
+        ALTER TABLE "Follow"
+        ADD CONSTRAINT "Follow_brandId_fkey"
+        FOREIGN KEY ("brandId") REFERENCES "Brand"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- CreateTable: DropEntry
 CREATE TABLE IF NOT EXISTS "DropEntry" (
@@ -51,9 +91,29 @@ CREATE TABLE IF NOT EXISTS "DropEntry" (
 CREATE UNIQUE INDEX IF NOT EXISTS "DropEntry_userId_dropId_key" ON "DropEntry"("userId", "dropId");
 
 -- AddForeignKey
-ALTER TABLE "DropEntry" ADD CONSTRAINT "DropEntry_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'DropEntry_userId_fkey'
+    ) THEN
+        ALTER TABLE "DropEntry"
+        ADD CONSTRAINT "DropEntry_userId_fkey"
+        FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
-ALTER TABLE "DropEntry" ADD CONSTRAINT "DropEntry_dropId_fkey" FOREIGN KEY ("dropId") REFERENCES "Drop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'DropEntry_dropId_fkey'
+    ) THEN
+        ALTER TABLE "DropEntry"
+        ADD CONSTRAINT "DropEntry_dropId_fkey"
+        FOREIGN KEY ("dropId") REFERENCES "Drop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- CreateTable: DropNotification
 CREATE TABLE IF NOT EXISTS "DropNotification" (
@@ -70,9 +130,29 @@ CREATE TABLE IF NOT EXISTS "DropNotification" (
 CREATE UNIQUE INDEX IF NOT EXISTS "DropNotification_userId_dropId_key" ON "DropNotification"("userId", "dropId");
 
 -- AddForeignKey
-ALTER TABLE "DropNotification" ADD CONSTRAINT "DropNotification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'DropNotification_userId_fkey'
+    ) THEN
+        ALTER TABLE "DropNotification"
+        ADD CONSTRAINT "DropNotification_userId_fkey"
+        FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
-ALTER TABLE "DropNotification" ADD CONSTRAINT "DropNotification_dropId_fkey" FOREIGN KEY ("dropId") REFERENCES "Drop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'DropNotification_dropId_fkey'
+    ) THEN
+        ALTER TABLE "DropNotification"
+        ADD CONSTRAINT "DropNotification_dropId_fkey"
+        FOREIGN KEY ("dropId") REFERENCES "Drop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+    END IF;
+END $$;
 
 -- AlterTable: Add missing columns to Drop
 ALTER TABLE "Drop" ADD COLUMN IF NOT EXISTS "notifiedAt" TIMESTAMP(3);

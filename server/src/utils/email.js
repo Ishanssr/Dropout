@@ -1,6 +1,11 @@
-const { Resend } = require('resend');
+let Resend = null;
+try {
+  ({ Resend } = require('resend'));
+} catch (err) {
+  console.warn('[Email] Resend SDK not installed, email notifications disabled:', err.message);
+}
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const resend = process.env.RESEND_API_KEY && Resend ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'Dropamyn <alerts@dropamyn.com>';
 
 async function sendDropLiveEmail(userEmail, userName, drop) {

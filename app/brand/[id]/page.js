@@ -363,6 +363,7 @@ export default function BrandProfilePage() {
           }}>
             {drops.map((drop) => {
               const status = getDropStatus(drop);
+              const thumbSrc = drop.imageUrl || drop.imageUrls?.[0] || '';
               return (
                 <div
                   key={drop.id}
@@ -381,12 +382,20 @@ export default function BrandProfilePage() {
                     }}
                   >
                     <img
-                      src={drop.imageUrl}
+                      src={thumbSrc}
                       alt={drop.title}
                       loading="lazy"
                       style={{
                         width: '100%', height: '100%', objectFit: 'cover',
                         transition: 'transform 0.3s ease, filter 0.3s ease',
+                      }}
+                      onError={(e) => {
+                        const fallback = drop.imageUrls?.find((url) => url && url !== e.currentTarget.src);
+                        if (fallback) {
+                          e.currentTarget.src = fallback;
+                          return;
+                        }
+                        e.currentTarget.style.display = 'none';
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.filter = 'brightness(0.7)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.filter = 'brightness(1)'; }}

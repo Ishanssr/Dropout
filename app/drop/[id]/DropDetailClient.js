@@ -115,7 +115,7 @@ export default function DropDetailClient({ drop: initialDrop }) {
     <div style={{ maxWidth: '470px', margin: '0 auto', width: '100%' }}>
       {/* Back */}
       <div style={{ padding: '14px 16px' }}>
-        <Link href="/" style={{ color: '#3b82f6', fontSize: '13px', textDecoration: 'none', fontWeight: 500, letterSpacing: '-0.01em' }}>← Feed</Link>
+        <Link href="/feed" style={{ color: '#3b82f6', fontSize: '13px', textDecoration: 'none', fontWeight: 500, letterSpacing: '-0.01em' }}>← Feed</Link>
       </div>
 
       {/* Header */}
@@ -125,10 +125,10 @@ export default function DropDetailClient({ drop: initialDrop }) {
           background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', padding: '2px',
         }}>
           <img
-            src={drop.brand?.logo}
+            src={drop.brand?.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(drop.brand?.name || 'Brand')}&background=0a0a0f&color=3b82f6&size=36`}
             alt={drop.brand?.name}
             style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', background: 'var(--bg-secondary)', border: '2px solid var(--bg-primary)' }}
-            onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${drop.brand?.name}&background=0a0a0f&color=3b82f6&size=36`; }}
+            onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(drop.brand?.name || 'Brand')}&background=0a0a0f&color=3b82f6&size=36`; }}
           />
         </div>
         <div style={{ flex: 1 }}>

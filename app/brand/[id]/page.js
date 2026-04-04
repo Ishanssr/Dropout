@@ -132,7 +132,7 @@ export default function BrandProfilePage() {
       <div style={{ maxWidth: '470px', margin: '0 auto', padding: '60px 16px', textAlign: 'center' }}>
         <div style={{ fontSize: '32px', marginBottom: '16px', opacity: 0.5 }}>◇</div>
         <div style={{ fontWeight: 600, color: '#fff', fontFamily: "'Sora', sans-serif" }}>Brand not found</div>
-        <Link href="/" style={{ color: '#3b82f6', fontSize: '13px', textDecoration: 'none' }}>← Back to feed</Link>
+        <Link href="/feed" style={{ color: '#3b82f6', fontSize: '13px', textDecoration: 'none' }}>← Back to feed</Link>
       </div>
     );
   }

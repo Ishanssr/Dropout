@@ -133,9 +133,9 @@ export default function DropCard({ drop, index = 0 }) {
       <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', gap: '12px' }}>
         <Link href={`/brand/${drop.brand?.id || drop.brandId}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', padding: '2px' }}>
-            <img src={drop.brand?.logo} alt={drop.brand?.name}
+            <img src={drop.brand?.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(drop.brand?.name || 'Brand')}&background=0a0a0f&color=3b82f6&size=36`} alt={drop.brand?.name}
               style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', background: 'var(--bg-secondary)', border: '2px solid var(--bg-primary)' }}
-              onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${drop.brand?.name}&background=0a0a0f&color=3b82f6&size=36`; }}
+              onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(drop.brand?.name || 'Brand')}&background=0a0a0f&color=3b82f6&size=36`; }}
             />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
